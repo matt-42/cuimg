@@ -1,0 +1,71 @@
+
+
+- Tests convolve static vs dynamic with textures. OK
+
+
+
+nouveaux dossiers:
+    - gpu specific
+    - cpu specific
+    - a la racine: sources cpu/gpu n'utilisant que les mots clefs cuda
+
+
+ Répertoire de c:\Users\garrigues\Documents\projects\ensta-vision\Projects\cuimg\trunk\cuimg
+
+23/02/2011  13:31             3 018 builtin_math.h
+
+23/02/2011  13:31               604 convolve.h
+23/02/2011  13:31             2 888 convolve.hpp
+23/02/2011  13:31             3 033 copy.h
+25/02/2011  10:59    <REP>          cpu
+23/02/2011  13:31             3 732 dige.h
+23/02/2011  13:31             3 158 dige.hpp
+23/02/2011  13:31               453 error.h
+23/02/2011  13:31               691 fill.h
+23/02/2011  13:31             3 239 gaussian_kernel.h
+23/02/2011  13:31             4 012 gaussian_static.h
+25/02/2011  10:59    <REP>          gpu
+23/02/2011  13:31             1 046 host_image2d.h
+23/02/2011  13:31             2 332 host_image2d.hpp
+23/02/2011  13:31             1 187 host_image3d.h
+23/02/2011  13:31             2 892 host_image3d.hpp
+23/02/2011  13:31             1 258 image2d.h
+23/02/2011  13:31             2 184 image2d.hpp
+23/02/2011  13:31             2 439 image2d_math.h
+23/02/2011  13:31             1 144 image3d.h
+23/02/2011  13:31             2 246 image3d.hpp
+23/02/2011  13:31             7 253 improved_builtin.h
+23/02/2011  13:31            12 105 improved_builtin.hpp
+23/02/2011  13:31             7 094 improved_builtin.old.h
+23/02/2011  13:31             1 714 kernel_image2d.h
+23/02/2011  13:31             2 761 kernel_image2d.hpp
+23/02/2011  13:31             1 744 kernel_image3d.h
+23/02/2011  13:31             2 912 kernel_image3d.hpp
+23/02/2011  13:31             3 338 local_jet_overlap.h
+23/02/2011  13:31               680 local_jet_static.h
+23/02/2011  13:31             8 795 meta.h
+23/02/2011  13:31    <REP>          meta_gaussian
+23/02/2011  13:31         4 098 170 meta_gaussian_coef.h
+23/02/2011  13:31             2 436 neighb2d_data.h
+23/02/2011  13:31             1 001 neighb_iterator2d.h
+23/02/2011  13:31             1 200 neighb_iterator2d.hpp
+23/02/2011  13:31               958 obox2d.h
+23/02/2011  13:31               999 obox2d.hpp
+23/02/2011  13:31             1 046 obox3d.h
+23/02/2011  13:31             1 182 obox3d.hpp
+23/02/2011  13:31             1 313 paste.h
+24/02/2011  18:11               976 point2d.h
+23/02/2011  13:31             1 429 point2d.hpp
+23/02/2011  13:31               823 point3d.h
+23/02/2011  13:31             1 295 point3d.hpp
+23/02/2011  13:31             1 800 sort.h
+23/02/2011  13:31               860 static_neighb2d.h
+23/02/2011  13:31               801 static_neighb2d.hpp
+23/02/2011  13:31             3 868 texture.h
+25/02/2011  10:59               211 TODO
+23/02/2011  13:31             1 233 util.h
+23/02/2011  13:31             1 927 video_capture.cpp
+23/02/2011  13:31               848 video_capture.h
+23/02/2011  13:31             1 642 weighted_window.h
+              52 fichier(s)        4 216 158 octets
+               5 Rép(s)  47 723 134 976 octets libres
