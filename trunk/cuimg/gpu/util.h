@@ -1,10 +1,11 @@
-#ifndef CUIMG_UTIL_H_
-# define CUIMG_UTIL_H_
+#ifndef CUIMG_GPU_UTIL_H_
+# define CUIMG_GPU_UTIL_H_
 
 # include <cuimg/improved_builtin.h>
 # include <cuimg/obox2d.h>
 # include <cuimg/obox3d.h>
 # include <cuimg/error.h>
+# include <cuimg/util.h>
 
 namespace cuimg
 {
@@ -35,7 +36,14 @@ namespace cuimg
                 idivup(domain.nslices(), dimblock.z));
   }
 
-  #define CUIMG_PI 3.14159265
+  template <typename T>
+  __host__ __device__ inline void cuswap(T& a, T& b)
+  {
+    T tmp = a;
+    a = b;
+    b = tmp;
+  }
+
 }
 
 #endif

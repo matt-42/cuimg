@@ -4,7 +4,8 @@
 # include <cuimg/improved_builtin.h>
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/error.h>
-# include <cuimg/util.h>
+# include <cuimg/point2d.h>
+# include <cuimg/gpu/util.h>
 
 namespace cuimg
 {
@@ -33,7 +34,7 @@ namespace cuimg
 
 
   template<typename U, typename V>
-    void paste(const image2d<U>& in,
+  void paste(const image2d<U>& in,
                image2d<V>& out,
                dim3 dim_block = dim3(16, 16, 1))
   {

@@ -10,9 +10,9 @@
 namespace cuimg
 {
 
-  template <typename T, typename G>
-  void gaussian_noise(const cuimg::host_image2d<T>& in, cuimg::host_image2d<T>& out,
-                      T min, T max, G& generator)
+  template <typename T, typename U, typename G>
+  void gaussian_noise(const cuimg::host_image2d<T>& in, cuimg::host_image2d<U>& out,
+                      U min, U max, G& generator)
   {
     T middle = (max + min) / 2.f;
     T delta = (max - min) / 2.f;
@@ -24,9 +24,9 @@ namespace cuimg
       }
   }
 
-  template <typename T>
-  void gaussian_noise(const cuimg::host_image2d<T>& in, cuimg::host_image2d<T>& out, float sigma,
-                      T min, T max)
+  template <typename T, typename U>
+  void gaussian_noise(const cuimg::host_image2d<T>& in, cuimg::host_image2d<U>& out, float sigma,
+                      U min, U max)
   {
     boost::rand48 engine;
 
