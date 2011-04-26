@@ -9,8 +9,8 @@
 
 namespace cuimg
 {
-  template <typename T>
-  void copy(const image2d<T>& in, host_image2d<T>& out)
+  template <typename T, template <class> class IPT>
+  void copy(const image2d<T, IPT>& in, host_image2d<T>& out)
   {
     assert(in.domain() == out.domain());
     cudaMemcpy2D(out.data(), out.pitch(), in.data(), in.pitch(), in.ncols() * sizeof(T), in.nrows(),
@@ -18,8 +18,8 @@ namespace cuimg
     check_cuda_error();
   }
 
-  template <typename T>
-  void copy(const host_image2d<T>& in, image2d<T>& out)
+  template <typename T, template <class> class OPT>
+  void copy(const host_image2d<T>& in, image2d<T, OPT>& out)
   {
     assert(in.domain() == out.domain());
     cudaMemcpy2D(out.data(), out.pitch(), in.data(), in.pitch(), in.ncols() * sizeof(T), in.nrows(),
@@ -27,8 +27,8 @@ namespace cuimg
     check_cuda_error();
   }
 
-  template <typename T>
-  void copy(const image2d<T>& in, image2d<T>& out)
+  template <typename T, template <class> class IPT, template <class> class OPT>
+  void copy(const image2d<T, IPT>& in, image2d<T, OPT>& out)
   {
     assert(in.domain() == out.domain());
     cudaMemcpy2D(out.data(), out.pitch(), in.data(), in.pitch(), in.ncols() * sizeof(T), in.nrows(),
@@ -81,6 +81,16 @@ namespace cuimg
     p.extent.depth = in.nslices();
     p.kind = cudaMemcpyDeviceToDevice;
     cudaMemcpy3D(&p);
+    check_cuda_error();
+  }
+
+  template <typename T, template <class> class OPT>
+  void copy(const image3d<T>& in, image2d<T, OPT>& out, unsigned slice)
+  {
+    assert(in.nrows() == out.nrows() && in.ncols() == out.ncols());
+    cudaMemcpy2D(out.data(), out.pitch(), in.slice_data(slice), in.pitch(),
+                 in.ncols() * sizeof(T), in.nrows(),
+                 cudaMemcpyDeviceToDevice);
     check_cuda_error();
   }
 

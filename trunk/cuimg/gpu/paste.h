@@ -33,10 +33,10 @@ namespace cuimg
   }
 
 
-  template<typename U, typename V>
-  void paste(const image2d<U>& in,
-               image2d<V>& out,
-               dim3 dim_block = dim3(16, 16, 1))
+  template<typename U, template <class> class IPT, typename V, template <class> class OPT>
+  void paste(const image2d<U, IPT>& in,
+             image2d<V, OPT>& out,
+             dim3 dim_block = dim3(16, 16, 1))
   {
     assert(in.domain() == out.domain());
     dim3 dim_grid = grid_dimension(in.domain(), dim_block);

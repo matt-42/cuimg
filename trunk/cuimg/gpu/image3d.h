@@ -5,6 +5,7 @@
 
 # include <boost/shared_ptr.hpp>
 # include <cuimg/point3d.h>
+# include <cuimg/simple_ptr.h>
 # include <cuimg/obox3d.h>
 
 namespace cuimg
@@ -31,6 +32,12 @@ namespace cuimg
 
     __host__ __device__ inline V* data();
     __host__ __device__ inline const V* data() const;
+
+    __host__ __device__ inline image2d<V, simple_ptr> slice(unsigned s);
+    __host__ __device__ inline const image2d<V, simple_ptr> slice(unsigned s) const;
+
+    __host__ __device__ inline V* slice_data(unsigned s);
+    __host__ __device__ inline const V* slice_data(unsigned s) const;
 
   private:
     domain_type domain_;

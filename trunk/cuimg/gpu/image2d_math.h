@@ -56,34 +56,34 @@ namespace cuimg
 
   }
 
-  template <typename I, typename O>
+  template <typename I, template <class> class IPT, typename O, template <class> class OPT>
   inline
-  void abs(const image2d<I>& in, const image2d<O>& out, dim3 dimblock = dim3(16, 16))
+  void abs(const image2d<I, IPT>& in, const image2d<O, OPT>& out, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
     internal::abs_kernel<<<dimgrid, dimblock>>>(mki(in), mki(out));
   }
 
-  template <typename I>
+  template <typename I, template <class> class IPT>
   inline
-  void set_alpha_channel(image2d<I>& in, dim3 dimblock = dim3(16, 16))
+  void set_alpha_channel(image2d<I, IPT>& in, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
     internal::set_alpha_kernel<<<dimgrid, dimblock>>>(mki(in));
   }
 
 
-  template <typename I, typename S>
+  template <typename I, template <class> class IPT, typename S>
   inline
-  void mult(image2d<I>& in, const S& s, dim3 dimblock = dim3(16, 16))
+  void mult(image2d<I, IPT>& in, const S& s, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
     internal::mult_kernel<<<dimgrid, dimblock>>>(mki(in), s);
   }
 
-  template <typename I>
+  template <typename I, template <class> class IPT>
   inline
-  void add(image2d<I>& in, const I& s, dim3 dimblock = dim3(16, 16))
+  void add(image2d<I, IPT>& in, const I& s, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
     internal::add_kernel<<<dimgrid, dimblock>>>(mki(in), s);

@@ -9,7 +9,7 @@
 
 namespace cuimg
 {
-  template <typename V>
+  template <typename V, template <class> class PT = boost::shared_ptr>
   class image2d
   {
   public:
@@ -18,10 +18,14 @@ namespace cuimg
     typedef obox2d<point> domain_type;
 
     inline image2d(unsigned nrows, unsigned ncols);
+    inline image2d(V* data, unsigned nrows, unsigned ncols, unsigned pitch);
     inline image2d(const domain_type& d);
 
-    __host__ __device__ inline image2d(const image2d<V>& d);
-    __host__ __device__ inline image2d<V>& operator=(const image2d<V>& d);
+    template <template <class> class IPT>
+    __host__ __device__ inline image2d(const image2d<V, IPT>& d);
+
+    template <template <class> class IPT>
+    __host__ __device__ inline image2d<V, PT>& operator=(const image2d<V, IPT>& d);
 
     __host__ __device__ inline const domain_type& domain() const;
     __host__ __device__ inline unsigned nrows() const;
@@ -33,13 +37,13 @@ namespace cuimg
 
     __host__ __device__ inline bool has(const point& p) const;
 
-    __host__ inline const boost::shared_ptr<V> data_sptr() const;
-    __host__ inline boost::shared_ptr<V> data_sptr();
+    __host__ __device__ inline const PT<V> data_sptr() const;
+    __host__ __device__ inline PT<V> data_sptr();
 
   private:
     domain_type domain_;
     size_t pitch_;
-    boost::shared_ptr<V> data_;
+    PT<V> data_;
     V* data_ptr_;
   };
 

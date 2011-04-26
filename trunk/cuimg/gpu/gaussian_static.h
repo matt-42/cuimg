@@ -81,23 +81,25 @@ namespace cuimg
   }
 
   template <typename I, typename O, int N, int SIGMA, int KERNEL_HALF_SIZE>
-    void gaussian_static_row2d(const image2d<I>& in, image2d<O>& out, dim3 dimblock = dim3(16, 16))
+  void gaussian_static_row2d(const I& in, O& out, dim3 dimblock = dim3(16, 16))
   {
     assert(in.domain() == out.domain());
-    bindTexture2d(in, gaussian_internal::g_input_tex<typename I::cuda_bt>::tex());
+    bindTexture2d(in, gaussian_internal::g_input_tex<typename I::value_type::cuda_bt>::tex());
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
-    gaussian_internal::gaussian_row_static_kernel<typename I::cuda_bt, O, N, SIGMA, KERNEL_HALF_SIZE>
+    gaussian_internal::gaussian_row_static_kernel
+    <typename I::value_type::cuda_bt, typename O::value_type, N, SIGMA, KERNEL_HALF_SIZE>
       <<<dimgrid, dimblock>>>(mki(out));
     check_cuda_error();
   }
 
   template <typename I, typename O, int N, int SIGMA, int KERNEL_HALF_SIZE>
-    void gaussian_static_col2d(const image2d<I>& in, image2d<O>& out, dim3 dimblock = dim3(16, 16))
+  void gaussian_static_col2d(const I& in, O& out, dim3 dimblock = dim3(16, 16))
   {
     assert(in.domain() == out.domain());
-    bindTexture2d(in, gaussian_internal::g_input_tex<typename I::cuda_bt>::tex());
+    bindTexture2d(in, gaussian_internal::g_input_tex<typename I::value_type::cuda_bt>::tex());
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
-    gaussian_internal::gaussian_col_static_kernel<typename I::cuda_bt, O, N, SIGMA, KERNEL_HALF_SIZE>
+    gaussian_internal::gaussian_col_static_kernel
+    <typename I::value_type::cuda_bt, typename O::value_type, N, SIGMA, KERNEL_HALF_SIZE>
       <<<dimgrid, dimblock>>>(mki(out));
     check_cuda_error();
   }

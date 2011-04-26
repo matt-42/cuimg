@@ -10,8 +10,8 @@
 namespace cuimg
 {
 
-  template<typename U, typename T, enum cudaTextureReadMode READMODE>
-  void bindTexture2d(const image2d<U>& img, texture<T, 2, READMODE>& texref)
+  template<typename U, template <class> class IPT, typename T, enum cudaTextureReadMode READMODE>
+  void bindTexture2d(const image2d<U, IPT>& img, texture<T, 2, READMODE>& texref)
   {
     cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
     cudaBindTexture2D(0, texref, (void*)img.data(), channelDesc,

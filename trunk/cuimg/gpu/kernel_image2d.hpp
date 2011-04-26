@@ -20,7 +20,8 @@ namespace cuimg
   }
 
   template <typename V>
-  kernel_image2d<V>::kernel_image2d(const image2d<V>& img)
+  template <template <class> class PT>
+  kernel_image2d<V>::kernel_image2d(const image2d<V, PT>& img)
     : domain_(img.domain()),
       pitch_(img.pitch()),
       data_(const_cast<V*>(img.data()))
@@ -38,8 +39,9 @@ namespace cuimg
   }
 
   template <typename V>
+  template <template <class> class PT>
   kernel_image2d<V>&
-  kernel_image2d<V>::operator=(const image2d<V>& img)
+  kernel_image2d<V>::operator=(const image2d<V, PT>& img)
   {
     domain_ = img.domain();
     pitch_ = img.pitch();

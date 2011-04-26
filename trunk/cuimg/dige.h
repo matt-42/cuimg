@@ -7,6 +7,7 @@
 
 # include <cuimg/cpu/host_image2d.h>
 # include <cuimg/gpu/image2d.h>
+# include <cuimg/simple_ptr.h>
 
 namespace dg
 {
@@ -57,7 +58,8 @@ namespace dg
     template <>
     struct ib_to_opengl_internal_type<cuimg::i_float4> { enum { val = GL_RGBA32F }; };
 
-    cuda_opengl_texture(const cuimg::image2d<cuimg::improved_builtin<V, N> >& img)
+    template <template <class> class PT>
+    cuda_opengl_texture(const cuimg::image2d<cuimg::improved_builtin<V, N>, PT>& img)
       : img_(img)
     {
     }
@@ -116,14 +118,14 @@ namespace dg
     unsigned height() const { return img_.nrows(); }
 
   private:
-    cuimg::image2d<cuimg::improved_builtin<V, N> > img_;
+    cuimg::image2d<cuimg::improved_builtin<V, N>, cuimg::simple_ptr> img_;
     GLuint gl_id_;
   };
 
 
-  template<typename V, unsigned N>
+  template<typename V, unsigned N, template <class> class PT>
   cuda_opengl_texture<V, N>
-  adapt(const cuimg::image2d<cuimg::improved_builtin<V, N> >& i)
+  adapt(const cuimg::image2d<cuimg::improved_builtin<V, N>, PT>& i)
   {
     return cuda_opengl_texture<V, N>(i);
   }

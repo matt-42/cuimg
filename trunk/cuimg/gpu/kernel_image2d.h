@@ -18,10 +18,14 @@ namespace cuimg
     __host__ __device__ inline kernel_image2d();
 
     __host__ __device__ inline kernel_image2d(const kernel_image2d<V>& img);
-    __host__ __device__ inline kernel_image2d(const image2d<V>& img);
+
+    template <template <class> class PT>
+    __host__ __device__ inline kernel_image2d(const image2d<V, PT>& img);
 
     __host__ __device__ inline kernel_image2d<V>& operator=(const kernel_image2d<V>& img);
-    __host__ __device__ inline kernel_image2d<V>& operator=(const image2d<V>& img);
+
+    template <template <class> class PT>
+    __host__ __device__ inline kernel_image2d<V>& operator=(const image2d<V, PT>& img);
 
     __host__ __device__ inline const domain_type& domain() const;
     __host__ __device__ inline unsigned nrows() const;
@@ -48,8 +52,8 @@ namespace cuimg
     V* data_;
   };
 
-  template <typename V>
-  kernel_image2d<V> mki(const image2d<V>& img)
+  template <typename V, template <class> class PT>
+  kernel_image2d<V> mki(const image2d<V, PT>& img)
   {
     return img;
   }
