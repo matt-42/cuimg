@@ -36,5 +36,6 @@ namespace cuimg
 # include <cuimg/neighb_iterator2d.hpp>
 
 # define for_all(p) for(p.start(); p.is_valid(); p.next())
+# define for_all_2(p1, p2) for(p1.start(), p2.start(); p1.is_valid(); p1.next(), p2.next())
 
 #endif

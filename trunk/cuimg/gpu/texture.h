@@ -2,8 +2,8 @@
 # define CUIMG_TEXTURE_H_
 
 # include <cuda.h>
-# include <cuda_runtime.h>
 # include <cuda_runtime_api.h>
+# include <cuda_runtime.h>
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/error.h>
 

@@ -3,6 +3,7 @@
 
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/error.h>
+# include <cuimg/gpu/util.h>
 
 namespace cuimg
 {
@@ -58,6 +59,60 @@ namespace cuimg
     pitch_ = img.pitch();
     data_ = img.data_sptr();
     data_ptr_ = img.data();
+    return *this;
+  }
+
+  namespace internal
+  {
+    template <typename I, typename E>
+    __global__ void assign_kernel(kernel_image2d<I> out, E e)
+    {
+      i_int2 p = thread_pos2d();
+
+      if (out.has(p))
+        out(p) = e.eval(p);
+    }
+
+    template <typename I, typename S>
+    __global__ void assign_kernel2(kernel_image2d<I> out, const S s)
+    {
+      //E exp = *(E*)(&e);
+      i_int2 p = thread_pos2d();
+
+      if (out.has(p))
+//        out(p) = ((E*)(&e))->eval(p);
+        out(p) = out(p) + s;//i_float4(0.5f, 0.5f, 0.5f, 0.f);
+    }
+  }
+
+  template <typename A, template <class> class AP, typename E>
+  inline void
+  assign(image2d<A, AP>& out, expr<E>& e, dim3 dimblock = dim3(16, 16))
+  {
+    int N = sizeof(E) + sizeof(image2d<A, AP>);
+    dim3 dimgrid = grid_dimension(out.domain(), dimblock);
+    E x(*static_cast<E*>(&e));
+    internal::assign_kernel<<<dimgrid, dimblock>>>(mki(out), *(E*)&e);
+   // internal::assign_kernel<<<dimgrid, dimblock>>>(mki(out));
+    check_cuda_error();
+  }
+
+
+  template <typename A, template <class> class AP>
+  inline void
+  assign2(image2d<A, AP>& out, dim3 dimblock = dim3(16, 16))
+  {
+    dim3 dimgrid = grid_dimension(out.domain(), dimblock);
+    internal::assign_kernel2<<<dimgrid, dimblock>>>(kernel_image2d<A>(out), i_float4(0.5f, 0.5f, 0.5f, 0.f));
+  }
+
+
+  template <typename V, template <class> class PT>
+  template <typename E>
+  image2d<V, PT>&
+  image2d<V, PT>::operator=(expr<E>& e)
+  {
+    assign(*this, e);
     return *this;
   }
 

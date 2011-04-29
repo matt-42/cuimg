@@ -236,6 +236,8 @@ struct bt_change_vtype
 
 }
 
+BOOST_TYPEOF_REGISTER_TEMPLATE(cuimg::improved_builtin, (typename)(unsigned))
+
 # include <cuimg/improved_builtin.hpp>
 
 #endif

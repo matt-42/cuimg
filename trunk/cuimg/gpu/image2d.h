@@ -6,6 +6,7 @@
 # include <boost/shared_ptr.hpp>
 # include <cuimg/point2d.h>
 # include <cuimg/obox2d.h>
+# include <cuimg/gpu/arith/expr.h>
 
 namespace cuimg
 {
@@ -26,6 +27,9 @@ namespace cuimg
 
     template <template <class> class IPT>
     __host__ __device__ inline image2d<V, PT>& operator=(const image2d<V, IPT>& d);
+
+    template <typename E>
+    __host__ inline image2d<V, PT>& operator=(expr<E>& e);
 
     __host__ __device__ inline const domain_type& domain() const;
     __host__ __device__ inline unsigned nrows() const;
@@ -48,6 +52,8 @@ namespace cuimg
   };
 
 }
+
+# include <cuimg/gpu/kernel_image2d.h>
 
 # include <cuimg/gpu/image2d.hpp>
 

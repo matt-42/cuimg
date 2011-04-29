@@ -7,6 +7,7 @@
 
 # include <cuimg/cpu/host_image2d.h>
 # include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/image2d_math.h>
 # include <cuimg/simple_ptr.h>
 
 namespace dg
@@ -127,6 +128,7 @@ namespace dg
   cuda_opengl_texture<V, N>
   adapt(const cuimg::image2d<cuimg::improved_builtin<V, N>, PT>& i)
   {
+    set_alpha_channel(*const_cast<cuimg::image2d<cuimg::improved_builtin<V, N>, PT>*>(&i));
     return cuda_opengl_texture<V, N>(i);
   }
 

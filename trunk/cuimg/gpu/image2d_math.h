@@ -9,6 +9,7 @@
 
 namespace cuimg
 {
+
   namespace internal
   {
     template <typename I, typename O>
@@ -54,6 +55,15 @@ namespace cuimg
         img(p) += a;
     }
 
+    template <typename I>
+    __global__ void minus_kernel(kernel_image2d<I> a, kernel_image2d<I> b, kernel_image2d<I> out)
+    {
+      i_int2 p = thread_pos2d();
+
+      if (out.has(p))
+        out(p) = a(p) - b(p);
+    }
+
   }
 
   template <typename I, template <class> class IPT, typename O, template <class> class OPT>
@@ -87,6 +97,16 @@ namespace cuimg
   {
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
     internal::add_kernel<<<dimgrid, dimblock>>>(mki(in), s);
+  }
+
+  template <typename A, template <class> class APT,
+            typename B, template <class> class BPT,
+            typename O, template <class> class OPT>
+  inline
+  void minus(image2d<A, APT>& a, image2d<B, BPT>& b, image2d<O, OPT>& out, dim3 dimblock = dim3(16, 16))
+  {
+    dim3 dimgrid = grid_dimension(a.domain(), dimblock);
+    internal::minus_kernel<<<dimgrid, dimblock>>>(mki(a), mki(b), mki(out));
   }
 
 

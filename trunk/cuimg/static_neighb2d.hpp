@@ -17,7 +17,7 @@ namespace cuimg
   }
 
   template <unsigned S>
-  const static_neighb2d<S>::point& static_neighb2d<S>::operator[](unsigned s) const
+  const typename static_neighb2d<S>::point& static_neighb2d<S>::operator[](unsigned s) const
   {
     return *(point2d<int>*)(dpoints_[s]);
   }

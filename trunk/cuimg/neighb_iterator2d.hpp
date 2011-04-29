@@ -42,13 +42,13 @@ namespace cuimg
   }
 
   template <typename N>
-  const neighb_iterator2d<N>::point& neighb_iterator2d<N>::operator*() const
+  const typename neighb_iterator2d<N>::point& neighb_iterator2d<N>::operator*() const
   {
       return p_;
   }
 
   template <typename N>
-  const neighb_iterator2d<N>::point* neighb_iterator2d<N>::operator->() const
+  const typename neighb_iterator2d<N>::point* neighb_iterator2d<N>::operator->() const
   {
       return &p_;
   }

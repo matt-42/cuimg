@@ -140,5 +140,10 @@ namespace cuimg
   neighb_iterator2d<static_neighb2d<sizeof(dps) / (2 * sizeof(int))> > n(p, dps); \
   for_all(n)
 
+#define for_all_2_in_static_neighb2d(p1, n1, p2, n2, dps)                  \
+  neighb_iterator2d<static_neighb2d<sizeof(dps) / (2 * sizeof(int))> > n1(p1, dps); \
+  neighb_iterator2d<static_neighb2d<sizeof(dps) / (2 * sizeof(int))> > n2(p2, dps); \
+  for_all_2(n1, n2)
+
 }
 #endif
