@@ -89,7 +89,6 @@ namespace cuimg
   inline void
   assign(image2d<A, AP>& out, expr<E>& e, dim3 dimblock = dim3(16, 16))
   {
-    int N = sizeof(E) + sizeof(image2d<A, AP>);
     dim3 dimgrid = grid_dimension(out.domain(), dimblock);
     E x(*static_cast<E*>(&e));
     internal::assign_kernel<<<dimgrid, dimblock>>>(mki(out), *(E*)&e);

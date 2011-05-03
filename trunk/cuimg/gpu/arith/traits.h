@@ -2,6 +2,7 @@
 # define CUIMG_GPU_TRAITS_H_
 
 # include <cuimg/gpu/arith/expr.h>
+# include <cuimg/improved_builtin.h>
 
 namespace cuimg
 {
@@ -35,11 +36,11 @@ namespace cuimg
   template <typename T, int is_expr>
   struct return_type_selector;
 
-  template <typename T>
-  struct return_type_selector<T, 1>
-  {
-    typedef typename T::return_type ret;
-  };
+  /* template <typename T> */
+  /* struct return_type_selector<T, 1> */
+  /* { */
+  /*   typedef typename T::return_type ret; */
+  /* }; */
 
   template <typename T>
   struct return_type_selector<T, 2>
@@ -59,11 +60,55 @@ namespace cuimg
     typedef typename return_type_selector<T, arith_trait<T>::value>::ret ret;
   };
 
+  template <typename T>
+  struct return_type<const T>
+  {
+    typedef typename return_type<T>::ret ret;
+  };
+
+  template <typename T, unsigned PADDING>
+  struct padded_member
+  {
+  private:
+    unsigned char align_padding[PADDING];
+
+  public:
+    __host__ __device__ padded_member(const T& m_)
+      : m(m_)
+    {
+    }
+
+    __host__ __device__ padded_member<T, PADDING>& operator=(const padded_member<T, PADDING>& o)
+    {
+      m = o.m;
+    }
+
+    T m;
+  };
+
+  template <typename T>
+  struct padded_member<T, 0>
+  {
+  public:
+    __host__ __device__ padded_member(const T& m_)
+      : m(m_)
+    {
+    }
+
+    T m;
+  };
+
+  template <typename T, unsigned OFFSET>
+  struct align_member
+  {
+    typedef padded_member<T, __alignof(T) - ((2*__alignof(T) - 1 + OFFSET) % __alignof(T)) - 1> ret;
+  };
+
 
   template <typename T>
   struct kernel_type
   {
-    typedef T ret;
+    typedef typename T ret;
   };
 
   template <typename I, template <class> class PT>

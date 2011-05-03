@@ -25,18 +25,8 @@ namespace cuimg
     enum { value = sizeof(sfinae((E*)0)) };
   };
 
-
-
   template <typename T, int is_expr>
   struct return_type_selector;
-
-
-
-  template <typename T>
-  struct return_type_selector<T, 1>
-  {
-    typedef typename T::return_type ret;
-  };
 
   template <typename T>
   struct return_type_selector<T, 2>

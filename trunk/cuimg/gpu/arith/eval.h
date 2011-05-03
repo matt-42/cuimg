@@ -8,6 +8,11 @@
 namespace cuimg
 {
 
+  template <typename X>
+  inline __device__
+  typename return_type<X>::ret
+  eval(X& x, point2d<int> p);
+
   template <typename X, int T>
   struct eval_selector
   {
@@ -24,7 +29,7 @@ namespace cuimg
   {
     static inline __device__
     typename return_type<X>::ret
-    run(X& x, point2d<int> p)
+    run(const X& x, point2d<int> p)
     {
       return x.eval(p);
     }
@@ -48,6 +53,10 @@ namespace cuimg
   {
     return eval_selector<X, arith_trait<X>::value>::run(x, p);
   }
+
+  template <typename TAG>
+    struct evaluator;
+
 
 }
 
