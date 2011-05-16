@@ -58,6 +58,8 @@ namespace dg
     struct ib_to_opengl_internal_type {};
     template <>
     struct ib_to_opengl_internal_type<cuimg::i_float4> { enum { val = GL_RGBA32F }; };
+    template <>
+    struct ib_to_opengl_internal_type<cuimg::i_float1> { enum { val = GL_LUMINANCE32F_ARB }; };
 
     template <template <class> class PT>
     cuda_opengl_texture(const cuimg::image2d<cuimg::improved_builtin<V, N>, PT>& img)
@@ -128,8 +130,15 @@ namespace dg
   cuda_opengl_texture<V, N>
   adapt(const cuimg::image2d<cuimg::improved_builtin<V, N>, PT>& i)
   {
-    set_alpha_channel(*const_cast<cuimg::image2d<cuimg::improved_builtin<V, N>, PT>*>(&i));
     return cuda_opengl_texture<V, N>(i);
+  }
+
+  template<typename V, template <class> class PT>
+  cuda_opengl_texture<V, 4>
+  adapt(const cuimg::image2d<cuimg::improved_builtin<V, 4>, PT>& i)
+  {
+    set_alpha_channel(*const_cast<cuimg::image2d<cuimg::improved_builtin<V, 4>, PT>*>(&i));
+    return cuda_opengl_texture<V, 4>(i);
   }
 
 }

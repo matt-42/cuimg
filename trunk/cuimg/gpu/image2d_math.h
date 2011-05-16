@@ -23,9 +23,9 @@ namespace cuimg
 
     template <typename I> __device__ I alpha_max();
 
-    template <> __device__ float alpha_max<float>() { return 1.; }
-    template <> __device__ char alpha_max<char>() { return 127; }
-    template <> __device__ unsigned char alpha_max<unsigned char>() { return 255; }
+    template <> __device__ inline float alpha_max<float>() { return 1.; }
+    template <> __device__ inline char alpha_max<char>() { return 127; }
+    template <> __device__ inline unsigned char alpha_max<unsigned char>() { return 255; }
 
     template <typename I>
     __global__ void set_alpha_kernel(kernel_image2d<I> img)
@@ -62,6 +62,20 @@ namespace cuimg
 
       if (out.has(p))
         out(p) = a(p) - b(p);
+    }
+
+    template <typename I, unsigned N>
+    __global__ void unsaturate_kernel(kernel_image2d<improved_builtin<I, N> > img, I v)
+    {
+      i_int2 p = thread_pos2d();
+
+      if (img.has(p))
+      {
+        improved_builtin<I, N> res = img(p);
+        for (unsigned i = 0; i < N; i++)
+          res[i] = res[i] > v ? v : res[i];
+        img(p) = res;
+      }
     }
 
   }
@@ -107,6 +121,14 @@ namespace cuimg
   {
     dim3 dimgrid = grid_dimension(a.domain(), dimblock);
     internal::minus_kernel<<<dimgrid, dimblock>>>(mki(a), mki(b), mki(out));
+  }
+
+  template <typename A, template <class> class APT, typename V>
+  inline
+  void unsaturate(image2d<A, APT>& a, V v, dim3 dimblock = dim3(16, 16))
+  {
+    dim3 dimgrid = grid_dimension(a.domain(), dimblock);
+    internal::unsaturate_kernel<<<dimgrid, dimblock>>>(mki(a), v);
   }
 
 

@@ -81,6 +81,7 @@ namespace cuimg
     __host__ __device__ padded_member<T, PADDING>& operator=(const padded_member<T, PADDING>& o)
     {
       m = o.m;
+      return *this;
     }
 
     T m;
