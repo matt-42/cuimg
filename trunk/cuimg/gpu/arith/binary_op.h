@@ -1,6 +1,7 @@
 #ifndef CUIMG_GPU_BINARY_OP_H_
 # define CUIMG_GPU_BINARY_OP_H_
 
+# include <cuimg/meta.h>
 # include <cuimg/gpu/arith/expr.h>
 # include <cuimg/gpu/arith/traits.h>
 # include <cuimg/gpu/arith/eval.h>
@@ -11,7 +12,7 @@ namespace cuimg
   struct evaluator;
 
   template <typename TAG, typename A1, typename A2, unsigned P1, unsigned P2>
-  struct binary_op : public expr<binary_op<TAG, A1, A2, P1, P2> >
+  struct binary_op : public expr<binary_op<typename meta::id<TAG>::ret, A1, A2, P1, P2> >
   {
   public:
     typedef binary_op<TAG, A1, A2, P1, P2> self;
@@ -39,7 +40,7 @@ namespace cuimg
   };
 
   template <typename TAG, typename A1, typename A2, unsigned P1>
-  struct binary_op<TAG, A1, A2, P1, 0> : public expr<binary_op<TAG, A1, A2, P1, 0> >
+  struct binary_op<TAG, A1, A2, P1, 0> : public expr<binary_op<typename meta::id<TAG>::ret, A1, A2, P1, 0> >
   {
   public:
     typedef binary_op<TAG, A1, A2, P1, 0> self;
@@ -66,7 +67,7 @@ namespace cuimg
   };
 
   template <typename TAG, typename A1, typename A2, unsigned P2>
-  struct binary_op<TAG, A1, A2, 0, P2> : public expr<binary_op<TAG, A1, A2, 0, P2> >
+  struct binary_op<TAG, A1, A2, 0, P2> : public expr<binary_op<typename meta::id<TAG>::ret, A1, A2, 0, P2> >
   {
   public:
     typedef binary_op<TAG, A1, A2, 0, P2> self;
@@ -93,7 +94,7 @@ namespace cuimg
   };
 
   template <typename TAG, typename A1, typename A2>
-  struct binary_op<TAG, A1, A2, 0, 0> : public expr<binary_op<TAG, A1, A2, 0, 0> >
+  struct binary_op<TAG, A1, A2, 0, 0> : public expr<binary_op<typename meta::id<TAG>::ret, A1, A2, 0, 0> >
   {
   public:
     typedef binary_op<TAG, A1, A2, 0, 0> self;

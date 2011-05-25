@@ -90,6 +90,7 @@ namespace dg
 
         cudaGraphicsGLRegisterImage(&t.resource, t.gl_id,
           GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard);
+        check_gl_error();
         check_cuda_error();
         internal::textures[(char*)img_.data()] = t;
       }

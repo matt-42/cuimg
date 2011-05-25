@@ -75,6 +75,11 @@ namespace cuimg
     return unsigned(cap_->get(CV_CAP_PROP_FRAME_HEIGHT));
   }
 
+  void video_capture::rewind()
+  {
+    cap_->set(CV_CAP_PROP_POS_FRAMES, 0);
+  }
+
   unsigned video_capture::ncols()
   {
     return unsigned(cap_->get(CV_CAP_PROP_FRAME_WIDTH));

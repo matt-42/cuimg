@@ -37,6 +37,7 @@ namespace cuimg
     unsigned nrows();
     unsigned ncols();
     bool finished();
+    void rewind();
 
   protected:
     cv::VideoCapture* cap_;

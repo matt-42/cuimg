@@ -11,6 +11,8 @@ namespace cuimg
   void local_jet_static(const TI& in, TO& out, TT& tmp, dim3 dimblock = dim3(16, 16))
   {
     assert(in.domain() == out.domain());
+    assert(in.domain() == tmp.domain());
+
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
 
     gaussian_static_row2d<typename TI, TT, I, SIGMA, KERNEL_HALF_SIZE>(in, tmp);

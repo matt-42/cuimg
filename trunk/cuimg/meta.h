@@ -25,6 +25,12 @@ namespace cuimg
       static __device__ __host__ inline void check() {};
     };
 
+    template <typename T>
+    struct id
+    {
+      typedef T ret;
+    };
+
     template <int B>
     struct bool_ : public true_ {};
 
