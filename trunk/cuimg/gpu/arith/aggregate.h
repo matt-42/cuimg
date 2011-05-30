@@ -53,7 +53,7 @@ namespace cuimg
   {
     typedef int is_expr;
 
-    aggregate_4(A a, B b, C c)
+    aggregate_3(A a, B b, C c)
       : a_(a),
         b_(b),
         c_(c)
@@ -112,12 +112,17 @@ namespace cuimg
   template <typename T>
   struct aggregate
   {
+
+    template <typename A>
     static aggregate_1<T, A> run(A a)
     { return aggregate_1<T, A>(a); }
+    template <typename A, typename B>
     static aggregate_2<T, A, B> run(A a, B b)
     { return aggregate_2<T, A, B>(a, b); }
+    template <typename A, typename B, typename C>
     static aggregate_3<T, A, B, C> run(A a, B b, C c)
     { return aggregate_3<T, A, B, C>(a, b, c); }
+    template <typename A, typename B, typename C, typename D>
     static aggregate_4<T, A, B, C, D> run(A a, B b, C c, D d)
     { return aggregate_4<T, A, B, C, D>(a, b, c, d); }
   };
