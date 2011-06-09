@@ -3,8 +3,7 @@
 
 # include <cuda_runtime.h>
 # include <iostream>
-# include <boost/shared_ptr.hpp>
-# include <cuimg/point2d.h>
+# include <cassert>
 
 namespace cuimg
 {

@@ -1,0 +1,348 @@
+\documentclass{beamer}
+
+
+\mode<presentation> {
+%  \usetheme{Warsaw}
+  \usetheme{Frankfurt}
+  % ou autre ...
+
+%\setbeamertemplate{footline}[frame number]
+%  \setbeamertemplate{navigation symbols}{}
+
+
+%\setbeamertemplate
+%{footline}
+%{\quad\strut\insertsection
+%\hfill\insertframenumber/\inserttotalframenumber\strut\quad}
+
+%  \useinnertheme[shadow=false]{rounded}
+
+  \setbeamercovered{transparent}
+\useoutertheme[subsection=false, footline=authortitle]{miniframes}
+
+  % ou autre chose (il est également possible de supprimer cette ligne)
+}
+
+\newcommand*\oldmacro{}%
+\let\oldmacro\insertshorttitle%
+\renewcommand*\insertshorttitle{%
+  \oldmacro\hfill%
+  \insertframenumber\,/\,\inserttotalframenumber}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+%\usepackage[usenames]{color}
+%\usepackage[usenames,dvipsnames]{color}
+%%%%%\usepackage{subfigure}
+
+% Anti aliasing with pdflatex
+\usepackage{aeguill}
+
+%\usepackage{fullpage}
+%\usepackage[pdfborder={0 0 0}, bookmarks,
+%  bookmarksopen, bookmarksnumbered,
+%  bookmarksopenlevel={2}, backref,pdfauthor={},
+%  pdftitle={}]{hyperref}
+
+\usepackage{amsmath,amsfonts,amscd,amssymb}
+\usepackage{listings,textcomp}
+\usepackage{graphicx}
+%\usepackage{afterpage}
+%\usepackage{float}
+%\usepackage{multicol}
+\usepackage{ifthen}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usetikzlibrary{plotmarks}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes}
+\usetikzlibrary{fit}
+
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+
+\usepackage{pgfplots}
+\usepackage{array}
+\usepackage{multicol}
+\usepackage{verbatim}
+
+%% info sur le document
+\title{Cuimg: A small image processing framework based on CUDA}
+\author[Matthieu Garrigues]{Matthieu Garrigues  \texttt{<matthieu.garrigues@ensta.fr>}}
+
+\date{\today}
+
+\AtBeginSubsection[] {
+  \begin{frame}<beamer>{Overview of the presentation}
+    \tableofcontents[currentsection,currentsubsection]
+  \end{frame}
+}
+
+\newcommand \pgfmathparseint[2]
+{
+  \pgfmathparse{#2};
+  \pgfmathfloatparsenumber{\pgfmathresult}
+  \pgfmathfloattoint{\pgfmathresult};
+  \let#1\pgfmathresult;
+}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\usepackage[scaled]{beramono}
+
+\lstset{
+  language=C++,
+  keywordstyle=\bfseries\ttfamily\color[rgb]{0,0.3,0},
+  identifierstyle=\ttfamily,
+  commentstyle=\color[rgb]{0.133,0.545,0.133},
+  stringstyle=\ttfamily\color[rgb]{0.627,0.126,0.941},
+  showstringspaces=false,
+  basicstyle=\tiny,
+%  numberstyle=\footnotesize,
+  numbers=left,
+  stepnumber=1,
+  numbersep=10pt,
+  tabsize=2,
+  breaklines=true,
+  breakatwhitespace=false,
+%  aboveskip={1.5baselineskip},
+  columns=fixed,
+  upquote=true,
+  extendedchars=true,
+  mathescape=true,
+  morecomment=[l]{//},
+  emph={selectmin, selectmax, reorder},
+  emphstyle=\bfseries\ttfamily\color{MidnightBlue},
+  escapeinside={(*@}{@*)}
+}
+
+\begin{document}
+
+\begin{frame}
+\maketitle
+\end{frame}
+
+
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Goals}
+
+\begin{frame}{Goals}
+  \begin{itemize}
+  \item Write efficient image processing applications
+  \item With CUDA
+  \item Reduce the size of the application code
+  \item ... and the number of potential bugs
+  \end{itemize}
+\end{frame}
+
+\section{Bases}
+
+\begin{frame}[containsverbatim]{Image types}
+\begin{lstlisting}
+// Host types.
+template <typename T> host_image2d;
+template <typename T> host_image3d;
+// CUDA types.
+template <typename T> image2d;
+template <typename T> image3d;
+// Types used inside CUDA kernels.
+template <typename T> kernel_image2d;
+template <typename T> kernel_image3d;
+
+{
+  image2d<float4> img(100, 100); // creation.
+  image2d<float4> img2 = img; // light copy.
+} // Images are freed automatically here.
+
+// See a slice as a 2d image:
+image3d<float4> img3d(100, 100, 100);
+image2d<float4> slice = img3d.slice(42);
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[containsverbatim]{Improved builtins types}
+\begin{lstlisting}
+i_float3 a(1.5, 1.5, 1.5);
+i_float3 b(2.5, 2.5, 2.5);
+
+// Classical arithmetic operators
+i_float3 c = (a + b) * 2.5f;
+
+// Interoperability
+i_char2 x = i_int2(0,1) + i_float2(0,1) * 5.0f;
+// Type of (i_int2 + i_float2) is i_float2 as
+// (int + float) returns a float.
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[containsverbatim]{Inputs}
+\begin{lstlisting}
+// Load 2d images.
+host_image2d<uchar3> img = load("test.jpg");
+
+// Read USB camera
+video_capture cam(0);
+host_image2d<uchar3> cam_img(cam.nrows(), cam.ncols());
+cam >> cam_img; // Get the camera current frame
+
+// Read a video
+video_capture vid("test.avi");
+host_image2d<uchar3> frame(vid.nrows(), vid.ncols());
+vid >> v; // Get the next video frame
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[containsverbatim]{Data tranfers}
+\begin{lstlisting}
+
+host_image2d<uchar3> img_h = load("test.jpg"); // Lives in CPU RAM
+image2d<uchar3> img(img_h.domain()); // Lives in GPU RAM
+
+copy(img_h, img); // CPU -> GPU
+copy(img, img_h); // GPU -> CPU
+
+// Also works on 3d images.
+\end{lstlisting}
+\end{frame}
+
+
+\section{Algorithms}
+
+\begin{frame}[containsverbatim]{Fast gaussian convolutions code generation}
+
+\begin{columns}
+\begin{column}[l]{5cm}
+  \begin{itemize}
+  \item Heavy use of C++ templates for loop unrolling
+  \item Gaussian kernel is known at compile time and injected directly
+    inside the assembly
+  \item Used by the local jet computation
+  \item Cons: Large kernels slow down the compilation.
+  \end{itemize}
+\end{column}
+\begin{column}[r]{5cm}
+\tiny{mov.f32 	\%f182, \textbf{0f3b1138f8;   	// 0.00221592} \\
+mul.f32 	\%f183, \%f169, \%f182;\\
+mov.f32 	\%f184, \textbf{0f39e4c4b3;   	// 0.000436341} \\
+mad.f32 	\%f185, \%f184, \%f181, \%f183;\\
+mov.f32 	\%f186, \textbf{0f3c0f9782;   	// 0.00876415} \\
+mad.f32 	\%f187, \%f186, \%f157, \%f185;\\
+mov.f32 	\%f188, \textbf{0f3cdd25ab;   	// 0.0269955} \\
+mad.f32 	\%f189, \%f188, \%f145, \%f187;\\
+mov.f32 	\%f190, \textbf{0f3d84a043;   	// 0.0647588} \\
+mad.f32 	\%f191, \%f190, \%f133, \%f189;\\
+mov.f32 	\%f192, \textbf{0f3df7c6fc;   	// 0.120985} \\
+mad.f32 	\%f193, \%f192, \%f121, \%f191;\\
+mov.f32 	\%f194, \textbf{0f3e3441ff;   	// 0.176033} \\
+mad.f32 	\%f195, \%f194, \%f109, \%f193;\\
+mov.f32 	\%f196, \textbf{0f3e4c4220;   	// 0.199471} \\
+mad.f32 	\%f197, \%f196, \%f97, \%f195;\\
+mov.f32 	\%f198, \textbf{0f3e3441ff;   	// 0.176033} \\
+mad.f32 	\%f199, \%f198, \%f85, \%f197;\\
+mov.f32 	\%f200, \textbf{0f3df7c6fc;   	// 0.120985} \\
+mad.f32 	\%f201, \%f200, \%f73, \%f199;\\
+mov.f32 	\%f202, \textbf{0f3d84a043;   	// 0.0647588} \\
+mad.f32 	\%f203, \%f202, \%f61, \%f201;\\
+mov.f32 	\%f204, \textbf{0f3cdd25ab;   	// 0.0269955} \\
+mad.f32 	\%f205, \%f204, \%f49, \%f203;\\
+mov.f32 	\%f206, \textbf{0f3c0f9782;   	// 0.00876415} \\
+mad.f32 	\%f207, \%f206, \%f37, \%f205;\\
+mov.f32 	\%f208, \textbf{0f3b1138f8;   	// 0.00221592} \\
+mad.f32 	\%f209, \%f208, \%f25, \%f207;\\
+mov.f32 	\%f210, \textbf{0f39e4c4b3;   	// 0.000436341}}
+\end{column}
+\end{columns}
+
+\end{frame}
+
+\begin{frame}[containsverbatim]{A simple CUDA kernel}
+
+\begin{lstlisting}
+
+// Declaration
+template <typename T, typename U, typename V>
+__global__ void simple_kernel(kernel_image2d<T> a,
+                              kernel_image2d<U> b,
+                              kernel_image2d<V> out)
+{
+  point2d<int> p = thread_pos2d();
+  if (out.has(p))
+    out(p) = a(p) * b(p) / 2.5f;
+}
+
+// Call
+dim3 dimblock(16, 16);
+dim3 dimgrid(divup(a.ncols(),  16), divup(a.nrows(),  16));
+simple_kernel<<<dimgrid, dimblock>>>(a, b, c);
+\end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[containsverbatim]{Simple kernels generator}
+
+  \begin{block}{Goal}
+  Automatically generate simple kernels
+  \end{block}
+
+\begin{block}{Examples}
+\begin{lstlisting}
+image2d<i_int4> a(200, 100);
+image2d<i_short4> b(a.domain());
+image2d<i_float4>   c(a.domain());
+
+// Generates and calls simple_kernel.
+c = a * b / 2.5;
+
+// BGR <-> RGB conversion
+a = aggregate<int>::run(get_z(a), get_y(a), get_x(a), 1.0f);
+\end{lstlisting}
+\end{block}
+\end{frame}
+
+\begin{frame}[containsverbatim]{Simple kernels generator}
+
+    \begin{lstlisting}
+  // C++ templates handle the syntax tree of the expression
+  // Type of
+  a * b / 2.5
+  // is
+  div<mult<image2d<i_int4>,
+           image2d<i_short4> >,
+      float>
+
+
+  //operator= handles the kernel call
+  template <typename I, typename E>
+  __global__ void assign_kernel(kernel_image2d<I> out, E e)
+  {
+    i_int2 p = thread_pos2d();
+    if (out.has(p))
+      out(p) = e.eval(p);
+      // Recursivelly evaluates the expression, inlining of the recursive
+         evaluation of the tree is done by the compiler.
+  }
+
+  template <typename A, template <class> class AP, typename E>
+  inline void
+  image2d::operator=(E& expr)
+  {
+    assign_kernel<<<dimgrid, dimblock>>>(*this, e);
+  }
+
+    \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}
+
+ Question?
+
+\end{frame}
+
+\end{document}
