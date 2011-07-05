@@ -8,6 +8,11 @@
 namespace cuimg
 {
   template <typename V, template <class> class PT>
+  image2d<V, PT>::image2d()
+  {
+  }
+
+  template <typename V, template <class> class PT>
   image2d<V, PT>::image2d(unsigned nrows, unsigned ncols)
     : domain_(nrows, ncols)
   {
@@ -41,8 +46,7 @@ namespace cuimg
   }
 
   template <typename V, template <class> class PT>
-  template <template <class> class IPT>
-  image2d<V, PT>::image2d(const image2d<V, IPT>& img)
+  image2d<V, PT>::image2d(const image2d<V, PT>& img)
     : domain_(img.domain()),
       pitch_(img.pitch()),
       data_(img.data_sptr()),
@@ -51,9 +55,8 @@ namespace cuimg
   }
 
   template <typename V, template <class> class PT>
-  template <template <class> class IPT>
   image2d<V, PT>&
-  image2d<V, PT>::operator=(const image2d<V, IPT>& img)
+  image2d<V, PT>::operator=(const image2d<V, PT>& img)
   {
     domain_ = img.domain();
     pitch_ = img.pitch();
@@ -139,17 +142,17 @@ namespace cuimg
   }
 
   template <typename V, template <class> class PT>
-  V* image2d<V, PT>::data()
+  V* image2d<V, PT>::data() const
   {
     return data_ptr_;
   }
-
+/*
   template <typename V, template <class> class PT>
   const V* image2d<V, PT>::data() const
   {
     return data_ptr_;
   }
-
+*/
   template <typename V, template <class> class PT>
   bool image2d<V, PT>::has(const point& p) const
   {

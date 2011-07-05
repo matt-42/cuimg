@@ -4,6 +4,7 @@
 # define CUIMG_IMAGE2D_H_
 
 # include <boost/shared_ptr.hpp>
+# include <cuimg/concepts.h>
 # include <cuimg/point2d.h>
 # include <cuimg/obox2d.h>
 # include <cuimg/gpu/arith/expr.h>
@@ -11,22 +12,21 @@
 namespace cuimg
 {
   template <typename V, template <class> class PT = boost::shared_ptr>
-  class image2d
+  class image2d : public Image2d<image2d<V, PT> >
   {
   public:
     typedef V value_type;
     typedef point2d<int> point;
     typedef obox2d<point> domain_type;
 
+    inline image2d();
     inline image2d(unsigned nrows, unsigned ncols);
     inline image2d(V* data, unsigned nrows, unsigned ncols, unsigned pitch);
     inline image2d(const domain_type& d);
 
-    template <template <class> class IPT>
-    __host__ __device__ inline image2d(const image2d<V, IPT>& d);
+    __host__ __device__ inline image2d(const image2d<V, PT>& d);
 
-    template <template <class> class IPT>
-    __host__ __device__ inline image2d<V, PT>& operator=(const image2d<V, IPT>& d);
+    __host__ __device__ inline image2d<V, PT>& operator=(const image2d<V, PT>& d);
 
     template <typename E>
     __host__ inline image2d<V, PT>& operator=(expr<E>& e);
@@ -36,8 +36,8 @@ namespace cuimg
     __host__ __device__ inline unsigned ncols() const;
     __host__ __device__ inline size_t pitch() const;
 
-    __host__ __device__ inline V* data();
-    __host__ __device__ inline const V* data() const;
+    __host__ __device__ inline V* data() const;
+    //__host__ __device__ inline const V* data() const;
 
     __host__ __device__ inline bool has(const point& p) const;
 
