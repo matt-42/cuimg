@@ -25,7 +25,7 @@ namespace cuimg
     {
     }
 
-    __device__ inline
+    __host__ __device__ inline
     return_type
     eval(point2d<int> p) const
     {
@@ -53,7 +53,7 @@ namespace cuimg
     {
     }
 
-    __device__ inline
+    __host__ __device__ inline
     return_type
     eval(point2d<int> p) const
     {
@@ -80,7 +80,7 @@ namespace cuimg
     {
     }
 
-    __device__ inline
+    __host__ __device__ inline
     return_type
     eval(point2d<int> p) const
     {
@@ -107,7 +107,7 @@ namespace cuimg
     {
     }
 
-    __device__ inline
+    __host__ __device__ inline
     return_type
     eval(point2d<int> p) const
     {

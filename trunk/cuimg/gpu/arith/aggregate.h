@@ -1,9 +1,9 @@
 #ifndef CUIMG_GPU_AGGREGATE_H_
 # define CUIMG_GPU_AGGREGATE_H_
 
+# include <cuimg/meta.h>
 # include <cuimg/gpu/arith/expr.h>
 # include <cuimg/gpu/arith/eval.h>
-# include <cuimg/meta.h>
 
 namespace cuimg
 {

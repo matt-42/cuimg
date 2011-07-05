@@ -3,11 +3,12 @@
 
 # include <boost/type_traits/remove_reference.hpp>
 
+# include <cuimg/meta.h>
 # include <cuimg/gpu/arith/expr.h>
 # include <cuimg/gpu/arith/eval.h>
 # include <cuimg/gpu/arith/traits.h>
 
-# include <cuimg/meta.h>
+
 
 namespace cuimg
 {

@@ -9,14 +9,14 @@ namespace cuimg
 {
 
   template <typename X>
-  inline __device__
+  inline __host__ __device__
   typename return_type<X>::ret
   eval(X& x, point2d<int> p);
 
   template <typename X, int T>
   struct eval_selector
   {
-    static inline __device__
+    static inline __host__ __device__
     typename return_type<X>::ret
     run(X& x, point2d<int>)
     {
@@ -27,7 +27,7 @@ namespace cuimg
   template <typename X>
   struct eval_selector<X, 1>
   {
-    static inline __device__
+    static inline __host__ __device__
     typename return_type<X>::ret
     run(const X& x, point2d<int> p)
     {
@@ -38,7 +38,7 @@ namespace cuimg
   template <typename X>
   struct eval_selector<X, 2>
   {
-    static inline __device__
+    static inline __host__ __device__
     typename return_type<X>::ret
     run(const X& x, point2d<int> p)
     {
@@ -47,7 +47,7 @@ namespace cuimg
   };
 
   template <typename X>
-  inline __device__
+  inline __host__ __device__
   typename return_type<X>::ret
   eval(X& x, point2d<int> p)
   {
