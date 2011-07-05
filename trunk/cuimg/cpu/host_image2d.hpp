@@ -16,7 +16,11 @@ namespace cuimg
     : domain_(nrows, ncols),
       pitch_(ncols * sizeof(V))
   {
+    V* ptr;
+    //cudaMallocHost(&ptr, nrows * ncols * sizeof(V));
+    //data_ = boost::shared_ptr<V>(ptr);
     data_ = boost::shared_ptr<V>(new V[nrows * ncols]());
+    buffer_ = data_.get();
   }
 
   template <typename V>
@@ -25,6 +29,7 @@ namespace cuimg
       pitch_(ncols() * sizeof(V))
   {
     data_ = boost::shared_ptr<V>(new V[d.nrows() * d.ncols()]());
+    buffer_ = data_.get();
   }
 
   template <typename V>
@@ -33,6 +38,7 @@ namespace cuimg
       pitch_(img.pitch()),
       data_(img.data_)
   {
+    buffer_ = data_.get();
   }
 
   template <typename V>
@@ -42,6 +48,7 @@ namespace cuimg
     domain_ = img.domain();
     pitch_ = img.pitch();
     data_ = img.data_;
+    buffer_ = data_.get();
     return *this;
   }
 
@@ -87,15 +94,21 @@ namespace cuimg
   }
 
   template <typename V>
+  size_t host_image2d<V>::buffer_size() const
+  {
+    return sizeof(V) * nrows() * ncols();
+  }
+
+  template <typename V>
   V& host_image2d<V>::operator()(const point& p)
   {
-    return data_.get()[p.row() * domain_.ncols() + p.col()];
+    return buffer_[p.row() * domain_.ncols() + p.col()];
   }
 
   template <typename V>
   const V& host_image2d<V>::operator()(const point& p) const
   {
-    return data_.get()[p.row() * domain_.ncols() + p.col()];
+    return buffer_[p.row() * domain_.ncols() + p.col()];
   }
 
   template <typename V>
