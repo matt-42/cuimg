@@ -17,6 +17,7 @@ namespace cuimg
 
     gaussian_static_row2d<typename TI, TT, I, SIGMA, KERNEL_HALF_SIZE>(in, tmp);
     gaussian_static_col2d<typename TT, TO, J, SIGMA, KERNEL_HALF_SIZE>(tmp, out);
+    check_cuda_error();
   }
 
 }
