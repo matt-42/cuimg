@@ -25,6 +25,7 @@ namespace cuimg
     bool open(int device);
     bool is_opened() const;
     void release();
+    void resize(unsigned nrows, unsigned ncols);
 
     bool grab();
 //    bool retrieve(host_image2d<i_uchar3>& image, int channel=0);

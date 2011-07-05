@@ -25,6 +25,7 @@ namespace cuimg
     cap_->set(CV_CAP_PROP_CONVERT_RGB, true);
   }
 
+  void
   video_capture::resize(unsigned nrows, unsigned ncols)
   {
     cap_->set(CV_CAP_PROP_FRAME_WIDTH, ncols);
