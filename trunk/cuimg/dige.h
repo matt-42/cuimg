@@ -9,6 +9,8 @@
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/gpu/image2d_math.h>
 # include <cuimg/simple_ptr.h>
+# include <cuimg/gpu/arith/aggregate.h>
+# include <cuimg/gpu/arith/get_comp.h>
 
 namespace dg
 {
@@ -48,7 +50,7 @@ namespace dg
     std::map<char*, cuda_texture> textures;
   }
 
-  template<typename V, unsigned N>
+  template<typename V, unsigned N, template <class> class PT>
   class cuda_opengl_texture
   {
   public:
@@ -59,9 +61,8 @@ namespace dg
     template <>
     struct ib_to_opengl_internal_type<cuimg::i_float4> { enum { val = GL_RGBA32F }; };
     template <>
-    struct ib_to_opengl_internal_type<cuimg::i_float1> { enum { val = GL_LUMINANCE32F_ARB }; };
+    struct ib_to_opengl_internal_type<cuimg::i_float1> { enum { val = GL_R32F }; };
 
-    template <template <class> class PT>
     cuda_opengl_texture(const cuimg::image2d<cuimg::improved_builtin<V, N>, PT>& img)
       : img_(img)
     {
@@ -122,24 +123,36 @@ namespace dg
     unsigned height() const { return img_.nrows(); }
 
   private:
-    cuimg::image2d<cuimg::improved_builtin<V, N>, cuimg::simple_ptr> img_;
+    cuimg::image2d<cuimg::improved_builtin<V, N>, PT> img_;
     GLuint gl_id_;
   };
 
 
   template<typename V, unsigned N, template <class> class PT>
-  cuda_opengl_texture<V, N>
+  cuda_opengl_texture<V, N, PT>
   adapt(const cuimg::image2d<cuimg::improved_builtin<V, N>, PT>& i)
   {
-    return cuda_opengl_texture<V, N>(i);
+    return cuda_opengl_texture<V, N, PT>(i);
   }
 
   template<typename V, template <class> class PT>
-  cuda_opengl_texture<V, 4>
+  cuda_opengl_texture<V, 4, boost::shared_ptr>
+  adapt(const cuimg::image2d<cuimg::improved_builtin<V, 1>, PT>& i)
+  {
+    cuimg::image2d<cuimg::i_float4> res(i.domain());
+    res = cuimg::aggregate<float>::run(cuimg::get_x(i),
+                                       cuimg::get_x(i),
+                                       cuimg::get_x(i),
+                                       1.f);
+    return cuda_opengl_texture<V, 4, boost::shared_ptr>(res);
+  }
+
+  template<typename V, template <class> class PT>
+  cuda_opengl_texture<V, 4, PT>
   adapt(const cuimg::image2d<cuimg::improved_builtin<V, 4>, PT>& i)
   {
     set_alpha_channel(*const_cast<cuimg::image2d<cuimg::improved_builtin<V, 4>, PT>*>(&i));
-    return cuda_opengl_texture<V, 4>(i);
+    return cuda_opengl_texture<V, 4, PT>(i);
   }
 
 }
