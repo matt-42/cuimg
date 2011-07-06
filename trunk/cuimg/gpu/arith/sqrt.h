@@ -1,0 +1,41 @@
+#ifndef CUIMG_GPU_SQRT_H_
+# define CUIMG_GPU_SQRT_H_
+
+# include <boost/type_traits/remove_reference.hpp>
+
+# include <cuimg/meta.h>
+# include <cuimg/gpu/arith/expr.h>
+# include <cuimg/gpu/arith/eval.h>
+# include <cuimg/gpu/arith/traits.h>
+
+
+
+namespace cuimg
+{
+
+  template <typename E>
+  struct sqrt_ : public expr<sqrt_<E> >
+  {
+    typedef int is_expr;
+
+    typedef typename kernel_type<E>::ret KE;
+    typedef typename return_type<KE>::ret e_return_type;
+    typedef typename boost::remove_reference<typename return_type<E>::ret>::type::vtype local_return_type;
+
+    sqrt_(E& e)
+      : e_(e)
+    {
+    }
+
+    __host__ __device__ inline
+    local_return_type eval(point2d<int> p) const
+    {
+      return ::sqrt(cuimg::eval(e_, p));
+    }
+
+    typename kernel_type<E>::ret e_;
+  };
+
+}
+
+#endif
