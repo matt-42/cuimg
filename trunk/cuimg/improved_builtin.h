@@ -55,7 +55,6 @@ class improved_builtin : public make_cuda_bt<T, N>::ret
   __host__ __device__ improved_builtin(const cuda_bt& bt);
 
   __host__ __device__ improved_builtin<T, N>& operator=(vtype x_);
-
   __host__ __device__ operator vtype();
 
   __host__ __device__ improved_builtin(const zero&);
@@ -80,7 +79,6 @@ class improved_builtin : public make_cuda_bt<T, N>::ret
   __host__ __device__ inline self& operator*=(const S& s);
   template <typename S>
   __host__ __device__ inline self& operator/=(const S& s);
-
 };
 
 template <unsigned S>
@@ -153,6 +151,9 @@ __host__ __device__ inline bool operator==(const improved_builtin<U, US>& a, con
 
 template <typename U, typename V, unsigned US, unsigned VS>
 __host__ __device__ inline bool operator!=(const improved_builtin<U, US>& a, const improved_builtin<V, VS>& b);
+
+template <typename U, typename V>
+__host__ __device__ inline bool operator<(const improved_builtin<U, 1>& a, const improved_builtin<V, 1>& b);
 
 template <typename T, unsigned N>
 struct bt_vtype<improved_builtin<T, N> > { typedef typename T ret; };

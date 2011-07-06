@@ -328,6 +328,12 @@ namespace cuimg
     return !(a == b);
   }
 
+  template <typename U, typename V>
+  bool operator<(const improved_builtin<U, 1>& a, const improved_builtin<V, 1>& b)
+  {
+    return (a.x < b.x);
+  }
+
 
   template <typename U, typename V, unsigned US, unsigned VS>
   __host__ __device__ inline
