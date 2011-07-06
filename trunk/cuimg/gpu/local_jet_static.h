@@ -20,6 +20,15 @@ namespace cuimg
     check_cuda_error();
   }
 
+  template <int I, int J, int SIGMA, int KERNEL_HALF_SIZE>
+  struct local_jet_static_
+  {
+    template <typename TI, typename TO, typename TT>
+    static void run(const TI& in, TO& out, TT& tmp, dim3 dimblock = dim3(16, 16))
+    {
+      local_jet_static<TI, TO, TT, I, J, SIGMA, KERNEL_HALF_SIZE>(in, out, tmp, dimblock);
+    }
+  };
 }
 
 #endif

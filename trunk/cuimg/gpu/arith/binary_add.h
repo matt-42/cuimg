@@ -14,7 +14,7 @@ namespace cuimg
   struct evaluator<binary_add>
   {
     template <typename A, typename B>
-      static inline __device__
+      static inline __host__ __device__
       typename return_type<binary_op<binary_add, A, B, 0, 0> >::ret
       run(A& a, B& b, point2d<int> p)
     {
