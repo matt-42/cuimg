@@ -9,6 +9,10 @@
 
 namespace cuimg
 {
+  __host__ __device__ inline i_int2 thread_pos2d();
+  __host__ __device__ inline i_int3 thread_pos3d();
+
+#ifdef NVCC
   __host__ __device__ inline i_int2 thread_pos2d()
   {
     return i_int2(blockIdx.y * blockDim.y + threadIdx.y,
@@ -21,6 +25,7 @@ namespace cuimg
                   blockIdx.y * blockDim.y + threadIdx.y,
                   blockIdx.x * blockDim.x + threadIdx.x);
   }
+#endif
 
   template <typename T>
   inline dim3 grid_dimension(const obox2d<T>& domain, const dim3& dimblock)

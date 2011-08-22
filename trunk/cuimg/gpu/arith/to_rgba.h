@@ -25,6 +25,12 @@ namespace cuimg
       return improved_builtin<T, 4>(x, x, x, 1.f);
     }
 
+    __host__ __device__ inline
+    bool has(const point2d<int>& p) const
+    {
+      return cuimg::has(p, img_);
+    }
+
     kernel_image2d<improved_builtin<T, 1> > img_;
   };
 

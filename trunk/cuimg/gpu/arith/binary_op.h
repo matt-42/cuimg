@@ -5,6 +5,7 @@
 # include <cuimg/gpu/arith/expr.h>
 # include <cuimg/gpu/arith/traits.h>
 # include <cuimg/gpu/arith/eval.h>
+# include <cuimg/gpu/arith/has.h>
 
 namespace cuimg
 {
@@ -31,6 +32,12 @@ namespace cuimg
     {
       typedef typename cuimg::evaluator<TAG> EV;
       return EV::run(a1, a2, p);
+    }
+
+    __host__ __device__ inline
+    bool has(const point2d<int>& p) const
+    {
+      return cuimg::has(p, a1, a2);
     }
 
     char padding1[P1];
@@ -61,6 +68,12 @@ namespace cuimg
       return EV::run(a1, a2, p);
     }
 
+    __host__ __device__ inline
+    bool has(const point2d<int>& p) const
+    {
+      return cuimg::has(p, a1, a2);
+    }
+
     char padding1[P1];
     const typename kernel_type<A1>::ret a1;
     const typename kernel_type<A2>::ret a2;
@@ -88,6 +101,12 @@ namespace cuimg
       return EV::run(a1, a2, p);
     }
 
+    __host__ __device__ inline
+    bool has(const point2d<int>& p) const
+    {
+      return cuimg::has(p, a1, a2);
+    }
+
     const typename kernel_type<A1>::ret a1;
     char padding1[P2];
     const typename kernel_type<A2>::ret a2;
@@ -113,6 +132,12 @@ namespace cuimg
     {
       typedef typename cuimg::evaluator<TAG> EV;
       return EV::run(a1, a2, p);
+    }
+
+    __host__ __device__ inline
+    bool has(const point2d<int>& p) const
+    {
+      return cuimg::has(p, a1, a2);
     }
 
     const typename kernel_type<A1>::ret a1;

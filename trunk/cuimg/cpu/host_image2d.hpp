@@ -16,7 +16,7 @@ namespace cuimg
     : domain_(nrows, ncols),
       pitch_(ncols * sizeof(V))
   {
-    V* ptr;
+    //V* ptr;
     //cudaMallocHost(&ptr, nrows * ncols * sizeof(V));
     //data_ = boost::shared_ptr<V>(ptr);
     data_ = boost::shared_ptr<V>(new V[nrows * ncols]());

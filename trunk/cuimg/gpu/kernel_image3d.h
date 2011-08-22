@@ -36,6 +36,9 @@ namespace cuimg
     __device__ inline V& operator()(unsigned s, unsigned r, unsigned c);
     __device__ inline const V& operator()(unsigned s, unsigned r, unsigned c) const;
 
+    __device__ inline V& operator()(unsigned s, const point2d<int>& p);
+    __device__ inline const V& operator()(unsigned s, const point2d<int>& p) const;
+
     __host__ __device__ inline bool has(const point& p) const;
 
     __host__ __device__ inline V* data();

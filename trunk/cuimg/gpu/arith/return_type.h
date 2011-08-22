@@ -1,6 +1,7 @@
 #ifndef CUIMG_GPU_RETURN_TYPE_H_
 # define CUIMG_GPU_RETURN_TYPE_H_
 
+# include <boost/type_traits/remove_reference.hpp>
 # include <cuimg/gpu/arith/expr.h>
 
 namespace cuimg
@@ -37,7 +38,7 @@ namespace cuimg
   template <typename T>
   struct return_type_selector<T, 3>
   {
-    typedef T ret;
+    typedef typename boost::remove_reference<T>::type ret;
   };
 
   template <typename T>

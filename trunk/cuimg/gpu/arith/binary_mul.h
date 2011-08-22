@@ -39,8 +39,8 @@ namespace cuimg
 
   template <typename E, typename S>
   inline
-  typename first<typename binary_op_<binary_mul, E, S>::ret, typename E::is_expr>::ret
-  operator*(E& a, const S s)
+  typename first<typename binary_op_<binary_mul, E, S, 0>::ret, typename E::is_expr>::ret
+  operator*(const E& a, const S s)
   {
     typedef typename binary_op_<binary_mul, E, S>::ret return_type;
     return return_type(a, s);

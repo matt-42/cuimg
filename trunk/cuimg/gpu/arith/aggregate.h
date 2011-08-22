@@ -4,6 +4,7 @@
 # include <cuimg/meta.h>
 # include <cuimg/gpu/arith/expr.h>
 # include <cuimg/gpu/arith/eval.h>
+# include <cuimg/gpu/arith/has.h>
 
 namespace cuimg
 {
@@ -22,6 +23,12 @@ namespace cuimg
     improved_builtin<T, 1> eval(point2d<int> p) const
     {
       return improved_builtin<T, 1>(cuimg::eval(a_, p));
+    }
+
+    __host__ __device__ inline
+    bool has(const point2d<int>& p)
+    {
+      return cuimg::has(p, a_);
     }
 
     typename kernel_type<A>::ret a_;
@@ -44,6 +51,12 @@ namespace cuimg
       return improved_builtin<T, 2>(cuimg::eval(a_, p), cuimg::eval(b_, p));
     }
 
+    __host__ __device__ inline
+    bool has(point2d<int> p)
+    {
+      return cuimg::has(p, a_, b_);
+    }
+
     typename kernel_type<A>::ret a_;
     typename kernel_type<B>::ret b_;
   };
@@ -64,6 +77,13 @@ namespace cuimg
     improved_builtin<T, 3> eval(point2d<int> p) const
     {
       return improved_builtin<T, 3>(cuimg::eval(a_, p), cuimg::eval(b_, p), cuimg::eval(c_, p));
+    }
+
+
+    __host__ __device__ inline
+    bool has(point2d<int> p)
+    {
+      return cuimg::has(p, a_, b_, c_);
     }
 
     typename kernel_type<A>::ret a_;
@@ -89,6 +109,13 @@ namespace cuimg
     improved_builtin<T, 4> eval(point2d<int> p) const
     {
       return improved_builtin<T, 4>(cuimg::eval(a_, p), cuimg::eval(b_, p), cuimg::eval(c_, p), cuimg::eval(d_, p));
+    }
+
+
+    __host__ __device__ inline
+    bool has(point2d<int> p)
+    {
+      return cuimg::has(p, a_, b_, c_, d_);
     }
 
     typename kernel_type<A>::ret a_;

@@ -57,6 +57,12 @@ namespace cuimg
       return res;
     }
 
+    __host__ __device__ inline
+    bool has(const point2d<int>& p) const
+    {
+      return has(p, img_);
+    }
+
     const typename kernel_type<I>::ret& img_;
   };
 

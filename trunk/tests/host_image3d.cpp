@@ -4,8 +4,8 @@
 #include <cuda_runtime.h>
 
 #include <cuimg/improved_builtin.h>
-#include <cuimg/host_image3d.h>
-#include <cuimg/image3d.h>
+#include <cuimg/cpu/host_image3d.h>
+#include <cuimg/gpu/image3d.h>
 #include <cuimg/copy.h>
 
 using namespace cuimg;

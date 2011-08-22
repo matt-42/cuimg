@@ -102,6 +102,20 @@ namespace cuimg
     return *(V*)(((char*)data_) + s * pitch_ * nrows() + r * pitch_ + c * sizeof(V));
   }
 
+
+    template <typename V>
+  V& kernel_image3d<V>::operator()(unsigned s, const point2d<int>& p)
+  {
+    return *(V*)(((char*)data_) + s * pitch_ * nrows() + p.row() * pitch_ + p.col() * sizeof(V));
+  }
+
+  template <typename V>
+  const V& kernel_image3d<V>::operator()(unsigned s, const point2d<int>& p) const
+  {
+    return *(V*)(((char*)data_) + s * pitch_ * nrows() + p.row() * pitch_ + p.col() * sizeof(V));
+  }
+
+
   template <typename V>
   V& kernel_image3d<V>::operator()(const point& p)
   {

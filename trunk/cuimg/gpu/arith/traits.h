@@ -2,6 +2,7 @@
 # define CUIMG_GPU_TRAITS_H_
 
 # include <cuimg/gpu/arith/expr.h>
+# include <cuimg/gpu/image2d.h>
 # include <cuimg/improved_builtin.h>
 
 namespace cuimg

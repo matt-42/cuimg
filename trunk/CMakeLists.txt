@@ -10,6 +10,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
 SET(SOURCES cuimg/video_capture.cpp
             cuimg/load_image.cpp
+            cuimg/save_image.cpp
             )
 
 ADD_LIBRARY(cuimg ${SOURCES})

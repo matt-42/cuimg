@@ -33,6 +33,12 @@ namespace cuimg
       return ::sqrt(cuimg::eval(e_, p));
     }
 
+    __host__ __device__ inline
+    bool has(const point2d<int>& p) const
+    {
+      return has(p, e_);
+    }
+
     typename kernel_type<E>::ret e_;
   };
 

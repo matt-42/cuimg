@@ -47,7 +47,7 @@ namespace dg
       cudaGraphicsResource_t resource;
     };
 
-    std::map<char*, cuda_texture> textures;
+    static std::map<char*, cuda_texture> textures;
   }
 
   template<typename V, unsigned N, template <class> class PT>

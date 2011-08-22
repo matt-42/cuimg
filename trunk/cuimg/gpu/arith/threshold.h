@@ -13,38 +13,47 @@
 namespace cuimg
 {
 
-  template <typename E, typename S, typename V>
-  struct threshold_ : public expr<threshold_<E, S, V> >
+  template <typename E, typename S, typename V1, typename V2>
+  struct threshold_ : public expr<threshold_<E, S, V1, V2> >
   {
     typedef int is_expr;
+    typedef typename return_type<threshold_<E, S, V1, V2> >::ret ret_type;
 
-    threshold_(E& e, S s, V one, V zero)
+    threshold_(E e, S s, V1 one, V2 zero)
       : e_(e), s_(s),
         one_(one), zero_(zero)
     {
     }
 
     __host__ __device__ inline
-    V eval(point2d<int> p) const
+    ret_type eval(point2d<int> p) const
     {
-      if (cuimg::eval(e_, p) < E::value_type(s_))
-        return zero_;
+      if (cuimg::eval(e_, p) < cuimg::eval(s_, p))
+        return cuimg::eval(zero_, p);
       else
-        return one_;
+        return cuimg::eval(one_, p);
      }
 
+    __host__ __device__ inline
+    bool has(const point2d<int>& p) const
+    {
+      return cuimg::has(p, e_, s_, one_, zero_);
+    }
+
     typename kernel_type<E>::ret e_;
-    S s_;
-    V one_, zero_;
+    typename kernel_type<S>::ret s_;
+    typename kernel_type<V1>::ret one_;
+    typename kernel_type<V2>::ret zero_;
   };
 
-  template <typename E, typename S, typename V>
-  struct return_type<threshold_<E, S, V> > { typedef typename boost::remove_reference<V>::type ret; };
+  template <typename E, typename S, typename V1, typename V2>
+//  struct return_type<threshold_<E, S, V> > { typedef typename boost::remove_reference<V>::type ret; };
+  struct return_type<threshold_<E, S, V1, V2> > { typedef typename return_type<typename boost::remove_reference<V1>::type>::ret ret; };
 
-  template <typename E, typename S, typename V>
-  threshold_<E, S, V> threshold(E& e, S s, V one, V zero)
+  template <typename E, typename S, typename V1, typename V2>
+  threshold_<E, S, V1, V2> threshold(E e, S s, V1 one, V2 zero)
   {
-    return threshold_<E, S, V>(e, s, one, zero);
+    return threshold_<E, S, V1, V2>(e, s, one, zero);
   }
 }
 
