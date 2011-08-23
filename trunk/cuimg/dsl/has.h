@@ -2,8 +2,8 @@
 # define CUIMG_GPU_HAS_H_
 
 # include <cuimg/meta.h>
-# include <cuimg/gpu/arith/expr.h>
-# include <cuimg/gpu/arith/eval.h>
+# include <cuimg/dsl/expr.h>
+# include <cuimg/dsl/eval.h>
 
 namespace cuimg
 {
@@ -89,9 +89,9 @@ namespace cuimg
   template <>
   struct has_<0>
   {
-    template <typename A> 
+    template <typename A>
     static inline __host__ __device__ bool run(const point2d<int>& p, const A& a) { return a.has(p); }
-    
+
     template <typename A, typename B>
     inline __host__ __device__ static bool run(const point2d<int>& p, const A& a, const B&) { return a.has(p); }
 
@@ -136,9 +136,9 @@ namespace cuimg
   template <>
   struct has_<-1>
   {
-    template <typename A> 
+    template <typename A>
     static inline __host__ __device__ bool run(const point2d<int>& p, const A& a) { return true; }
-    
+
     template <typename A, typename B>
     inline __host__ __device__ static bool run(const point2d<int>& p, const A& a, const B&) { return true; }
 

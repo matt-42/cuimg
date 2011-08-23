@@ -1,7 +1,7 @@
 #ifndef CUIMG_GPU_TRAITS_H_
 # define CUIMG_GPU_TRAITS_H_
 
-# include <cuimg/gpu/arith/expr.h>
+# include <cuimg/dsl/expr.h>
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/improved_builtin.h>
 

@@ -1,8 +1,8 @@
 #ifndef CUIMG_GPU_BINARY_SUB_H_
 # define CUIMG_GPU_BINARY_SUB_H_
 
-# include <cuimg/gpu/arith/expr.h>
-# include <cuimg/gpu/arith/eval.h>
+# include <cuimg/dsl/expr.h>
+# include <cuimg/dsl/eval.h>
 # include <cuimg/meta.h>
 
 namespace cuimg

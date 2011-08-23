@@ -2,7 +2,7 @@
 # define CUIMG_GPU_RETURN_TYPE_H_
 
 # include <boost/type_traits/remove_reference.hpp>
-# include <cuimg/gpu/arith/expr.h>
+# include <cuimg/dsl/expr.h>
 
 namespace cuimg
 {

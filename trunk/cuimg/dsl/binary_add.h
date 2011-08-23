@@ -2,7 +2,7 @@
 # define CUIMG_GPU_BINARY_ADD_H_
 
 # include <cuimg/meta.h>
-# include <cuimg/gpu/arith/binary_op.h>
+# include <cuimg/dsl/binary_op.h>
 
 
 namespace cuimg

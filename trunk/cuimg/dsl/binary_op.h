@@ -2,10 +2,10 @@
 # define CUIMG_GPU_BINARY_OP_H_
 
 # include <cuimg/meta.h>
-# include <cuimg/gpu/arith/expr.h>
-# include <cuimg/gpu/arith/traits.h>
-# include <cuimg/gpu/arith/eval.h>
-# include <cuimg/gpu/arith/has.h>
+# include <cuimg/dsl/expr.h>
+# include <cuimg/dsl/traits.h>
+# include <cuimg/dsl/eval.h>
+# include <cuimg/dsl/has.h>
 
 namespace cuimg
 {
