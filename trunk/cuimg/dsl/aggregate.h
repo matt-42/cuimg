@@ -139,7 +139,6 @@ namespace cuimg
   template <typename T>
   struct aggregate
   {
-
     template <typename A>
     static aggregate_1<T, A> run(A a)
     { return aggregate_1<T, A>(a); }
@@ -153,6 +152,11 @@ namespace cuimg
     static aggregate_4<T, A, B, C, D> run(A a, B b, C c, D d)
     { return aggregate_4<T, A, B, C, D>(a, b, c, d); }
   };
+
+#define make_vec2(T, A, B) aggregate<T>::run(A, B);
+#define make_vec3(T, A, B, C) aggregate<T>::run(A, B, C, D);
+#define make_vec4(T, A, B, C, D) aggregate<T>::run(A, B, C, D);
+
 }
 
 #endif

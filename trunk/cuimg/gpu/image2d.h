@@ -7,7 +7,7 @@
 # include <cuimg/concepts.h>
 # include <cuimg/point2d.h>
 # include <cuimg/obox2d.h>
-# include <cuimg/gpu/arith/expr.h>
+# include <cuimg/dsl/expr.h>
 
 namespace cuimg
 {

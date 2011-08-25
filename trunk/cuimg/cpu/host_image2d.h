@@ -4,7 +4,7 @@
 # include <boost/shared_ptr.hpp>
 # include <cuda_runtime_api.h>
 # include <cuimg/concepts.h>
-# include <cuimg/gpu/arith/expr.h>
+# include <cuimg/dsl/expr.h>
 # include <cuimg/point2d.h>
 # include <cuimg/obox2d.h>
 

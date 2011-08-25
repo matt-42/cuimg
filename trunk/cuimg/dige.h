@@ -9,8 +9,8 @@
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/gpu/image2d_math.h>
 # include <cuimg/simple_ptr.h>
-# include <cuimg/gpu/arith/aggregate.h>
-# include <cuimg/gpu/arith/get_comp.h>
+# include <cuimg/dsl/aggregate.h>
+# include <cuimg/dsl/get_comp.h>
 
 namespace dg
 {
