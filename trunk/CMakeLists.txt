@@ -41,3 +41,5 @@ ADD_TEST(point2d ${EXECUTABLE_OUTPUT_PATH}/point2d)
 CUDA_ADD_EXECUTABLE(obox2d tests/obox2d.cu)
 TARGET_LINK_LIBRARIES(obox2d)
 ADD_TEST(obox2d ${EXECUTABLE_OUTPUT_PATH}/obox2d)
+
+CUDA_ADD_EXECUTABLE(make_meta_gaussian make_meta_gaussian.cpp)

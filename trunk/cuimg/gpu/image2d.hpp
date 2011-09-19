@@ -3,7 +3,7 @@
 
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/error.h>
-# include <cuimg/gpu/util.h>
+# include <cuimg/gpu/kernel_util.h>
 
 namespace cuimg
 {
@@ -171,6 +171,16 @@ namespace cuimg
   image2d<V, PT>::data_sptr()
   {
     return data_;
+  }
+
+  template <typename V, template <class> class PT>
+  V
+  image2d<V, PT>::read_back_pixel(point& p) const
+  {
+    V res;
+    cudaMemcpy(&res, ((char*)data_ptr_) + p.row() * pitch_ + p.col() * sizeof(V),
+               sizeof(V), cudaMemcpyDeviceToHost);
+    return res;
   }
 
 }

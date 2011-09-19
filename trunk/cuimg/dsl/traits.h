@@ -4,6 +4,7 @@
 # include <cuimg/dsl/expr.h>
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/improved_builtin.h>
+# include <cuimg/dsl/tuple.h>
 
 namespace cuimg
 {
@@ -123,6 +124,18 @@ namespace cuimg
   struct kernel_type<const image2d<I, PT> >
   {
     typedef kernel_image2d<I> ret;
+  };
+
+  template <typename A1, typename A2, typename A3,
+            typename A4, typename A5, typename A6>
+  struct kernel_type<tuple<A1, A2, A3, A4, A5, A6> >
+  {
+    typedef tuple<typename kernel_type<A1>::ret,
+                  typename kernel_type<A2>::ret,
+                  typename kernel_type<A3>::ret,
+                  typename kernel_type<A4>::ret,
+                  typename kernel_type<A5>::ret,
+                  typename kernel_type<A6>::ret> ret;
   };
 
 }

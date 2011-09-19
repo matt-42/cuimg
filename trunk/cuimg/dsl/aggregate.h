@@ -5,6 +5,8 @@
 # include <cuimg/dsl/expr.h>
 # include <cuimg/dsl/eval.h>
 # include <cuimg/dsl/has.h>
+# include <cuimg/dsl/tuple.h>
+# include <cuimg/dsl/tuple_eval.h>
 
 namespace cuimg
 {
@@ -122,6 +124,43 @@ namespace cuimg
     typename kernel_type<B>::ret b_;
     typename kernel_type<C>::ret c_;
     typename kernel_type<D>::ret d_;
+  };
+
+  template <typename T> struct comp_getters;
+
+  template <typename T, typename ARGS>
+  struct aggregate_tuple : public expr<aggregate_tuple<T, ARGS> >
+  {
+    typedef int is_expr;
+
+    aggregate_tuple(ARGS t)
+    : t_(t)
+    {
+    }
+
+    __host__ __device__ inline
+    T eval(point2d<int> p) const
+    {
+      typedef comp_getters<T> G;
+      return tuple_eval(G::make, t_, p);
+    }
+
+    __host__ __device__ inline
+    bool has(point2d<int> p)
+    {
+      return tuple_caller(cuimg::has, t_);
+    }
+
+    typename kernel_type<ARGS>::ret t_;
+  };
+
+
+  template <typename T>
+  struct make
+  {
+    template <typename A, typename B, typename C>
+    static aggregate_tuple<T, tuple<A, B, C> > run(A a, B b, C c)
+    { return aggregate_tuple<T, tuple<A, B, C> >(tuple<A, B, C>(a, b, c)); }
   };
 
   template <typename T, typename A, typename B, typename C, typename D>

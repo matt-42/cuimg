@@ -1,52 +1,50 @@
 #ifndef CUIMG_GPU_UTIL_H_
 # define CUIMG_GPU_UTIL_H_
 
-# include <cuimg/improved_builtin.h>
-# include <cuimg/obox2d.h>
-# include <cuimg/obox3d.h>
-# include <cuimg/error.h>
+# include <cuda_runtime.h>
+# include <cuda.h>
 # include <cuimg/util.h>
+
+# include <cuimg/gpu/image3d.h>
 
 namespace cuimg
 {
-  __host__ __device__ inline i_int2 thread_pos2d();
-  __host__ __device__ inline i_int3 thread_pos3d();
-
-#ifdef NVCC
-  __host__ __device__ inline i_int2 thread_pos2d()
-  {
-    return i_int2(blockIdx.y * blockDim.y + threadIdx.y,
-                  blockIdx.x * blockDim.x + threadIdx.x);
-  }
-
-  __host__ __device__ inline i_int3 thread_pos3d()
-  {
-    return i_int3(blockIdx.z * blockDim.z + threadIdx.z,
-                  blockIdx.y * blockDim.y + threadIdx.y,
-                  blockIdx.x * blockDim.x + threadIdx.x);
-  }
-#endif
 
   template <typename T>
-  inline dim3 grid_dimension(const obox2d<T>& domain, const dim3& dimblock)
+  void prepare_texture_3d(cudaArray** a, texture<T, 3, cudaReadModeElementType>& tex,
+                          unsigned nslices, unsigned nrows, unsigned ncols)
   {
-    return dim3(idivup(domain.ncols(), dimblock.x), idivup(domain.nrows(), dimblock.y));
+    cudaChannelFormatDesc ca_descriptor;
+    cudaExtent ca_extent;
+    ca_descriptor = cudaCreateChannelDesc<T>();
+    ca_extent.width  = ncols;
+    ca_extent.height = nrows;
+    ca_extent.depth  = nslices;
+    cudaMalloc3DArray(a, &ca_descriptor, ca_extent);
+    cudaBindTextureToArray(tex, *a, ca_descriptor);
+    check_cuda_error();
   }
 
   template <typename T>
-  inline dim3 grid_dimension(const obox3d<T>& domain, const dim3& dimblock)
+  void copy_nslices_to_array(image3d<T>& in, cudaArray* arr, unsigned start_slice,
+                             unsigned n_slices)
   {
-    return dim3(idivup(domain.ncols(),   dimblock.x),
-                idivup(domain.nrows(),   dimblock.y),
-                idivup(domain.nslices(), dimblock.z));
-  }
+    cudaExtent ca_extent;
+    ca_extent.width  = in.ncols();
+    ca_extent.height = in.nrows();
+    ca_extent.depth  = n_slices;
 
-  template <typename T>
-  __host__ __device__ inline void cuswap(T& a, T& b)
-  {
-    T tmp = a;
-    a = b;
-    b = tmp;
+    cudaMemcpy3DParms cpy_params = {0};
+    cpy_params.extent   = ca_extent;
+    cpy_params.kind     = cudaMemcpyDeviceToDevice;
+    cpy_params.dstArray = arr;
+    cpy_params.srcPtr   = make_cudaPitchedPtr((void*)in.data(), in.pitch(), in.ncols() * sizeof(T), in.nrows());
+
+    cpy_params.srcPos   = make_cudaPos(0, 0, start_slice);
+    cpy_params.dstPos   = make_cudaPos(0, 0, start_slice);
+
+    cudaMemcpy3D( &cpy_params );
+    check_cuda_error();
   }
 
 }

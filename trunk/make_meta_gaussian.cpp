@@ -1,5 +1,8 @@
 #include <iostream>
 #include <fstream>
+#include <cmath>
+
+#define CUIMG_PI 3.14159265f
 
 template <int N>
 float gaussian_derivative(float sigma, int x);
@@ -58,35 +61,39 @@ float gaussian_derivative<4>(float sigma, int x)
 
 int main(int argc, char* argv[])
 {
-  if (argv != 2)
+  if (argc != 2)
   {
-    std::cout << "Usage: ./make_meta_gaussian out.h"
+    std::cout << "Usage: ./make_meta_gaussian out.h" << std::endl;
     return 1;
   }
 
-  ofstream of(argv[1]);
+  std::ofstream of(argv[1]);
 
   of << "// This file is generated." << std::endl;
   of << "#ifndef CUIMG_META_GAUSSIAN_H_" << std::endl;
   of << "# define CUIMG_META_GAUSSIAN_H_" << std::endl;
   of << std::endl;
   of << std::endl;
-  of << "template <int N, int S, int X> meta_gaussian_coef;"<<  std::endl;
+  of << "template <int N, int S> struct meta_gaussian {};"<<  std::endl;
+  of << "template <typename T, int X> struct meta_kernel { static __host__ __device__ float coef() {return 0.f;} };"<<  std::endl;
   of << std::endl;
   of << std::endl;
 
-  for (unsigned n = 0; n <= 4; n++)
+  for (unsigned n = 0; n <= 2; n++)
   {
     of << "// " << n << " th derivative." << std::endl;
-    for (unsigned s = 1; s <= 50; s++)
+    for (unsigned s = 1; s <= 10; s++)
     {
       of << "// sigma = " << s << "." << std::endl;
       for (int x = -50; x <= 50; x++)
       {
-        of << "template <> meta_gaussian_coef<" << n << ", " << s << ", " << x
-           << "> { float coef() { return " << gaussian_derivative(n, s, x) << "; } }; "
+        float res = gaussian_derivative(n, float(s), x);
+        if (res != 0.f)
+          of << "template <> struct meta_kernel<meta_gaussian<" << n << ", " << s << ">, " << x
+            << "> { static __host__ __device__ float coef() { return " << res << "; } }; " << std::endl;
       }
       of << std::endl;
     }
   }
+  of << "#endif //! CUIMG_META_GAUSSIAN_H_" << std::endl;
 }

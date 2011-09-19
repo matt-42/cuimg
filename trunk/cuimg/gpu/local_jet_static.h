@@ -2,7 +2,7 @@
 # define CUIMG_LOCAL_JET_STATIC_H_
 
 # include <cuimg/gpu/image2d.h>
-# include <cuimg/gpu/gaussian_static.h>
+# include <cuimg/gpu/meta_convolve.h>
 # include <cuimg/util.h>
 
 namespace cuimg
@@ -15,8 +15,8 @@ namespace cuimg
 
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
 
-    gaussian_static_row2d<typename TI, TT, I, SIGMA, KERNEL_HALF_SIZE>(in, tmp);
-    gaussian_static_col2d<typename TT, TO, J, SIGMA, KERNEL_HALF_SIZE>(tmp, out);
+    meta_convolve_row2d<TI, TT, meta_gaussian<I, SIGMA>, KERNEL_HALF_SIZE>(in, tmp);
+    meta_convolve_col2d<typename TT, TO, meta_gaussian<J, SIGMA>, KERNEL_HALF_SIZE>(tmp, out);
     check_cuda_error();
   }
 

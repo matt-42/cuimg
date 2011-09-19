@@ -7,6 +7,7 @@
 # include <cuimg/point3d.h>
 # include <cuimg/simple_ptr.h>
 # include <cuimg/obox3d.h>
+# include <cuimg/gpu/image2d.h>
 
 namespace cuimg
 {

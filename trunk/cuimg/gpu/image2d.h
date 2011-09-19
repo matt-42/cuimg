@@ -36,6 +36,8 @@ namespace cuimg
     __host__ __device__ inline unsigned ncols() const;
     __host__ __device__ inline size_t pitch() const;
 
+    __host__ inline V read_back_pixel(point& p) const;
+
     __host__ __device__ inline V* data() const;
     //__host__ __device__ inline const V* data() const;
 

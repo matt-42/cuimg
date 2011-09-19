@@ -3,6 +3,10 @@
 
 # include <map>
 # include <GL/glew.h>
+# include <cudaGL.h>
+# include <cuda_gl_interop.h>
+
+
 # include <dige/image.h>
 
 # include <cuimg/cpu/host_image2d.h>

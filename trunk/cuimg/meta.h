@@ -6,6 +6,7 @@
 # define BOOST_TYPEOF_COMPLIANT
 # include <boost/typeof/typeof.hpp>
 # include <boost/type_traits/remove_reference.hpp>
+# include <boost/type_traits/remove_const.hpp>
 
 namespace cuimg
 {
@@ -293,6 +294,11 @@ namespace cuimg
     template <template <int> class A, int I, int E>
     struct special_loop : public special_loop_<A, I, E, infeq<int_<I>, int_<E> >::val > {};
 
+    template <typename T>
+    struct remove_constref
+    {
+      typedef typename boost::remove_const<typename boost::remove_reference<T>::type>::type ret;
+    };
   }
 
 }

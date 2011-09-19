@@ -18,7 +18,7 @@ namespace cuimg
   {
     static inline __host__ __device__
     typename return_type<X>::ret
-    run(X& x, point2d<int>)
+    run(const X& x, point2d<int>)
     {
       return x;
     }
@@ -49,7 +49,7 @@ namespace cuimg
   template <typename X>
   inline __host__ __device__
   typename return_type<X>::ret
-  eval(X& x, point2d<int> p)
+  eval(const X& x, point2d<int> p)
   {
     return eval_selector<X, arith_trait<X>::value>::run(x, p);
   }
