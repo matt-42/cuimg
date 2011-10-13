@@ -161,6 +161,14 @@ namespace cuimg
     template <typename A, typename B, typename C>
     static aggregate_tuple<T, tuple<A, B, C> > run(A a, B b, C c)
     { return aggregate_tuple<T, tuple<A, B, C> >(tuple<A, B, C>(a, b, c)); }
+
+    template <typename A, typename B, typename C, typename D>
+    static aggregate_tuple<T, tuple<A, B, C, D> > run(A a, B b, C c, D d)
+    { return aggregate_tuple<T, tuple<A, B, C, D> >(tuple<A, B, C, D>(a, b, c, d)); }
+
+    template <typename A, typename B, typename C, typename D, typename E>
+    static aggregate_tuple<T, tuple<A, B, C, D, E> > run(A a, B b, C c, D d, E e)
+    { return aggregate_tuple<T, tuple<A, B, C, D, E> >(tuple<A, B, C, D, E>(a, b, c, d, e)); }
   };
 
   template <typename T, typename A, typename B, typename C, typename D>

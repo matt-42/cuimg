@@ -159,24 +159,22 @@ namespace cuimg
 
 #define ADAPT_STRUCT_4(N, T1, A1, T2, A2, T3, A3, T4, A4) \
   ADAPT_STRUCT_BASE(N,                                                  \
+                    ADAPT_STRUCT_MAKER(N, (T1 A1, T2 A2, T3 A3, T4 A4), (A1, A2, A3, A4)) \
                     ADAPT_STRUCT_MEMBER(N, T1, A1)                      \
                     ADAPT_STRUCT_MEMBER(N, T2, A2)                      \
                     ADAPT_STRUCT_MEMBER(N, T3, A3)                      \
                     ADAPT_STRUCT_MEMBER(N, T4, A4)                      \
                     )                                                   \
-    __host__ __device__ N make_##N(T1 A1, T2 A2, T3 A3, T4 A4) \
-    { return N(A1, A2, A3, A4); }
 
 #define ADAPT_STRUCT_5(N, T1, A1, T2, A2, T3, A3, T4, A4, T5, A5) \
   ADAPT_STRUCT_BASE(N,                                                  \
+                    ADAPT_STRUCT_MAKER(N, (T1 A1, T2 A2, T3 A3, T4 A4, T5 A5), (A1, A2, A3, A4, A5)) \
                     ADAPT_STRUCT_MEMBER(N, T1, A1)                      \
                     ADAPT_STRUCT_MEMBER(N, T2, A2)                      \
                     ADAPT_STRUCT_MEMBER(N, T3, A3)                      \
                     ADAPT_STRUCT_MEMBER(N, T4, A4)                      \
                     ADAPT_STRUCT_MEMBER(N, T5, A5)                      \
-                    )                                                   \
-    __host__ __device__ N make_##N(T1 A1, T2 A2, T3 A3, T4 A4, T5 A5) \
-    { return N(A1, A2, A3, A4, A5); }
+                    )
 
 #define ADAPT_STRUCT_6(N, T1, A1, T2, A2, T3, A3, T4, A4, T5, A5, T6, A6) \
   ADAPT_STRUCT_BASE(N,                                                  \
@@ -196,8 +194,11 @@ namespace cuimg
   get_comp_by_tag_<tag::TAG, E> get_##TAG(E& e) { return get_comp_by_tag_<tag::TAG, E>(e); }
 
 DEFINE_GETTER(speed)
+DEFINE_GETTER(accel)
 DEFINE_GETTER(disp)
+DEFINE_GETTER(orig)
 DEFINE_GETTER(age)
+DEFINE_GETTER(to_draw)
 
   template <typename E>
   get_comp_<0, E> get_x(E& e) { return get_comp_<0, E>(e); }

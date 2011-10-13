@@ -18,6 +18,13 @@ namespace cuimg
     check_cuda_error();
   }
 
+  template <typename T>
+  void copy(const host_image2d<T>& in, host_image2d<T>& out)
+  {
+    assert(in.domain() == out.domain());
+    memcpy(out.data(), in.data(), in.nrows() * in.pitch());
+  }
+
   template <typename T, template <class> class OPT>
   void copy(const host_image2d<T>& in, image2d<T, OPT>& out)
   {

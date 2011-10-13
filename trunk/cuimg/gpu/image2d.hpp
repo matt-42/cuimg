@@ -17,9 +17,12 @@ namespace cuimg
     : domain_(nrows, ncols)
   {
     V* b;
+    //cudaMallocHost((void**)&b, domain_.ncols() * sizeof(V) * domain_.nrows());
+    //pitch_ = domain_.ncols() * sizeof(V);
     cudaMallocPitch((void**)&b, &pitch_, domain_.ncols() * sizeof(V), domain_.nrows());
     check_cuda_error();
     assert(b);
+    //data_ = PT<V>(b, cudaFreeHost);
     data_ = PT<V>(b, cudaFree);
     data_ptr_ = data_.get();
   }
@@ -38,9 +41,12 @@ namespace cuimg
     : domain_(d)
   {
     V* b;
+    //cudaMallocHost((void**)&b, domain_.ncols() * sizeof(V) * domain_.nrows());
+    //pitch_ = domain_.ncols() * sizeof(V);
     cudaMallocPitch((void**)&b, &pitch_, domain_.ncols() * sizeof(V), domain_.nrows());
     check_cuda_error();
     assert(b);
+    //data_ = PT<V>(b, cudaFreeHost);
     data_ = PT<V>(b, cudaFree);
     data_ptr_ = data_.get();
   }
@@ -93,7 +99,6 @@ namespace cuimg
   assign(image2d<A, AP>& out, expr<E>& e, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(out.domain(), dimblock);
-    E x(*static_cast<E*>(&e));
     internal::assign_kernel<<<dimgrid, dimblock>>>(mki(out), *(E*)&e);
    // internal::assign_kernel<<<dimgrid, dimblock>>>(mki(out));
     check_cuda_error();
@@ -175,7 +180,7 @@ namespace cuimg
 
   template <typename V, template <class> class PT>
   V
-  image2d<V, PT>::read_back_pixel(point& p) const
+  image2d<V, PT>::read_back_pixel(const point& p) const
   {
     V res;
     cudaMemcpy(&res, ((char*)data_ptr_) + p.row() * pitch_ + p.col() * sizeof(V),
