@@ -8,6 +8,7 @@ namespace cuimg
 {
   template <typename V>
   kernel_image2d<V>::kernel_image2d()
+    : data_(0)
   {
   }
 
@@ -26,6 +27,7 @@ namespace cuimg
       pitch_(img.pitch()),
       data_(const_cast<V*>(img.data()))
   {
+    assert(data_);
   }
 
   template <typename V>
@@ -46,6 +48,7 @@ namespace cuimg
     domain_ = img.domain();
     pitch_ = img.pitch();
     data_ = const_cast<V*>(img.data());
+    assert(data_);
     return *this;
   }
 

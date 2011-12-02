@@ -1,0 +1,37 @@
+Présentation du 26 mai:
+
+But: Présenter les travaux sur cuimg au laboratoire. Et discuter sur
+la mise en commun / collaboration de code.
+
+I - CUIMG:
+-------------------
+
+Introduction:
+But de la bibliothèque: Simplifier et accelerer l'écriture de code de traitement
+d'image sans perte de performances.
+
+
+Présentation des types de base
+[host]image2d/3d
+point2d
+domain
+
+Transferts de données:
+copy
+
+Les types builtins
+Pourquoi les améliorer?
+Présentation de improved_builtin
+Arithmétique
+
+Convolution par noyau gaussien:
+Déroulage de boucles par les templates
+
+Présentation d'un kernel de base: Addition de 2 images.
+
+Opérateur pixel-wise:
+Génération automatique des kernels simples.
+Vue globale de l'implémentation:
+  - Construction d'un ast de l'expression via des types C++.
+  - Opérateur=
+  - eval

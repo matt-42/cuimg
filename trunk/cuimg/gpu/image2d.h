@@ -37,6 +37,7 @@ namespace cuimg
     __host__ __device__ inline size_t pitch() const;
 
     __host__ inline V read_back_pixel(const point& p) const;
+    __host__ inline void set_pixel(const point& p, const V& e);
 
     __host__ __device__ inline V* data() const;
     //__host__ __device__ inline const V* data() const;

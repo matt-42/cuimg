@@ -4,6 +4,7 @@
 # include <cuda.h>
 # include <cuda_runtime_api.h>
 # include <cuda_runtime.h>
+# include <cuda_texture_types.h>
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/error.h>
 
@@ -12,7 +13,7 @@ namespace cuimg
 
   template<typename U, template <class> class IPT, typename T,
            enum cudaTextureReadMode READMODE>
-  void bindTexture2d(const image2d<U, IPT>& img, texture<T, 2, READMODE>& texref)
+  void bindTexture2d(const image2d<U, IPT>& img, ::texture<T, 2, READMODE>& texref)
   {
     cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
     cudaBindTexture2D(0, texref, (void*)img.data(), channelDesc,

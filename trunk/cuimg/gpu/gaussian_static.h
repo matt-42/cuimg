@@ -3,6 +3,7 @@
 
 # include <cuimg/util.h>
 # include <cuimg/error.h>
+# include <cuimg/meta_gaussian/meta_gaussian.h>
 # include <cuimg/gpu/texture.h>
 # include <cuimg/gpu/kernel_image2d.h>
 # include <cuimg/gpu/image2d.h>

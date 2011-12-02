@@ -55,6 +55,7 @@ namespace cuimg
   template <typename V, template <class> class PT>
   kernel_image2d<V> mki(const image2d<V, PT>& img)
   {
+    assert(img.data());
     return img;
   }
 

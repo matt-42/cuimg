@@ -15,6 +15,7 @@ namespace cuimg
     typedef point3d<int> point;
     typedef obox3d<point> domain_type;
 
+    __host__ __device__ inline kernel_image3d();
     __host__ __device__ inline kernel_image3d(const kernel_image3d<V>& img);
     __host__ __device__ inline kernel_image3d(const image3d<V>& img);
 
@@ -53,6 +54,7 @@ namespace cuimg
   template <typename V>
   kernel_image3d<V> mki(const image3d<V>& img)
   {
+    assert(img.data());
     return img;
   }
 

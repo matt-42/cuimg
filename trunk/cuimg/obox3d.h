@@ -13,6 +13,7 @@ namespace cuimg
   public:
     typedef point3d<int> point;
 
+    __host__ __device__ inline obox3d();
     __host__ __device__ inline obox3d(unsigned nslices, unsigned nrows, unsigned ncols);
     __host__ __device__ inline obox3d(const obox3d<P>& d);
 

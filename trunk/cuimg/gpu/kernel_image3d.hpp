@@ -6,6 +6,13 @@
 
 namespace cuimg
 {
+
+  template <typename V>
+  kernel_image3d<V>::kernel_image3d()
+    : data_(0)
+  {
+  }
+
   template <typename V>
   kernel_image3d<V>::kernel_image3d(const kernel_image3d<V>& img)
     : domain_(img.domain()),
@@ -20,6 +27,7 @@ namespace cuimg
       pitch_(img.pitch()),
       data_(const_cast<V*>(img.data()))
   {
+    assert(data_);
   }
 
   template <typename V>
@@ -29,6 +37,7 @@ namespace cuimg
     domain_ = img.domain();
     pitch_ = img.pitch();
     data_ = img.data();
+    assert(data_);
     return *this;
   }
 

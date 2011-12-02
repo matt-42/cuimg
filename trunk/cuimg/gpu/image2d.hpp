@@ -1,7 +1,10 @@
 #ifndef CUIMG_IMAGE2D_HPP_
 # define CUIMG_IMAGE2D_HPP_
 
+# include <cuda.h>
+# include <cuda_runtime.h>
 # include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/kernel_image2d.h>
 # include <cuimg/error.h>
 # include <cuimg/gpu/kernel_util.h>
 
@@ -186,6 +189,14 @@ namespace cuimg
     cudaMemcpy(&res, ((char*)data_ptr_) + p.row() * pitch_ + p.col() * sizeof(V),
                sizeof(V), cudaMemcpyDeviceToHost);
     return res;
+  }
+
+  template <typename V, template <class> class PT>
+  void
+  image2d<V, PT>::set_pixel(const point& p, const V& v)
+  {
+    cudaMemcpy(((char*)data_ptr_) + p.row() * pitch_ + p.col() * sizeof(V), &v,
+               sizeof(V), cudaMemcpyHostToDevice);
   }
 
 }

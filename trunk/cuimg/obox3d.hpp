@@ -5,6 +5,12 @@
 
 namespace cuimg
 {
+
+  template <typename P>
+  obox3d<P>::obox3d()
+  {
+  }
+
   template <typename P>
   obox3d<P>::obox3d(unsigned nslices, unsigned nrows, unsigned ncols)
     : nslices_(nslices),
