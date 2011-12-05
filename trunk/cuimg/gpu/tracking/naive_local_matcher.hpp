@@ -165,7 +165,7 @@ namespace cuimg
       create_particles_kernel<typename F::kernel_type, particle><<<dimgrid, dimblock>>>(f, *new_particles_, f.pertinence(), test_);
     check_cuda_error();
 
-    dg::widgets::ImageView("distances") <<= dg::dl() - distance_ - f.pertinence() - test_;
+    // dg::widgets::ImageView("distances") <<= dg::dl() - distance_ - f.pertinence() - test_;
 
   }
 

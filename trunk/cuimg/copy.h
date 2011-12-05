@@ -185,7 +185,8 @@ namespace cuimg
   }
 
   template <typename T, template <class> class OPT>
-  void copy_async(const image3d<T>& in, image2d<T, OPT>& out, unsigned slice)
+  void copy_async(const image3d<T>& in, image2d<T, OPT>& out,
+                  unsigned slice, cudaStream_t stream = 0)
   {
     assert(in.nrows() == out.nrows() && in.ncols() == out.ncols());
     cudaMemcpy2DAsync(out.data(), out.pitch(), in.slice_data(slice), in.pitch(),

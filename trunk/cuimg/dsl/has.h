@@ -16,7 +16,7 @@ namespace cuimg
   struct has_checker
   {
     // Return R
-    template <typename R, typename A, bool (A::*)(const point2d<int>&) const>
+    template <typename R, typename X, bool (A::*)(const point2d<int>&) const>
     struct first
     {
       typedef R ret;

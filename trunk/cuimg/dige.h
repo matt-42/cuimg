@@ -15,6 +15,7 @@
 # include <cuimg/simple_ptr.h>
 # include <cuimg/dsl/aggregate.h>
 # include <cuimg/dsl/get_comp.h>
+# include <cuimg/error.h>
 
 namespace dg
 {
@@ -54,18 +55,20 @@ namespace dg
     static std::map<char*, cuda_texture> textures;
   }
 
+  template <typename T>
+  struct ib_to_opengl_internal_type {};
+  template <>
+  struct ib_to_opengl_internal_type<cuimg::i_float4>
+  { enum { val = GL_RGBA32F }; };
+  template <>
+  struct ib_to_opengl_internal_type<cuimg::i_float1>
+  { enum { val = GL_R32F }; };
+
   template<typename V, unsigned N, template <class> class PT>
   class cuda_opengl_texture
   {
   public:
     typedef int dige_texture_type;
-
-    template <typename T>
-    struct ib_to_opengl_internal_type {};
-    template <>
-    struct ib_to_opengl_internal_type<cuimg::i_float4> { enum { val = GL_RGBA32F }; };
-    template <>
-    struct ib_to_opengl_internal_type<cuimg::i_float1> { enum { val = GL_R32F }; };
 
     cuda_opengl_texture(const cuimg::image2d<cuimg::improved_builtin<V, N>, PT>& img)
       : img_(img)
@@ -96,21 +99,21 @@ namespace dg
         cudaGraphicsGLRegisterImage(&t.resource, t.gl_id,
           GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard);
         check_gl_error();
-        check_cuda_error();
+        cuimg::check_cuda_error();
         internal::textures[(char*)img_.data()] = t;
       }
 
       internal::cuda_texture t = internal::textures[(char*)img_.data()];
-      check_cuda_error();
+      cuimg::check_cuda_error();
       cudaGraphicsMapResources(1, &t.resource);
-      check_cuda_error();
+      cuimg::check_cuda_error();
       cudaArray* cuda_array;
       cudaGraphicsSubResourceGetMappedArray(&cuda_array, t.resource, 0, 0);
-      check_cuda_error();
+      cuimg::check_cuda_error();
       cudaMemcpy2DToArray(cuda_array, 0, 0, img_.data(), img_.pitch(), img_.ncols() * sizeof(cuimg::improved_builtin<V, N>), img_.nrows(), cudaMemcpyDeviceToDevice);
-      check_cuda_error();
+      cuimg::check_cuda_error();
       cudaGraphicsUnmapResources(1, &t.resource);
-      check_cuda_error();
+      cuimg::check_cuda_error();
       gl_id_ = t.gl_id;
     }
 

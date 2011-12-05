@@ -29,7 +29,7 @@ namespace cuimg
     __host__ __device__ inline image2d<V, PT>& operator=(const image2d<V, PT>& d);
 
     template <typename E>
-    __host__ inline image2d<V, PT>& operator=(expr<E>& e);
+    __host__ inline image2d<V, PT>& operator=(const expr<E>& e);
 
     __host__ __device__ inline const domain_type& domain() const;
     __host__ __device__ inline unsigned nrows() const;

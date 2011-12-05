@@ -3,9 +3,9 @@
 
 # include <cuda_runtime.h>
 # include <cuimg/gpu/local_jet_static.h>
-# include <cuimg/dsl/get_comp.h>
 # include <cuimg/dsl/binary_div.h>
 # include <cuimg/dsl/binary_add.h>
+# include <cuimg/dsl/get_comp.h>
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_1.h>
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_2.h>
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_4.h>
@@ -168,8 +168,8 @@ namespace cuimg
       (blurred_, *f_, pertinence_, grad_thresh);
 
     local_maximas<dfast><<<dimgrid, dimblock>>>(*f_, pertinence_);
-    dfast_to_color<int><<<dimgrid, dimblock>>>(*f_, fast_color_);
-    ImageView("test") <<= dg::dl() - gl_frame_ - pertinence_ - fast_color_;
+    //dfast_to_color<int><<<dimgrid, dimblock>>>(*f_, fast_color_);
+    // ImageView("test") <<= dg::dl() - gl_frame_ - pertinence_ - fast_color_;
 
     check_cuda_error();
   }

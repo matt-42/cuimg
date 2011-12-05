@@ -99,10 +99,12 @@ namespace cuimg
 
   template <typename A, template <class> class AP, typename E>
   inline void
-  assign(image2d<A, AP>& out, expr<E>& e, dim3 dimblock = dim3(16, 16))
+  assign(image2d<A, AP>& out, const expr<E>& e, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(out.domain(), dimblock);
+#ifdef NVCC
     internal::assign_kernel<<<dimgrid, dimblock>>>(mki(out), *(E*)&e);
+#endif
    // internal::assign_kernel<<<dimgrid, dimblock>>>(mki(out));
     check_cuda_error();
   }
@@ -113,14 +115,16 @@ namespace cuimg
   assign2(image2d<A, AP>& out, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(out.domain(), dimblock);
+#ifdef NVCC
     internal::assign_kernel2<<<dimgrid, dimblock>>>(kernel_image2d<A>(out), i_float4(0.5f, 0.5f, 0.5f, 0.f));
+#endif
   }
 
 
   template <typename V, template <class> class PT>
   template <typename E>
   image2d<V, PT>&
-  image2d<V, PT>::operator=(expr<E>& e)
+  image2d<V, PT>::operator=(const expr<E>& e)
   {
     assign(*this, e);
     return *this;

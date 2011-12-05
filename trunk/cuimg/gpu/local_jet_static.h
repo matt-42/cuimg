@@ -3,6 +3,7 @@
 
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/gpu/meta_convolve.h>
+# include <cuimg/meta_gaussian/meta_gaussian.h>
 # include <cuimg/util.h>
 
 namespace cuimg
@@ -18,7 +19,7 @@ namespace cuimg
 
     meta_convolve_row2d<TI, TT, meta_gaussian<I, SIGMA>, KERNEL_HALF_SIZE>
       (in, tmp, stream, dimblock);
-    meta_convolve_col2d<typename TT, TO, meta_gaussian<J, SIGMA>, KERNEL_HALF_SIZE>
+    meta_convolve_col2d<TT, TO, meta_gaussian<J, SIGMA>, KERNEL_HALF_SIZE>
       (tmp, out, stream, dimblock);
     check_cuda_error();
   }

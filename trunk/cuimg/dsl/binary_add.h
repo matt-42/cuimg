@@ -48,13 +48,23 @@ namespace cuimg
     return return_type(a, s);
   }
 
-  template <typename E, typename S>
+  // template <typename E, typename S>
+  // inline
+  // typename first<typename binary_op_<binary_add, E, S>::ret, typename E::is_expr>::ret
+  // operator+(const E& a, const S s)
+  // {
+  //   typedef typename binary_op_<binary_add, E, S>::ret return_type;
+  //   return return_type(a, s);
+  // }
+
+  template <typename E, typename F>
   inline
-  typename first<typename binary_op_<binary_add, E, S>::ret, typename E::is_expr>::ret
-  operator+(E& a, const S s)
+  typename first<typename binary_op_<binary_add, E, F>::ret,
+                 typename E::is_expr>::ret
+  operator+(const E& a, const F& b)
   {
-    typedef typename binary_op_<binary_add, E, S>::ret return_type;
-    return return_type(a, s);
+    typedef typename binary_op_<binary_add, E, F>::ret return_type;
+    return return_type(a, b);
   }
 
 }

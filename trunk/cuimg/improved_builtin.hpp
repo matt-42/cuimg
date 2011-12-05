@@ -175,14 +175,14 @@ namespace cuimg
   improved_builtin<T, N>::improved_builtin(vtype x_)
   {
     meta::equal<meta::int_<size>, meta::int_<1> >::check(); // Member reserved for builtins of size 1.
-    x = x_;
+    this->x = x_;
   }
 
   template <typename T, unsigned N>
   improved_builtin<T, N>& improved_builtin<T, N>::operator=(vtype x_)
   {
     meta::equal<meta::int_<size>, meta::int_<1> >::check(); // Member reserved for builtins of size 1.
-    x = x_;
+    this->x = x_;
     return *this;
   }
 
@@ -190,34 +190,34 @@ namespace cuimg
   improved_builtin<T, N>::operator vtype()
   {
     meta::equal<meta::int_<size>, meta::int_<1> >::check(); // Member reserved for builtins of size 1.
-    return x;
+    return this->x;
   }
 
   template <typename T, unsigned N>
   improved_builtin<T, N>::improved_builtin(vtype x_, vtype y_)
   {
     meta::equal<meta::int_<size>, meta::int_<2> >::check(); // Member reserved for builtins of size 2.
-    x = x_;
-    y = y_;
+    this->x = x_;
+    this->y = y_;
   }
 
   template <typename T, unsigned N>
   improved_builtin<T, N>::improved_builtin(vtype x_, vtype y_, vtype z_)
   {
     meta::equal<meta::int_<size>, meta::int_<3> >::check(); // Member reserved for builtins of size 3.
-    x = x_;
-    y = y_;
-    z = z_;
+    this->x = x_;
+    this->y = y_;
+    this->z = z_;
   }
 
   template <typename T, unsigned N>
   improved_builtin<T, N>::improved_builtin(vtype x_, vtype y_, vtype z_, vtype w_)
   {
     meta::equal<meta::int_<size>, meta::int_<4> >::check(); // Member reserved for builtins of size 4.
-    x = x_;
-    y = y_;
-    z = z_;
-    w = w_;
+    this->x = x_;
+    this->y = y_;
+    this->z = z_;
+    this->w = w_;
   }
 
   template <typename T, unsigned N>

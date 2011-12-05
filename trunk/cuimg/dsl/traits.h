@@ -29,7 +29,7 @@ namespace cuimg
   };
 
 
-  template <typename A, typename B>
+  template <typename A, typename B, typename C = void, typename D = void>
   struct first
   {
     typedef A ret;
@@ -111,7 +111,7 @@ namespace cuimg
   template <typename T>
   struct kernel_type
   {
-    typedef typename T ret;
+    typedef T ret;
   };
 
   template <typename I, template <class> class PT>

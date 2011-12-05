@@ -43,7 +43,7 @@ class improved_builtin : public make_cuda_bt<T, N>::ret
  public:
   typedef typename make_cuda_bt<T, N>::ret cuda_bt;
   typedef improved_builtin<T, N> self;
-  typedef typename T vtype;
+  typedef T vtype;
   enum { size = N };
 
   __host__ __device__ improved_builtin();
@@ -156,7 +156,7 @@ template <typename U, typename V>
 __host__ __device__ inline bool operator<(const improved_builtin<U, 1>& a, const improved_builtin<V, 1>& b);
 
 template <typename T, unsigned N>
-struct bt_vtype<improved_builtin<T, N> > { typedef typename T ret; };
+struct bt_vtype<improved_builtin<T, N> > { typedef T ret; };
 template <typename T>
 struct bt_vtype<const T> { typedef typename bt_vtype<T>::ret ret; };
 

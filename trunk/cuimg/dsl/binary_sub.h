@@ -58,6 +58,17 @@ namespace cuimg
   }
 
 
+  template <typename E, typename F>
+  inline
+  typename first<typename binary_op_<binary_sub, E, F>::ret,
+                 typename E::is_expr,
+                 typename F::is_expr>::ret
+  operator-(const E& a, const F& b)
+  {
+    typedef typename binary_op_<binary_sub, E, F>::ret return_type;
+    return return_type(a, b);
+  }
+
 }
 
 #endif
