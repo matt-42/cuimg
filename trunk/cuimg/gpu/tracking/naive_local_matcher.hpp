@@ -57,7 +57,7 @@ namespace cuimg
     int p_age = particles(p).age;
     typename F::feature_t p_state = particles(p).state;
     point2d<int> match = p;
-    
+
     float match_distance;
     if (p_age == 1)
     {
@@ -78,7 +78,7 @@ namespace cuimg
       if (!f.current_frame().has(prediction)) return;
 
        match_distance = f.distance(p_state, f.current_frame()(prediction));
-      for_all_in_static_neighb2d(prediction, n, c49) if (particles.has(n))
+      for_all_in_static_neighb2d(prediction, n, c81) if (particles.has(n))
       {
         float d = f.distance(p_state, f.current_frame()(n));// + norml2(i_int2(*n) - i_int2(prediction))/10.f;
         if (d < match_distance)
@@ -94,12 +94,13 @@ namespace cuimg
     if (match_distance < 0.5f && new_particles(match).age <= (p_age + 1))
     {
 
-      i_float2 new_speed = i_int2(match) - i_int2(p); 
+      i_float2 new_speed = i_int2(match) - i_int2(p);
       if (p_age == 1)
         new_particles(match).speed = new_speed;
       else
         new_particles(match).speed = (new_speed * 1.f + particles(p).speed) / 2.f;
-      new_particles(match).state = p_state;//f.current_frame()(match); //
+      //new_particles(match).state = p_state;//f.current_frame()(match); //
+      new_particles(match).state = (p_state*2.f + f.current_frame()(match)) / 3.f;
       new_particles(match).age = p_age + 1;
     }
     else
@@ -119,7 +120,7 @@ namespace cuimg
     if (!particles.has(p) || particles(p).age != 0)
       return;
 
-    if (pertinence(p).x >= 0.1f)
+    if (pertinence(p).x > 0.15f)
     {
       particles(p).age = 1;
       particles(p).state = f.current_frame()(p);
@@ -140,6 +141,10 @@ namespace cuimg
   {
     particles_ = &t1_;
     new_particles_ = &t2_;
+
+    particle p; p.age = 0;
+    fill(*particles_, p);
+    fill(*new_particles_, p);
   }
 
    template <typename F>
@@ -147,7 +152,7 @@ namespace cuimg
   naive_local_matcher<F>::swap_buffers()
   {
     std::swap(particles_, new_particles_);
-    particle p;
+    particle p; p.age = 0;
     fill(*new_particles_, p);
   }
 
@@ -161,11 +166,11 @@ namespace cuimg
 
     swap_buffers();
     naive_matching_kernel<typename F::kernel_type, particle><<<dimgrid, dimblock>>>(f, *particles_, *new_particles_, distance_);
-    if (!(frame_cpt % 90))
+    if (!(frame_cpt % 2))
       create_particles_kernel<typename F::kernel_type, particle><<<dimgrid, dimblock>>>(f, *new_particles_, f.pertinence(), test_);
     check_cuda_error();
 
-    // dg::widgets::ImageView("distances") <<= dg::dl() - distance_ - f.pertinence() - test_;
+    dg::widgets::ImageView("distances") <<= dg::dl() - distance_ - f.pertinence() - test_;
 
   }
 

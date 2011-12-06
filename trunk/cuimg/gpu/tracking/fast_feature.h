@@ -18,6 +18,19 @@ namespace cuimg
     char sign;
   };
 
+  __host__ __device__ inline
+  inline dfast operator+(const dfast& a, const dfast& b);
+  __host__ __device__ inline
+  inline dfast operator-(const dfast& a, const dfast& b);
+
+  template <typename S>
+  __host__ __device__ inline
+  dfast operator/(const dfast& a, const S& s);
+
+  template <typename S>
+  __host__ __device__ inline
+  dfast operator*(const dfast& a, const S& s);
+
   class kernel_fast_feature;
 
   class fast_feature
@@ -37,6 +50,9 @@ namespace cuimg
     inline image2d<dfast>& previous_frame();
     inline image2d<dfast>& current_frame();
     inline image2d<i_float1>& pertinence();
+
+    const image2d<i_float4>& feature_color() const;
+
 
   private:
     inline void swap_buffers();

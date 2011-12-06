@@ -15,6 +15,16 @@ SET(SOURCES cuimg/video_capture.cpp
 
 ADD_LIBRARY(cuimg ${SOURCES})
 
+
+install(TARGETS cuimg DESTINATION lib/Debug CONFIGURATIONS Debug)
+install(TARGETS cuimg DESTINATION lib/Release CONFIGURATIONS Release)
+
+install(DIRECTORY cuimg DESTINATION include
+  FILES_MATCHING PATTERN "*.h")
+install(DIRECTORY cuimg DESTINATION include
+  FILES_MATCHING PATTERN "*.hpp")
+
+
 ENABLE_TESTING()
 
 

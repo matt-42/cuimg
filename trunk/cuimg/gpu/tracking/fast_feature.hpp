@@ -9,6 +9,7 @@
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_1.h>
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_2.h>
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_4.h>
+# include <cuimg/meta_gaussian/meta_gaussian_coefs_3.h>
 # include <cuimg/gpu/tracking/fast_tools.h>
 
 # include <cuimg/dige.h>
@@ -40,6 +41,58 @@ namespace cuimg
             ::abs(a.intensity - b.intensity) * 2.f +
             ::abs(a.max_diff - b.max_diff) * 2.f);
   */}
+
+
+  __host__ __device__ inline
+  inline dfast operator+(const dfast& a, const dfast& b)
+  {
+    dfast res;
+    res.max_diff = (a.max_diff + b.max_diff);
+    res.intensity = (a.intensity + b.intensity);
+    res.orientation = (a.orientation + b.orientation);
+    res.sign = a.sign;
+    return res;
+  }
+
+  __host__ __device__ inline
+  inline dfast operator-(const dfast& a, const dfast& b)
+  {
+    dfast res;
+    res.max_diff = (a.max_diff - b.max_diff);
+    res.intensity = (a.intensity - b.intensity);
+    res.orientation = (a.orientation - b.orientation);
+    res.sign = a.sign;
+    return res;
+  }
+
+  template <typename S>
+  __host__ __device__ inline
+  dfast operator/(const dfast& a, const S& s)
+  {
+    dfast res;
+    res.max_diff = a.max_diff / s;
+    res.intensity = a.intensity / s;
+    res.orientation = a.orientation / s;
+    res.sign = a.sign;
+    return res;
+  }
+
+  template <typename S>
+  __host__ __device__ inline
+  dfast operator*(const dfast& a, const S& s)
+  {
+    dfast res;
+    res.max_diff = a.max_diff * s;
+    res.intensity = a.intensity * s;
+    res.orientation = a.orientation * s;
+    res.sign = a.sign;
+    return res;
+  }
+
+
+  template <typename S>
+  __host__ __device__ inline
+  dfast operator*(const dfast& a, const S& s);
 
 
 
@@ -160,18 +213,44 @@ namespace cuimg
     dim3 dimblock(16, 16, 1);
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
 
-    local_jet_static_<0, 0, 2, 6>::run(gl_frame_, blurred_, tmp_);
+    local_jet_static_<0, 0, 1, 5>::run(gl_frame_, blurred_, tmp_);
 
 
     grad_thresh = Slider("grad_thresh").value() / 100.f;
     FAST<i_float1><<<dimgrid, dimblock>>>
       (blurred_, *f_, pertinence_, grad_thresh);
+    /*
+    image2d<dfast> dfast_blur_;
+    local_jet_static_<0, 0, 1, 6>::run(*f_, dfast_blur_, *f_prev_);
+
+    copy(dfast_blur_, *f_);
+    */
+    dfast_to_color<int><<<dimgrid, dimblock>>>(*f_, fast_color_);
+
+
+    gl_frame_ = (get_x(fast_color_) + get_y(fast_color_) + get_z(fast_color_)) / 3.f;
+
+    local_jet_static_<0, 0, 1, 5>::run(gl_frame_, blurred_, tmp_);
+
+    grad_thresh = Slider("grad_thresh").value() / 100.f;
+    FAST<i_float1><<<dimgrid, dimblock>>>
+      (blurred_, *f_, pertinence_, grad_thresh);
+
+    dfast_to_color<int><<<dimgrid, dimblock>>>(*f_, fast_color_);
+
+
 
     local_maximas<dfast><<<dimgrid, dimblock>>>(*f_, pertinence_);
-    //dfast_to_color<int><<<dimgrid, dimblock>>>(*f_, fast_color_);
-    // ImageView("test") <<= dg::dl() - gl_frame_ - pertinence_ - fast_color_;
+    ImageView("test") <<= dg::dl() - gl_frame_ - pertinence_ - fast_color_;
 
     check_cuda_error();
+  }
+
+  inline
+  const image2d<i_float4>&
+  fast_feature::feature_color() const
+  {
+    return fast_color_;
   }
 
   inline
