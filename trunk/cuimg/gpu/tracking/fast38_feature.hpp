@@ -27,8 +27,8 @@ namespace cuimg
   float distance(const dfast38& a, const dfast38& b)
   {
     if (::abs(a.pertinence - b.pertinence) > 0.1f ||
-        b.pertinence < 0.05f ||
-        a.pertinence < 0.05f)
+        b.pertinence < 0.15f ||
+        a.pertinence < 0.15f)
       return 99999.f;
     else
     {
@@ -39,12 +39,12 @@ namespace cuimg
         d += tmp * tmp;
       }
 
-      return ::sqrt(d);
+      return ::sqrt(d) / ::sqrt(8.f);
     }
   }
 
   __host__ __device__ inline
-  inline dfast38 operator+(const dfast38& a, const dfast38& b)
+  dfast38 operator+(const dfast38& a, const dfast38& b)
   {
     dfast38 res;
     for (unsigned i = 0; i < 8; i++)
@@ -54,7 +54,7 @@ namespace cuimg
   }
 
   __host__ __device__ inline
-  inline dfast38 operator-(const dfast38& a, const dfast38& b)
+  dfast38 operator-(const dfast38& a, const dfast38& b)
   {
     dfast38 res;
     for (unsigned i = 0; i < 8; i++)
@@ -86,11 +86,18 @@ namespace cuimg
   }
 
 
+  // __constant__ const int circle_r3_fast38[8][2] = {
+  //   {-3, 0}, {-2, 2},
+  //   { 0, 3}, { 2, 2},
+  //   { 3, 0}, { 2,-2},
+  //   { 0,-3}, {-2,-2}
+  // };
+
   __constant__ const int circle_r3_fast38[8][2] = {
-    {-3, 0}, {-2, 2},
-    { 0, 3}, { 2, 2},
-    { 3, 0}, { 2,-2},
-    { 0,-3}, {-2,-2}
+    {-1, 0}, {-1, 1},
+    { 0, 1}, { 1, 1},
+    { 1, 0}, { 1,-1},
+    { 0,-1}, {-1,-1}
   };
 
   template <typename V>
@@ -113,7 +120,8 @@ namespace cuimg
                         p.col() + circle_r3_fast38[i][1]);
         if (frame.has(n1))
           //distances[i] = norml2(frame(n1) - frame(p));
-          distances[i] = frame(n1) - frame(p);
+          //distances[i] = frame(n1) - frame(p);
+          distances[i] = frame(n1);
           //distances[i] = norml2(frame_color(n1) - frame_color(p)) / 2.f;
         else
           distances[i] = 0.f;
@@ -154,7 +162,10 @@ namespace cuimg
       if (max_single_diff >= grad_thresh)
       {
         out(p).pertinence = min_diff / max_single_diff;
-        pertinence(p) = min_diff / max_single_diff;//min(min_diff / max_single_diff, max_single_diff);
+        out(p).pertinence = 1.f;
+        pertinence(p) = 1.f;
+
+        //        pertinence(p) = min_diff / max_single_diff;//min(min_diff / max_single_diff, max_single_diff);
       }
       else
       {
@@ -207,17 +218,18 @@ namespace cuimg
     dim3 dimblock(16, 16, 1);
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
 
-    local_jet_static_<0, 0, 1, 5>::run(gl_frame_, blurred_, tmp_);
-    local_jet_static_<0, 0, 1, 5>::run(in, color_blurred_, color_tmp_);
+    local_jet_static_<0, 0, 2, 10>::run(gl_frame_, blurred_, tmp_);
+    //local_jet_static_<0, 0, 1, 5>::run(in, color_blurred_, color_tmp_);
 
 
     grad_thresh = Slider("grad_thresh").value() / 100.f;
     FAST38<i_float1><<<dimgrid, dimblock>>>
       (color_blurred_, blurred_, *f_, pertinence_, grad_thresh);
 
+#ifdef WITH_DISPLAY
     dfast38_to_color<int><<<dimgrid, dimblock>>>(*f_, fast38_color_);
-
     ImageView("test") <<= dg::dl() - gl_frame_ - pertinence_ - fast38_color_;
+#endif
 
     check_cuda_error();
   }

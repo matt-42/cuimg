@@ -17,9 +17,9 @@ namespace cuimg
   };
 
   __host__ __device__ inline
-  inline dfast3 operator+(const dfast3& a, const dfast3& b);
+  dfast3 operator+(const dfast3& a, const dfast3& b);
   __host__ __device__ inline
-  inline dfast3 operator-(const dfast3& a, const dfast3& b);
+  dfast3 operator-(const dfast3& a, const dfast3& b);
 
   template <typename S>
   __host__ __device__ inline

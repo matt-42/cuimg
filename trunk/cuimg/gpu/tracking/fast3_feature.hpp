@@ -29,22 +29,24 @@ namespace cuimg
     if (::abs(a.pertinence - b.pertinence) > 0.1f)
       return 99999.f;
     else
-      return norml2(a.distances - b.distances);
+      return norml2(a.distances - b.distances) / ::sqrt(4.f);
   }
 
   __host__ __device__ inline
-  inline dfast3 operator+(const dfast3& a, const dfast3& b)
+  dfast3 operator+(const dfast3& a, const dfast3& b)
   {
     dfast3 res;
     res.distances = a.distances + b.distances;
+    res.pertinence = a.pertinence + b.pertinence;
     return res;
   }
 
   __host__ __device__ inline
-  inline dfast3 operator-(const dfast3& a, const dfast3& b)
+  dfast3 operator-(const dfast3& a, const dfast3& b)
   {
     dfast3 res;
     res.distances = a.distances - b.distances;
+    res.pertinence = a.pertinence - b.pertinence;
     return res;
   }
 
@@ -54,6 +56,7 @@ namespace cuimg
   {
     dfast3 res;
     res.distances = a.distances / s;
+    res.pertinence = a.pertinence / s;
     return res;
   }
 
@@ -63,6 +66,7 @@ namespace cuimg
   {
     dfast3 res;
     res.distances = a.distances * s;
+    res.pertinence = a.pertinence * s;
     return res;
   }
 
@@ -93,7 +97,9 @@ namespace cuimg
                         p.col() + circle_r3_fast3[i][1]);
         if (frame.has(n1))
           //distances[i] = norml2(frame(n1) - frame(p));
-          distances[i] = norml2(frame(n1)) - norml2(frame(p));
+          //distances[i] = norml2(frame(n1)) - norml2(frame(p));
+          //distances[i] = frame(n1) - frame(p);
+          distances[i] = frame(n1);
         else
           distances[i] = 0.f;
       }

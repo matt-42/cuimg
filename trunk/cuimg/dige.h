@@ -119,6 +119,15 @@ namespace dg
 
     void unload()
     {
+      typedef typename std::map<char*, internal::cuda_texture>::iterator iterator;
+      iterator it = internal::textures.find((char*)img_.data());
+      if (it != internal::textures.end())
+      {
+        internal::cuda_texture t = internal::textures[(char*)img_.data()];
+        glDeleteTextures(1, &t.gl_id);
+        cudaGraphicsUnregisterResource(t.resource);
+        internal::textures.erase(it);
+      }
     }
 
     GLenum gl_id() const

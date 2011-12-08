@@ -2,6 +2,10 @@
 # define CUIMG_FAST_FEATURE_HPP_
 
 # include <cuda_runtime.h>
+
+# include <cuimg/neighb_iterator2d.h>
+# include <cuimg/static_neighb2d.h>
+# include <cuimg/neighb2d_data.h>
 # include <cuimg/gpu/local_jet_static.h>
 # include <cuimg/dsl/binary_div.h>
 # include <cuimg/dsl/binary_add.h>
@@ -44,7 +48,7 @@ namespace cuimg
 
 
   __host__ __device__ inline
-  inline dfast operator+(const dfast& a, const dfast& b)
+  dfast operator+(const dfast& a, const dfast& b)
   {
     dfast res;
     res.max_diff = (a.max_diff + b.max_diff);
@@ -55,7 +59,7 @@ namespace cuimg
   }
 
   __host__ __device__ inline
-  inline dfast operator-(const dfast& a, const dfast& b)
+  dfast operator-(const dfast& a, const dfast& b)
   {
     dfast res;
     res.max_diff = (a.max_diff - b.max_diff);

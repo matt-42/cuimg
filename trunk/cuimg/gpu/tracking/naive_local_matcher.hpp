@@ -59,7 +59,8 @@ namespace cuimg
     point2d<int> match = p;
 
     float match_distance;
-    if (p_age == 1)
+    //if (p_age == 1)
+    if (true)
     {
      match_distance = f.distance(p_state, f.current_frame()(p));
       for_all_in_static_neighb2d(p, n, c80) if (particles.has(n))
@@ -91,7 +92,8 @@ namespace cuimg
 
     dist(p) = i_float4(match_distance, match_distance, match_distance, 1.f);
 
-    if (match_distance < 0.5f && new_particles(match).age <= (p_age + 1))
+    if (match_distance < 0.6f && 
+        new_particles(match).age <= (p_age + 1))
     {
 
       i_float2 new_speed = i_int2(match) - i_int2(p);
@@ -99,8 +101,8 @@ namespace cuimg
         new_particles(match).speed = new_speed;
       else
         new_particles(match).speed = (new_speed * 1.f + particles(p).speed) / 2.f;
-      //new_particles(match).state = p_state;//f.current_frame()(match); //
-      new_particles(match).state = (p_state*2.f + f.current_frame()(match)) / 3.f;
+      //new_particles(match).state = f.current_frame()(match); //p_state;//
+      new_particles(match).state = (p_state*1.f + f.current_frame()(match)) / 2.f;
       new_particles(match).age = p_age + 1;
     }
     else
@@ -120,7 +122,7 @@ namespace cuimg
     if (!particles.has(p) || particles(p).age != 0)
       return;
 
-    if (pertinence(p).x > 0.15f)
+    if (pertinence(p).x > 0.20f)
     {
       particles(p).age = 1;
       particles(p).state = f.current_frame()(p);
@@ -170,7 +172,9 @@ namespace cuimg
       create_particles_kernel<typename F::kernel_type, particle><<<dimgrid, dimblock>>>(f, *new_particles_, f.pertinence(), test_);
     check_cuda_error();
 
+#ifdef WITH_DISPLAY
     dg::widgets::ImageView("distances") <<= dg::dl() - distance_ - f.pertinence() - test_;
+#endif
 
   }
 
@@ -178,7 +182,7 @@ namespace cuimg
   const image2d<typename naive_local_matcher<F>::particle>&
   naive_local_matcher<F>::particles()
   {
-    return *particles_;
+    return *new_particles_;
   }
 
 }
