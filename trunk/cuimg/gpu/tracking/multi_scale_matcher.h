@@ -1,5 +1,5 @@
-#ifndef CUIMG_NAIVE_LOCAL_MATCHER_H_
-# define  CUIMG_NAIVE_LOCAL_MATCHER_H_
+#ifndef CUIMG_MULTI_SCALE_MATCHER_H_
+# define  CUIMG_MULTI_SCALE_MATCHER_H_
 
 # include <cuimg/gpu/image2d.h>
 
@@ -7,7 +7,7 @@ namespace cuimg
 {
 
   template <typename F>
-  class naive_local_matcher
+  class multi_scale_matcher
   {
   public:
     typedef typename F::feature_t feature_t;
@@ -17,8 +17,6 @@ namespace cuimg
     {
       __host__ __device__
       particle() : age(0), speed(0.f, 0.f) {}
-      __host__ __device__
-      particle(int a, feature_t s, i_float2 speed) : age(a), state(s), speed(speed) {}
 
       int age;
       feature_t state;
@@ -26,7 +24,7 @@ namespace cuimg
       i_float2 acceleration;
     };
 
-    naive_local_matcher(const domain_t& d);
+    multi_scale_matcher(const domain_t& d);
 
     void update(F& f);
 
@@ -52,6 +50,6 @@ namespace cuimg
 
 }
 
-# include <cuimg/gpu/tracking/naive_local_matcher.hpp>
+# include <cuimg/gpu/tracking/multi_scale_matcher.hpp>
 
-#endif // !  CUIMG_NAIVE_LOCAL_MATCHER_H_
+#endif // !  CUIMG_MULTI_SCALE_MATCHER_H_

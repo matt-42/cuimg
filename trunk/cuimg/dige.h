@@ -2,6 +2,7 @@
 # define CUIMG_DIGE_H_
 
 # include <map>
+# include <stack>
 # include <GL/glew.h>
 # include <cudaGL.h>
 # include <cuda_gl_interop.h>
@@ -46,13 +47,39 @@ namespace dg
 
   namespace internal
   {
+    struct cuda_texture_cat
+    {
+      cuda_texture_cat()
+      : width(0), height(0), valuetype(0)
+      {}
+
+      cuda_texture_cat(unsigned w, unsigned h, GLuint vt)
+      : width(w), height(h), valuetype(vt)
+      {}
+
+      unsigned width;
+      unsigned height;
+      GLuint valuetype;
+    };
+
+    struct tex_comp
+    {
+      bool operator()(const cuda_texture_cat& a,
+        const cuda_texture_cat& b)
+      {
+        return (a.width < a.width) ||
+          (a.height < a.height) ||
+          (a.valuetype < a.valuetype);
+      }
+    };
+
     struct cuda_texture
     {
       GLuint gl_id;
       cudaGraphicsResource_t resource;
     };
 
-    static std::map<char*, cuda_texture> textures;
+    static std::map<cuda_texture_cat, std::stack<cuda_texture>, tex_comp> textures;
   }
 
   template <typename T>
@@ -77,15 +104,17 @@ namespace dg
 
     void load()
     {
-      typedef typename std::map<char*, internal::cuda_texture>::const_iterator iterator;
-      iterator it = internal::textures.find((char*)img_.data());
-      if (it == internal::textures.end())
+      internal::cuda_texture_cat texcat(img_.ncols(), img_.nrows(),
+                            ib_to_opengl_internal_type<cuimg::improved_builtin<V, N> >::val);
+      std::stack<internal::cuda_texture>& stack = internal::textures[texcat];
+
+      if (stack.size() == 0)
       {
-        internal::cuda_texture t;
-        glGenTextures(1, &t.gl_id);
+        std::cout << "Allocate texture" << std::endl;
+        glGenTextures(1, &cuda_tex_.gl_id);
         check_gl_error();
-        assert(t.gl_id);
-        glBindTexture(GL_TEXTURE_2D, t.gl_id);
+        assert(cuda_tex_.gl_id);
+        glBindTexture(GL_TEXTURE_2D, cuda_tex_.gl_id);
         glPixelStorei(GL_UNPACK_ALIGNMENT,1);
         glTexImage2D(GL_TEXTURE_2D,
                      0, ib_to_opengl_internal_type<cuimg::improved_builtin<V, N> >::val,
@@ -96,43 +125,50 @@ namespace dg
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        cudaGraphicsGLRegisterImage(&t.resource, t.gl_id,
+        cudaGraphicsGLRegisterImage(&cuda_tex_.resource, cuda_tex_.gl_id,
           GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard);
         check_gl_error();
         cuimg::check_cuda_error();
-        internal::textures[(char*)img_.data()] = t;
+      }
+      else
+      {
+        cuda_tex_ = stack.top();
+        stack.pop();
       }
 
-      internal::cuda_texture t = internal::textures[(char*)img_.data()];
       cuimg::check_cuda_error();
-      cudaGraphicsMapResources(1, &t.resource);
+      cudaGraphicsMapResources(1, &cuda_tex_.resource);
       cuimg::check_cuda_error();
       cudaArray* cuda_array;
-      cudaGraphicsSubResourceGetMappedArray(&cuda_array, t.resource, 0, 0);
+      cudaGraphicsSubResourceGetMappedArray(&cuda_array, cuda_tex_.resource, 0, 0);
       cuimg::check_cuda_error();
-      cudaMemcpy2DToArray(cuda_array, 0, 0, img_.data(), img_.pitch(), img_.ncols() * sizeof(cuimg::improved_builtin<V, N>), img_.nrows(), cudaMemcpyDeviceToDevice);
+      cudaMemcpy2DToArray(cuda_array, 0, 0, img_.data(), img_.pitch(),
+                          img_.ncols() * sizeof(cuimg::improved_builtin<V, N>), img_.nrows(),
+                          cudaMemcpyDeviceToDevice);
       cuimg::check_cuda_error();
-      cudaGraphicsUnmapResources(1, &t.resource);
+      cudaGraphicsUnmapResources(1, &cuda_tex_.resource);
       cuimg::check_cuda_error();
-      gl_id_ = t.gl_id;
+    }
+
+    internal::cuda_texture_cat texcat()
+    {
+      return internal::cuda_texture_cat(img_.ncols(), img_.nrows(),
+                                        ib_to_opengl_internal_type<cuimg::improved_builtin<V, N> >::val);
     }
 
     void unload()
     {
-      typedef typename std::map<char*, internal::cuda_texture>::iterator iterator;
-      iterator it = internal::textures.find((char*)img_.data());
-      if (it != internal::textures.end())
+      if (cuda_tex_.gl_id != 0)
       {
-        internal::cuda_texture t = internal::textures[(char*)img_.data()];
-        glDeleteTextures(1, &t.gl_id);
-        cudaGraphicsUnregisterResource(t.resource);
-        internal::textures.erase(it);
+        internal::textures[texcat()].push(cuda_tex_);
+        cuda_tex_.gl_id = 0;
       }
+
     }
 
     GLenum gl_id() const
     {
-      return gl_id_;
+      return cuda_tex_.gl_id;
     }
 
     unsigned width() const { return img_.ncols(); }
@@ -140,7 +176,7 @@ namespace dg
 
   private:
     cuimg::image2d<cuimg::improved_builtin<V, N>, PT> img_;
-    GLuint gl_id_;
+    internal::cuda_texture cuda_tex_;
   };
 
 
