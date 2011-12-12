@@ -150,7 +150,7 @@ namespace cuimg
                                         kernel_image2d<i_float4> dist,
                                         kernel_image2d<i_float4> test)
   {
-    const float matching_threshold = 0.5f;
+    const float matching_threshold = 1.f;
     point2d<int> p = thread_pos2d();
     if (!particles.has(p))
       return;
@@ -300,7 +300,7 @@ namespace cuimg
       create_particles_kernel<typename F::kernel_type, particle><<<dimgrid, dimblock>>>(f, *new_particles_, f.pertinence(), test_);
 
 #ifdef WITH_DISPLAY
-    dg::widgets::ImageView("distances") <<= dg::dl() - distance_ - f.pertinence() - test_ - test2_;
+      dg::widgets::ImageView("distances") <<= dg::dl() - distance_ - f.pertinence() - test_ - test2_;
 #endif
 
   }

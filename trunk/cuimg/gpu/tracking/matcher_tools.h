@@ -34,7 +34,8 @@ namespace cuimg
 
     if (particles(p).age == 0) return;
 
-    if (new_particles(matches(p)).age < particles(p).age)
+    if (new_particles.has(matches(p)) &&
+        new_particles(matches(p)).age < particles(p).age)
     {
       point2d<int> match = i_int2(matches(p));
       new_particles(match) = particles(p);

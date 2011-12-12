@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.8)
 project (cuimg)
 
-find_package(Cuda REQUIRED)
+find_package(CUDA REQUIRED)
 find_package(Boost REQUIRED)
 find_package(OpenCV REQUIRED)
 
