@@ -63,16 +63,16 @@ namespace cuimg
     if (!particles.has(p) || particles(p).age != 0)
       return;
 
-    if (pertinence(p).x > 0.20f)
+    if (pertinence(p).x > 0.25f)
     {
       particles(p).age = 1;
       particles(p).state = f.current_frame()(p);
       particles(p).speed = i_float2(0.f, 0.f);
       particles(p).acceleration = i_float2(0.f, 0.f);
-   //   test_(p) = i_float4(0.f, 1.f, 0.f, 1.f);
+      test_(p) = i_float4(0.f, 1.f, 0.f, 1.f);
     }
-   // else
-  //    test_(p) = i_float4(1.f, 0.f, 0.f, 1.f);
+    else
+      test_(p) = i_float4(1.f, 0.f, 0.f, 1.f);
 
   }
 

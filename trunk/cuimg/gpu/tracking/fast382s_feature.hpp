@@ -10,6 +10,7 @@
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_2.h>
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_4.h>
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_3.h>
+# include <cuimg/meta_gaussian/meta_gaussian_coefs_6.h>
 # include <cuimg/gpu/tracking/fast_tools.h>
 
 # include <cuimg/dige.h>
@@ -34,14 +35,14 @@ namespace cuimg
       return 99999.f;
     else
     {
-      float d = 0.f;
-      for (unsigned i = 0; i < 16; i++)
+      float d = 0;
+      for (unsigned i = 0; i < 8; i++)
       {
-        float tmp = a.distances[i] - b.distances[i];
+        float tmp = (a.distances[i] - b.distances[i]);
         d += tmp * tmp;
       }
 
-      return ::sqrt(d) / ::sqrt(16.f);
+      return ::sqrt(float(d)) / ::sqrt(8.f);
     }
   }
 
@@ -56,14 +57,14 @@ namespace cuimg
     //   return 99999.f;
     // else
     {
-      float d = 0.f;
+      float d = 0;
       for (unsigned i = 8; i < 16; i++)
       {
-        float tmp = a.distances[i] - b.distances[i];
+        float tmp = (a.distances[i] - b.distances[i]);
         d += tmp * tmp;
       }
 
-      return ::sqrt(d) / ::sqrt(8.f);
+      return ::sqrt(float(d)) / ::sqrt(8.f);
     }
   }
 
@@ -154,6 +155,15 @@ namespace cuimg
     return res;
   }
 
+  __host__ __device__ inline
+  dfast382s weighted_mean(const dfast382s& a, float aw, const dfast382s& b, float bw)
+  {
+    dfast382s res;
+    for (unsigned i = 0; i < 16; i++)
+      res.distances[i] = (float(a.distances[i]) * aw + float(b.distances[i]) * bw) / (aw + bw);
+    res.pertinence = (a.pertinence * aw + b.pertinence * bw) / (aw + bw);
+    return res;
+  }
 
    __constant__ const int circle_r3_fast38s1[8][2] = {
      {-3, 0}, {-2, 2},
@@ -195,7 +205,7 @@ namespace cuimg
         point2d<int> n1(p.row() + circle_r3_fast38s1[i][0],
                         p.col() + circle_r3_fast38s1[i][1]);
         if (frame_s1.has(n1))
-          distances[i] = frame_s1(n1) - frame_s1(p);
+          distances[i] = (frame_s1(n1) - frame_s1(p));
         else
           distances[i] = 0.f;
       }
@@ -205,7 +215,7 @@ namespace cuimg
         point2d<int> n1(p.row() + circle_r3_fast38s2[i][0],
                         p.col() + circle_r3_fast38s2[i][1]);
         if (frame_s1.has(n1))
-          distances[i+8] = frame_s2(n1) - frame_s2(p);
+          distances[i+8] = (frame_s2(n1) - frame_s2(p));
         else
           distances[i+8] = 0.f;
       }
@@ -240,6 +250,8 @@ namespace cuimg
         }
       }
 
+      // for(unsigned i = 0; i < 16; i++)
+      //   out(p).distances[i] = 127 * float(distances[i]) / (127.f * max_single_diff);
       for(unsigned i = 0; i < 16; i++)
         out(p).distances[i] = distances[i] / max_single_diff;
       if (max_single_diff >= grad_thresh)
@@ -270,8 +282,9 @@ namespace cuimg
       return;
 
     i_float4 res;
-    for (unsigned i = 0; i < 8; i++)
-      res[i/2] = in(p).distances[i] / 2.f;
+    for (unsigned i = 0; i < 8; i+=2)
+      //res[i/2] = (::abs(in(p).distances[i]) + ::abs(in(p).distances[i+1])) / (2*127.f);
+      res[i/2] = (::abs(in(p).distances[i]) + ::abs(in(p).distances[i+1])) / 2;
     res.w = 1.f;
     out(p) = res;
   }
@@ -303,7 +316,7 @@ namespace cuimg
     dim3 dimblock(16, 16, 1);
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
 
-    local_jet_static_<0, 0, 2, 10>::run(gl_frame_, blurred_s1_, tmp_);
+    local_jet_static_<0, 0, 1, 10>::run(gl_frame_, blurred_s1_, tmp_);
     local_jet_static_<0, 0, 4, 15>::run(gl_frame_, blurred_s2_, tmp_);
     //local_jet_static_<0, 0, 1, 5>::run(in, color_blurred_, color_tmp_);
 
@@ -314,7 +327,7 @@ namespace cuimg
 
 #ifdef WITH_DISPLAY
     dfast382s_to_color<int><<<dimgrid, dimblock>>>(*f_, fast382s_color_);
-    ImageView("test") <<= dg::dl() - gl_frame_ - pertinence_ - fast382s_color_;
+    ImageView("test") <<= dg::dl() - gl_frame_ - blurred_s1_ - blurred_s2_ - pertinence_ - fast382s_color_;
 #endif
 
     check_cuda_error();

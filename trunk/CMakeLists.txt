@@ -9,6 +9,7 @@ INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
 SET(SOURCES cuimg/video_capture.cpp
+            cuimg/background_video_capture.cpp
             cuimg/load_image.cpp
             cuimg/save_image.cpp
             )

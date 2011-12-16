@@ -83,28 +83,6 @@ namespace cuimg
     {-24, -24}, {-16, -24}, {-8, -24}, {0, -24}, {8, -24}, {16, -24}, {24, -24}
   };
 
-  template <typename T>
-    inline
-  __host__ __device__
-  float distance_mean_test(const T& a, const T& b)
-  {
-    if (::abs(a.pertinence - b.pertinence) > 0.1f ||
-        b.pertinence < 0.15f ||
-        a.pertinence < 0.15f
-        )
-      return 99999.f;
-    else
-    {
-      float d = 0.f;
-      for (unsigned i = 0; i < 16; i++)
-      {
-        float tmp = a.distances[i] - b.distances[i];
-        d += tmp * tmp;
-      }
-
-      return ::sqrt(d) / ::sqrt(16.f);
-    }
-  }
 
 
   template <typename F, unsigned S>
@@ -124,7 +102,7 @@ namespace cuimg
     return match;
   }
 
-  
+
     template <typename F, unsigned S>
   __device__ point2d<int> matching_search_s2(F& f, const typename F::feature_t& p_state, point2d<int> prediction,
                                             float& match_distance)
@@ -150,10 +128,11 @@ namespace cuimg
                                         kernel_image2d<i_float4> dist,
                                         kernel_image2d<i_float4> test)
   {
-    const float matching_threshold = 1.f;
+    const float matching_threshold = 0.3f;
     point2d<int> p = thread_pos2d();
     if (!particles.has(p))
       return;
+
     test(p) = i_float4(1.f, 1.f, 0.f, 1.f);
     if (particles(p).age == 0)
     {
@@ -161,11 +140,6 @@ namespace cuimg
       return;
     }
 
-    if (particles(p).state.pertinence < 0.15f)
-    {
-      dist(p) = i_float4(1.f, 1.f, 1.f, 1.f);
-      return;
-    }
     // Search for the best match in the neighborhood.
     int p_age = particles(p).age;
     typename F::feature_t p_state = particles(p).state;
@@ -186,7 +160,7 @@ namespace cuimg
     else
     {
       point2d<int> prediction = i_int2(i_int2(p) + particles(p).speed + particles(p).acceleration);
-      if (!f.current_frame().has(prediction)) 
+      if (!f.current_frame().has(prediction))
       {
         dist(p) = i_float4(0.f, 1.f, 1.f, 1.f);
         return;
@@ -215,7 +189,6 @@ namespace cuimg
 
     }
 
-    dist(p) = i_float4(match_distance, match_distance, match_distance, 1.f);
 
     if (match_distance <= matching_threshold// &&
         //new_particles(match).age <= (p_age + 1)
@@ -230,20 +203,29 @@ namespace cuimg
       }
       else
       {
-        i_float2 s = (new_speed * 3.f + particles(p).speed) / 4.f;
+        i_float2 s = (new_speed * 1.f + particles(p).speed) / 2.f;
         new_particles(match).acceleration = s - particles(p).speed;
         new_particles(match).speed = s;
       }
       //new_particles(match).state = f.current_frame()(match); //p_state;//
-      new_particles(match).state = (p_state*1.f + f.current_frame()(match)*3.f) / 4.f;
+
+      //new_particles(match).state = (p_state*1.f + f.current_frame()(match)*3.f) / 4.f;
+      new_particles(match).state = weighted_mean(p_state, 1.f, f.current_frame()(match), 1.f);
+
       new_particles(match).age = p_age + 1;
       particles(p) = new_particles(match);
       matches(p) = i_short2(match.row(), match.col());
+      dist(p) = i_float4(match_distance, match_distance, match_distance, 1.f);
+      //dist(p) = i_float4(0.f, 1.f, 0.f, 1.f);
     }
     else
     {
+
         matches(p) = i_short2(-1, -1);
-        dist(p) = i_float4(1.f, 1.f, 0.f, 1.f);
+        if (p_age == 1)
+          dist(p) = i_float4(0.f, 0.f, 1.f, 1.f);
+        else
+          dist(p) = i_float4(1.f, 1.f, 0.f, 1.f);
     }
 
   }
@@ -288,16 +270,23 @@ namespace cuimg
     dim3 dimblock(16, 16, 1);
     dim3 dimgrid = grid_dimension(f.domain(), dimblock);
 
-    swap_buffers();
-    multi_scale_matching_kernel<typename F::kernel_type, particle><<<dimgrid, dimblock>>>(f, *particles_, *new_particles_, matches_, distance_, test_);
-    check_cuda_error();
+
+
+
+      //test_kernel<particle><<<dimgrid, dimblock>>>(*particles_, distance_);
+
+      swap_buffers();
+     multi_scale_matching_kernel<typename F::kernel_type, particle><<<dimgrid, dimblock>>>(f, *particles_, *new_particles_, matches_, distance_, test_);
+
+      check_cuda_error();
 
     filter_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_);
     filter_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_);
     check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test2_);
 
-//    if (!(frame_cpt % 5))
-      create_particles_kernel<typename F::kernel_type, particle><<<dimgrid, dimblock>>>(f, *new_particles_, f.pertinence(), test_);
+    if (!(frame_cpt % 2))
+      create_particles_kernel<typename F::kernel_type, particle><<<dimgrid, dimblock>>>(f, *new_particles_, f.pertinence(), test2_);
+
 
 #ifdef WITH_DISPLAY
       dg::widgets::ImageView("distances") <<= dg::dl() - distance_ - f.pertinence() - test_ - test2_;

@@ -3,6 +3,7 @@
 
 # include <cuimg/util.h>
 # include <cuimg/gpu/mipmap.h>
+# include <cuimg/copy.h>
 # include <cuimg/gpu/texture.h>
 
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_1.h>
@@ -124,7 +125,7 @@ namespace cuimg
   }
   */
   template <typename U>
-  void update_mipmap(image2d<U>& in,
+  void update_mipmap(const image2d<U>& in,
                      std::vector<image2d<U> >& pyramid_out,
                      std::vector<image2d<U> >& pyramid_tmp1,
                      std::vector<image2d<U> >& pyramid_tmp2,
@@ -136,7 +137,7 @@ namespace cuimg
 
     typedef typename U::cuda_bt V;
 
-    pyramid_out[0] = in;
+    copy(in, pyramid_out[0]);
     image2d<U> c = in;
     for (unsigned l = 1; l < nlevel; l++)
     {
@@ -152,6 +153,8 @@ namespace cuimg
       mipmap_kernel<<<dimgrid, dimblock, 0, stream>>>(mki(out));
       cudaUnbindTexture(mipmap_internals::UNIT_STATIC(mipmap_input_tex)<V>::tex());
       c = out;
+
+      check_cuda_error();
     }
 
   }

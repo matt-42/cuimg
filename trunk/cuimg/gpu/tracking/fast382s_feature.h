@@ -28,8 +28,9 @@ namespace cuimg
       return *this;
     }
 
-    float pertinence;
     float distances[16];
+    float pertinence;
+    //char distances[16];
   };
 
   __host__ __device__ inline

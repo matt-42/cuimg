@@ -8,19 +8,22 @@ namespace cuimg
 {
 
   video_capture::video_capture()
-    : cap_(new cv::VideoCapture())
+    : cap_(new cv::VideoCapture()),
+      finished_(false)
   {
     cap_->set(CV_CAP_PROP_CONVERT_RGB, true);
   }
 
   video_capture::video_capture(const std::string& filename)
-    : cap_(new cv::VideoCapture(filename))
+    : cap_(new cv::VideoCapture(filename)),
+      finished_(false)
   {
     cap_->set(CV_CAP_PROP_CONVERT_RGB, true);
   }
 
   video_capture::video_capture(int device)
-    : cap_(new cv::VideoCapture(device))
+    : cap_(new cv::VideoCapture(device)),
+      finished_(false)
   {
     cap_->set(CV_CAP_PROP_CONVERT_RGB, true);
   }
@@ -71,7 +74,8 @@ namespace cuimg
   video_capture::operator>>(host_image2d<i_uchar3>& img)
   {
     static cv::Mat m;
-    (*cap_) >> m;
+    finished_ = !cap_->grab();
+    cap_->retrieve(m);
     for (int i = 0; i < m.rows; i++)
       memcpy(&img(i, 0), m.ptr(i), m.cols * sizeof(i_uchar3));
     return *this;
@@ -94,7 +98,12 @@ namespace cuimg
 
   bool video_capture::finished()
   {
-    return cap_->get(CV_CAP_PROP_POS_FRAMES) >= (cap_->get(CV_CAP_PROP_FRAME_COUNT) - 1);
+    return finished_;//cap_->get(CV_CAP_PROP_POS_FRAMES) >= (cap_->get(CV_CAP_PROP_FRAME_COUNT) - 1);
+  }
+
+  unsigned video_capture::nframes()
+  {
+    return cap_->get(CV_CAP_PROP_POS_FRAMES);
   }
 
   bool video_capture::set(int propId, double value)

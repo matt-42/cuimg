@@ -67,9 +67,9 @@ namespace dg
       bool operator()(const cuda_texture_cat& a,
         const cuda_texture_cat& b)
       {
-        return (a.width < a.width) ||
-          (a.height < a.height) ||
-          (a.valuetype < a.valuetype);
+        return (a.width < b.width) ||
+          (a.height < b.height) ||
+          (a.valuetype < b.valuetype);
       }
     };
 

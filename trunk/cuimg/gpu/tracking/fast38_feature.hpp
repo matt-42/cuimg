@@ -261,11 +261,18 @@ namespace cuimg
   fast38_feature::update(const image2d<i_float4>& in)
   {
     gl_frame_ = (get_x(in) + get_y(in) + get_z(in)) / 3.f;
+    update(gl_frame_);
+  }
+
+  inline
+  void
+  fast38_feature::update(const image2d<i_float1>& gl_frame)
+  {
     swap_buffers();
     dim3 dimblock(16, 16, 1);
-    dim3 dimgrid = grid_dimension(in.domain(), dimblock);
+    dim3 dimgrid = grid_dimension(gl_frame.domain(), dimblock);
 
-    local_jet_static_<0, 0, 2, 10>::run(gl_frame_, blurred_, tmp_);
+    local_jet_static_<0, 0, 2, 10>::run(gl_frame, blurred_, tmp_);
     //local_jet_static_<0, 0, 1, 5>::run(in, color_blurred_, color_tmp_);
 
 
@@ -275,7 +282,7 @@ namespace cuimg
 
 #ifdef WITH_DISPLAY
     dfast38_to_color<int><<<dimgrid, dimblock>>>(*f_, fast38_color_);
-    ImageView("test") <<= dg::dl() - gl_frame_ - pertinence_ - fast38_color_;
+    ImageView("test") <<= dg::dl() - gl_frame - pertinence_ - fast38_color_;
 #endif
 
     check_cuda_error();

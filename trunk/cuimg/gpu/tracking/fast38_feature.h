@@ -42,6 +42,7 @@ namespace cuimg
     inline fast38_feature(const domain_t& d);
 
     inline void update(const image2d<i_float4>& in);
+    inline void update(const image2d<i_float1>& in);
 
     inline const domain_t& domain() const;
 
