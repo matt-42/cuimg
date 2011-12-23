@@ -40,7 +40,7 @@ namespace cuimg
   std::vector<image2d<D> > allocate_mipmap(const D&,
                                            image2d<S>& in,
                                            unsigned nlevel,
-                                           dim3 dimblock = (16, 16, 1))
+                                           dim3 dimblock = dim3(16, 16, 1))
   {
     using namespace mipmap_internals;
 
@@ -63,7 +63,7 @@ namespace cuimg
   template <typename U>
   std::vector<image2d<U> > build_mipmap(image2d<U>& in,
                                         unsigned nlevel,
-                                        dim3 dimblock = (16, 16, 1))
+                                        dim3 dimblock = dim3(16, 16, 1))
   {
     using namespace mipmap_internals;
 

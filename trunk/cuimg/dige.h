@@ -29,6 +29,7 @@ namespace dg
       (i.ncols(), i.nrows(), (T*)i.data());
   }
 
+
   template <typename T>
   image<trait::format::bgra, T>
     adapt(const cuimg::host_image2d<cuimg::improved_builtin<T, 4> >& i)
@@ -43,6 +44,22 @@ namespace dg
   {
     return image<trait::format::luminance, T>
       (i.ncols(), i.nrows(), (T*)i.data());
+
+}
+  inline
+  image<trait::format::luminance, unsigned short>
+    adapt(const cuimg::host_image2d<unsigned short>& i)
+  {
+    return image<trait::format::luminance, unsigned short>
+      (i.ncols(), i.nrows(), (unsigned short*)i.data());
+  }
+
+  inline
+  image<trait::format::luminance, int>
+    adapt(const cuimg::host_image2d<int>& i)
+  {
+    return image<trait::format::luminance, int>
+      (i.ncols(), i.nrows(), (int*)i.data());
   }
 
   namespace internal

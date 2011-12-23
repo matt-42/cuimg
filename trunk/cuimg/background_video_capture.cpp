@@ -122,8 +122,12 @@ namespace cuimg
   {
     boost::unique_lock<boost::mutex> lock(mutex_);
     while (is_empty())
+    {
+      //std::cout << "waiting for producer..." << std::endl;
       is_empty_cond_.wait(lock);
+    }
     reader_pos_ = (reader_pos_ + 1) % max_buffer_size_;
+    //std::cout << "Consume: producer: " << producer_pos_ << "  consumer: " << reader_pos_ << std::endl;
     is_empty_cond_.notify_one();
     return buffer_[reader_pos_];
   }
@@ -133,11 +137,14 @@ namespace cuimg
   {
     boost::unique_lock<boost::mutex> lock(mutex_);
     while (is_full())
+    {
+      //std::cout << "waiting for consumer..." << std::endl;
       is_empty_cond_.wait(lock);
-
+    }
     int to_prepare = (producer_pos_ + 1) % max_buffer_size_;
     cap_ >> buffer_[to_prepare];
     producer_pos_ = to_prepare;
+    //std::cout << "Produce: producer: " << producer_pos_ << "  consumer: " << reader_pos_ << std::endl;
     is_empty_cond_.notify_one();
   }
 

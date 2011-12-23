@@ -16,10 +16,12 @@ namespace cuimg
     : domain_(nrows, ncols),
       pitch_(ncols * sizeof(V))
   {
-    //V* ptr;
-    //cudaMallocHost(&ptr, nrows * ncols * sizeof(V));
-    //data_ = boost::shared_ptr<V>(ptr);
-    data_ = boost::shared_ptr<V>(new V[nrows * ncols]());
+    V* ptr;
+    cudaMallocHost(&ptr, domain_.nrows() * domain_.ncols() * sizeof(V));
+    data_ = boost::shared_ptr<V>(ptr, cudaFreeHost);
+
+    //data_ = boost::shared_ptr<V>(ptr, );
+    //data_ = boost::shared_ptr<V>(new V[nrows * ncols]());
     buffer_ = data_.get();
   }
 
@@ -28,7 +30,11 @@ namespace cuimg
     : domain_(d),
       pitch_(ncols() * sizeof(V))
   {
-    data_ = boost::shared_ptr<V>(new V[d.nrows() * d.ncols()]());
+    V* ptr;
+    cudaMallocHost(&ptr, domain_.nrows() * domain_.ncols() * sizeof(V));
+    data_ = boost::shared_ptr<V>(ptr, cudaFreeHost);
+
+    //data_ = boost::shared_ptr<V>(new V[d.nrows() * d.ncols()]());
     buffer_ = data_.get();
   }
 

@@ -4,6 +4,7 @@
 # include <vector>
 
 # include <cuimg/gpu/image2d.h>
+# include <cuimg/cpu/host_image2d.h>
 # include <cuimg/improved_builtin.h>
 # include <cuimg/gpu/tracking/fast38_feature.h>
 # include <cuimg/gpu/tracking/naive_local_matcher.h>
@@ -19,31 +20,25 @@ namespace cuimg
     typedef typename search_t::particle particle_t;
     typedef obox2d<point2d<int> > domain_t;
 
-    large_mvt_detector(const domain_t& d);
+    large_mvt_detector();
 
-    void update(const image2d<V>& f);
+    i_short2 estimate(const host_image2d<i_short2>& matches);
+
+    void display();
 
   private:
-    void estimate();
+    struct mvt
+    {
+      mvt(i_int2 p, i_char2 t) : pos(p), tr(t) {}
 
-    std::vector<image2d<i_float1> >* p2_;
-    std::vector<image2d<i_float1> >* p1_;
+      i_int2 pos;
+      i_char2 tr;
+    };
 
-    std::vector<image2d<i_float1> > pyramid1_;
-    std::vector<image2d<i_float1> > diff_pyramid_;
-    std::vector<image2d<i_float1> > pyramid2_;
-    std::vector<image2d<i_float1> > pyramid_tmp1_;
-    std::vector<image2d<i_float1> > pyramid_tmp2_;
-    image2d<i_float4> display_;
-    image2d<i_float1> gl_frame_;
-
-    image2d<i_float4> particles_;
-    image2d<i_float4> particles2_;
-
-    fast38_feature feature_; // Feature maker
-    naive_local_matcher<fast38_feature> sa_; // Tracking algorithm
-
-    static const int PS = 5;
+    std::vector<mvt> mvts;
+    host_image2d<unsigned short> h;
+    int tr_max_cpt_;
+    i_char2 tr_max_;
   };
 
 }

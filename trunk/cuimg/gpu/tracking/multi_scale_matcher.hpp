@@ -301,6 +301,13 @@ namespace cuimg
     return *new_particles_;
   }
 
+  template <typename F>
+  const image2d<i_short2>&
+  multi_scale_matcher<F>::matches()
+  {
+    return matches_;
+  }
+
 }
 
 #endif // !  CUIMG_MULTI_SCALE_MATCHER_HPP_

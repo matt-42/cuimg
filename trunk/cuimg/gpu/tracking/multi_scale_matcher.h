@@ -29,6 +29,7 @@ namespace cuimg
     void update(F& f);
 
     const image2d<particle>& particles();
+    const image2d<i_short2>& matches();
 
     void swap_buffers();
 

@@ -12,6 +12,22 @@ namespace cuimg
 
   struct dfast38
   {
+    __host__ __device__ dfast38() {}
+
+    __host__ __device__ dfast38(const dfast38& o)
+    {
+      pertinence = o.pertinence;
+      for (unsigned i = 0; i < 8; i++) distances[i] = o.distances[i];
+    }
+
+    __host__ __device__
+    dfast38& operator=(const dfast38& o)
+    {
+      pertinence = o.pertinence;
+      for (unsigned i = 0; i < 8; i++) distances[i] = o.distances[i];
+      return *this;
+    }
+
     float distances[8];
     float pertinence;
   };
@@ -43,6 +59,8 @@ namespace cuimg
 
     inline void update(const image2d<i_float4>& in);
     inline void update(const image2d<i_float1>& in);
+
+    void display() const;
 
     inline const domain_t& domain() const;
 

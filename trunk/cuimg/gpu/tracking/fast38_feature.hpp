@@ -11,6 +11,7 @@
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_4.h>
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_3.h>
 # include <cuimg/gpu/tracking/fast_tools.h>
+# include <cuimg/gpu/tracking/fast38_feature.h>
 
 # include <cuimg/dige.h>
 
@@ -154,7 +155,9 @@ namespace cuimg
                        float grad_thresh)
   {
     point2d<int> p = thread_pos2d();
-    if (!frame.has(p))//; || track(p).x == 0)
+    if (!frame.has(p) ||
+        p.row() > frame.nrows() - 3 || p.row() < 3 ||
+        p.col() > frame.ncols() - 3 || p.col() < 3)
       return;
 
     float distances[8];
@@ -280,12 +283,20 @@ namespace cuimg
     FAST38<i_float1><<<dimgrid, dimblock>>>
       (color_blurred_, blurred_, *f_, pertinence_, grad_thresh);
 
-#ifdef WITH_DISPLAY
-    dfast38_to_color<int><<<dimgrid, dimblock>>>(*f_, fast38_color_);
-    ImageView("test") <<= dg::dl() - gl_frame - pertinence_ - fast38_color_;
-#endif
-
     check_cuda_error();
+  }
+
+  inline
+  void
+  fast38_feature::display() const
+  {
+#ifdef WITH_DISPLAY
+    dim3 dimblock(16, 16, 1);
+    dim3 dimgrid = grid_dimension(pertinence_.domain(), dimblock);
+
+    dfast38_to_color<int><<<dimgrid, dimblock>>>(*f_, fast38_color_);
+    ImageView("test") <<= dg::dl() - pertinence_ - fast38_color_;
+#endif
   }
 
   inline
@@ -343,7 +354,7 @@ namespace cuimg
   kernel_fast38_feature::distance(const point2d<int>& p_prev,
                                 const point2d<int>& p_cur)
   {
-    return cuimg::distance_max(f_prev_(p_prev), f_(p_cur));
+    return cuimg::distance_mean(f_prev_(p_prev), f_(p_cur));
   }
 
   inline
@@ -351,7 +362,7 @@ namespace cuimg
   kernel_fast38_feature::distance(const dfast38& a,
                                 const dfast38& b)
   {
-    return cuimg::distance_max(a, b);
+    return cuimg::distance_mean(a, b);
   }
 
   inline __device__

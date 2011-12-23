@@ -28,9 +28,11 @@ namespace cuimg
 
     naive_local_matcher(const domain_t& d);
 
-    void update(F& f);
+    void update(F& f, i_short2 mvt);
+    void display() const;
 
     const image2d<particle>& particles();
+    const image2d<i_short2>& matches();
 
     void swap_buffers();
 

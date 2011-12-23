@@ -21,8 +21,12 @@
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/gpu/fill.h>
 # include <cuimg/gpu/mipmap.h>
-
 # include <cuimg/gpu/kernel_util.h>
+
+
+# include <cuimg/cpu/host_image2d.h>
+# include <cuimg/cpu/fill.h>
+
 # include <cuimg/neighb2d_data.h>
 # include <cuimg/neighb_iterator2d.h>
 # include <cuimg/static_neighb2d.h>
@@ -36,23 +40,10 @@ namespace cuimg
 {
 
   template <typename V>
-  large_mvt_detector<V>::large_mvt_detector(const domain_t& d)
-    : display_(d),
-      gl_frame_(d),
-      particles_(domain_t(d.nrows() / 8, d.ncols() / 8)),
-      particles2_(domain_t(d.nrows() / 8, d.ncols() / 8)),
-      feature_(domain_t(d.nrows() / 8, d.ncols() / 8)),
-      sa_(domain_t(d.nrows() / 8, d.ncols() / 8))
+  large_mvt_detector<V>::large_mvt_detector()
+    : h(400, 400)
   {
-    pyramid1_ = allocate_mipmap(i_float1(), display_, PS);
-    pyramid2_ = allocate_mipmap(i_float1(), display_, PS);
-    p1_ = &pyramid1_;
-    p2_ = &pyramid2_;
-
-    pyramid_tmp1_ = allocate_mipmap(i_float1(), display_, PS);
-    pyramid_tmp2_ = allocate_mipmap(i_float1(), display_, PS);
-
-    diff_pyramid_ = allocate_mipmap(i_float1(), display_, PS);
+    mvts.reserve(400);
   }
 
   template <typename V>
@@ -77,83 +68,59 @@ namespace cuimg
       out(p) = 0.f;
   }
 
-  template <typename P>
-  __global__ void draw_pointsxxx(kernel_image2d<P> pts,
-		       kernel_image2d<i_float4> out,
-           int age_filter)
-{
-  point2d<int> p = thread_pos2d();
-  if (!out.has(p))
-    return;
-
-  if (pts(p).age < age_filter) out(p) = i_float4(0.f, 0.f, 0.f, 1.f);
-  else out(p) = i_float4(1.f, 0.f, 0, 1.f);
-}
-
-
-  template <typename P>
-  __global__ void draw_pointsxxx(kernel_image2d<i_float1> frame,
-		       kernel_image2d<P> pts,
-		       kernel_image2d<i_float4> out,
-           int age_filter)
-{
-  point2d<int> p = thread_pos2d();
-  if (!frame.has(p))
-    return;
-
-  if (pts(p).age < age_filter) out(p) = i_float4(frame(p).x, frame(p).x, frame(p).x, 1.f);
-  else out(p) = i_float4(1.f, 0, 0, 1.f);
-}
-
   template <typename V>
-  void
-  large_mvt_detector<V>::estimate()
+  i_short2
+  large_mvt_detector<V>::estimate(const host_image2d<i_short2>& matches)
   {
-    const int L = 3;
-    host_image2d<particle_t>& ps;
-
-    int rc_max = 0;
-    int translation_max = 0;
-
+    mvts.clear();
     // Put every matches in a vector.
-    for (unsigned r = 0; r < ps.nrows(); r++)
-      for (unsigned c = 0; c < ps.ncols(); c++)
-        if (matches(r, c).x != -1)
-          mvts.push_back(mvt(point2d<int>(r, c), matches(r, c)));
+    for (unsigned r = 0; r < matches.nrows(); r++)
+      for (unsigned c = 0; c < matches.ncols(); c++)
+        if (matches(r, c).x > 0)
+          mvts.push_back(mvt(point2d<int>(r, c), matches(r, c) - i_int2(r, c)));
+
+    i_int2 h_center(h.nrows() / 2, h.ncols() / 2);
+    fill(h, unsigned short(0));
 
     // Stats on translation
+    tr_max_ = i_char2(0, 0);
+    tr_max_cpt_ = 0;
+    for (unsigned i = 0; i < mvts.size(); i++)
+    {
+      if (::abs(mvts[i].tr.x) >= h.nrows() / 2 || ::abs(mvts[i].tr.y) >= h.ncols() / 2) continue;
+      int c = ++h(mvts[i].tr + h_center);
+      if (c > tr_max_cpt_)
+      {
+        tr_max_cpt_ = c;
+        tr_max_ = mvts[i].tr;
+      }
+    }
+
+    //if (tr_max_cpt_ / float(mvts.size()) > 0.10f)
+      return tr_max_;
+    //else
+    //  return i_short2(0,0);
   }
 
   template <typename V>
   void
-  large_mvt_detector<V>::update(const image2d<V>& in)
+  large_mvt_detector<V>::display()
   {
-    dim3 dimblock(16, 16, 1);
-    dim3 dimgrid = grid_dimension(in.domain(), dimblock);
-
-    std::swap(p1_, p2_);
-
-    gl_frame_ = (get_x(in) + get_y(in) + get_z(in)) / 3.f;
-
-    update_mipmap(gl_frame_, *p1_, pyramid_tmp1_, pyramid_tmp2_, PS);
-
-    feature_.update((*p1_)[3]);
-    sa_.update(feature_);
-
-    for (unsigned i = 0; i < PS; i++)
-      //        diff_pyramid_[i] = abs((*p1_)[i] - (*p2_)[i]);
-      relative_diff<i_float1><<<dimgrid, dimblock>>>((*p1_)[i], (*p2_)[i], diff_pyramid_[i]);
-
 #ifdef WITH_DISPLAY
-  draw_pointsxxx<particle_t><<<dimgrid, dimblock>>>((*p1_)[3], sa_.particles(), particles_, Slider("age_filter").value());
-  draw_pointsxxx<particle_t><<<dimgrid, dimblock>>>(sa_.particles(), particles2_, Slider("age_filter").value());
-  ImageView("frame") <<= dg::dl() - particles2_ - particles_;
+    if (tr_max_cpt_)
+      for (unsigned r = 0; r < h.nrows(); r++)
+        for (unsigned c = 0; c < h.ncols(); c++)
+          h(r, c) = (65535 * int(h(r, c))) / (tr_max_cpt_);
 
-      dg::widgets::ImageView("mvt_detector")
-        <<= dg::dl() - (*p1_)[0] - (*p1_)[1] - (*p1_)[2] - (*p1_)[3] - (*p1_)[4] +
-            diff_pyramid_[0] - diff_pyramid_[1] - diff_pyramid_[2] - diff_pyramid_[3] - diff_pyramid_[4];
+    ImageView("big_mvt") <<= dg::dl() - h;
+    // Test.
+    if (tr_max_cpt_ > (mvts.size() / 20) &&
+        tr_max_ != i_char2(0, 0))
+    {
+      std::cout << "Big translation detected: " << 100*tr_max_cpt_/mvts.size() << "%\t of "
+                << mvts.size() << " matches: " << i_int2(tr_max_) << std::endl;
+    }
 #endif
-
   }
 
 }

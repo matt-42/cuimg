@@ -44,17 +44,20 @@ namespace cuimg
                                         kernel_image2d<T> particles,
                                         kernel_image2d<T> new_particles,
                                         kernel_image2d<i_short2> matches,
-                                        kernel_image2d<i_float4> dist)
+                                        kernel_image2d<i_float4> dist,
+                                        i_short2 mvt)
   {
     point2d<int> p = thread_pos2d();
     if (!particles.has(p))
       return;
+
+    matches(p) = i_short2(-1, -1);
+
     if (particles(p).age == 0)
     {
       dist(p) = i_float4(1.f, 0.f, 0.f, 1.f);
       return;
     }
-
 
     // Search for the best match in the neighborhood.
     int p_age = particles(p).age;
@@ -66,10 +69,12 @@ namespace cuimg
     //if (true)
     {
       match = p;
-     match_distance = f.distance(p_state, f.current_frame()(p));
+      match_distance = f.distance(p_state, f.current_frame()(p));
       if (match_distance > 0.1f)
       {
-        for_all_in_static_neighb2d(p, n, c80) if (particles.has(n))
+        point2d<int> prediction = i_int2(p) + mvt;
+        if (!particles.has(prediction)) return;
+        for_all_in_static_neighb2d(prediction, n, c81) if (particles.has(n))
         {
           float d = f.distance(p_state, f.current_frame()(n));
           if (d < match_distance)
@@ -77,14 +82,13 @@ namespace cuimg
             match = n;
             match_distance = d;
             if (match_distance < 0.1f) break;
-
           }
         }
       }
     }
     else
     {
-      point2d<int> prediction = i_int2(i_int2(p) + particles(p).speed + particles(p).acceleration);
+      point2d<int> prediction = i_int2(i_int2(p) + particles(p).speed + particles(p).acceleration + mvt);
       if (!f.current_frame().has(prediction)) return;
 
       match = prediction;
@@ -111,7 +115,7 @@ namespace cuimg
         )
     {
 
-      i_float2 new_speed = i_int2(match) - i_int2(p);
+      i_float2 new_speed = i_int2(match) - i_int2(p) - mvt;
       if (p_age == 1)
       {
         new_particles(match).speed = new_speed;
@@ -171,14 +175,14 @@ namespace cuimg
 
   template <typename F>
   void
-  naive_local_matcher<F>::update(F& f)
+  naive_local_matcher<F>::update(F& f, i_short2 mvt)
   {
     frame_cpt++;
     dim3 dimblock(16, 16, 1);
     dim3 dimgrid = grid_dimension(f.domain(), dimblock);
 
     swap_buffers();
-    naive_matching_kernel<typename F::kernel_type, particle><<<dimgrid, dimblock>>>(f, *particles_, *new_particles_, matches_, distance_);
+    naive_matching_kernel<typename F::kernel_type, particle><<<dimgrid, dimblock>>>(f, *particles_, *new_particles_, matches_, distance_, mvt);
     check_cuda_error();
 
     check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test_);
@@ -186,13 +190,19 @@ namespace cuimg
     filter_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_);
     check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test2_);
 
-    if (!(frame_cpt % 5))
+    //if (!(frame_cpt % 5))
       create_particles_kernel<typename F::kernel_type, particle><<<dimgrid, dimblock>>>(f, *new_particles_, f.pertinence(), test_);
 
-#ifdef WITH_DISPLAY
-    dg::widgets::ImageView("distances") <<= dg::dl() - distance_ - f.pertinence() - test_ - test2_;
-#endif
+  }
 
+
+  template <typename F>
+  void
+  naive_local_matcher<F>::display() const
+  {
+#ifdef WITH_DISPLAY
+    dg::widgets::ImageView("distances") <<= dg::dl() - distance_ - test_ - test2_;
+#endif
   }
 
   template <typename F>
@@ -200,6 +210,14 @@ namespace cuimg
   naive_local_matcher<F>::particles()
   {
     return *new_particles_;
+  }
+
+
+  template <typename F>
+  const image2d<i_short2>&
+  naive_local_matcher<F>::matches()
+  {
+    return matches_;
   }
 
 }
