@@ -8,7 +8,6 @@
 # include <cuimg/point2d.h>
 # include <cuimg/obox2d.h>
 # include <cuimg/dsl/expr.h>
-# include <cuimg/gpu/memtype.h>
 
 namespace cuimg
 {

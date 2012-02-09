@@ -8,6 +8,7 @@
 
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_1.h>
 # include <cuimg/gpu/local_jet_static.h>
+# include <cuimg/super_numeric_type.h>
 
 namespace cuimg
 {
@@ -28,10 +29,11 @@ namespace cuimg
         return;
 
       i_int2 d(p[0] * 2, p[1] * 2);
-      out(p) = (I(tex2D(UNIT_STATIC(mipmap_input_tex)<V>::tex(), d[1], d[0])) +
-                I(tex2D(UNIT_STATIC(mipmap_input_tex)<V>::tex(), d[1] + 1, d[0])) +
-                I(tex2D(UNIT_STATIC(mipmap_input_tex)<V>::tex(), d[1], d[0] + 1)) +
-                I(tex2D(UNIT_STATIC(mipmap_input_tex)<V>::tex(), d[1] + 1, d[0] + 1))) / 4.f;
+      typedef typename super_numeric_type<I>::ret SI;
+      out(p) = (SI(I(tex2D(UNIT_STATIC(mipmap_input_tex)<V>::tex(), d[1], d[0]))) +
+                SI(I(tex2D(UNIT_STATIC(mipmap_input_tex)<V>::tex(), d[1] + 1, d[0]))) +
+                SI(I(tex2D(UNIT_STATIC(mipmap_input_tex)<V>::tex(), d[1], d[0] + 1))) +
+                SI(I(tex2D(UNIT_STATIC(mipmap_input_tex)<V>::tex(), d[1] + 1, d[0] + 1)))) / 4.f;
     }
 
   }

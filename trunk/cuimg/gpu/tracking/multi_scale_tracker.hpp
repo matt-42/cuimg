@@ -4,6 +4,7 @@
 # include <cuimg/improved_builtin.h>
 # include <cuimg/gpu/tracking/multi_scale_tracker.h>
 # include <cuimg/gpu/mipmap.h>
+# include <cuimg/dsl/dsl_cast.h>
 
 namespace cuimg
 {
@@ -17,13 +18,13 @@ namespace cuimg
       dummy_matches_(d),
       mvt_detector_thread_(d)
   {
-    pyramid_ = allocate_mipmap(i_float1(), frame_, PS);
-    pyramid_tmp1_ = allocate_mipmap(i_float1(), frame_, PS);
-    pyramid_tmp2_ = allocate_mipmap(i_float1(), frame_, PS);
+    pyramid_ = allocate_mipmap(i_uchar1(), frame_, PS);
+    pyramid_tmp1_ = allocate_mipmap(i_uchar1(), frame_, PS);
+    pyramid_tmp2_ = allocate_mipmap(i_uchar1(), frame_, PS);
 
-    pyramid_display1_ = allocate_mipmap(i_float4(), frame_, PS);
-    pyramid_display2_ = allocate_mipmap(i_float4(), frame_, PS);
-    pyramid_speed_ = allocate_mipmap(i_float4(), frame_, PS);
+    pyramid_display1_ = allocate_mipmap(i_uchar4(), frame_, PS);
+    pyramid_display2_ = allocate_mipmap(i_uchar4(), frame_, PS);
+    pyramid_speed_ = allocate_mipmap(i_uchar4(), frame_, PS);
     for (unsigned i = 0; i < pyramid_.size(); i++)
     {
       feature_.push_back(new F(pyramid_[i].domain()));
@@ -52,9 +53,9 @@ namespace cuimg
   }
 
   template <typename P>
-  __global__ void draw_particles(kernel_image2d<i_float1> frame,
+  __global__ void draw_particles(kernel_image2d<i_uchar1> frame,
                                  kernel_image2d<P> pts,
-                                 kernel_image2d<i_float4> out,
+                                 kernel_image2d<i_uchar4> out,
                                  int age_filter)
   {
     point2d<int> p = thread_pos2d();
@@ -62,12 +63,12 @@ namespace cuimg
       return;
 
     //if (pts(p).age < age_filter) out(p) = frame(p);
-    if (pts(p).age < age_filter) out(p) = i_float4(frame(p).x, frame(p).x, frame(p).x, 1.f);
-    else out(p) = i_float4(1.f, 0, 0, 1.f);
+    if (pts(p).age < age_filter) out(p) = i_uchar4(frame(p).x, frame(p).x, frame(p).x, 255.f);
+    else out(p) = i_uchar4(255.f, 0, 0, 255.f);
   }
 
   template <typename P>
-  __global__ void draw_speed(kernel_image2d<P> track, kernel_image2d<i_float4> out)
+  __global__ void draw_speed(kernel_image2d<P> track, kernel_image2d<i_uchar4> out)
   {
     point2d<int> p = thread_pos2d();
     if (!track.has(p))
@@ -75,7 +76,7 @@ namespace cuimg
 
     if (!track(p).age)
     {
-       out(p) = i_float4(0, 0, 0, 1.f);
+       out(p) = i_float4(0, 0, 0, 255.f);
        return;
     }
 
@@ -89,20 +90,22 @@ namespace cuimg
     R = R < 0.f ? 0.f : R;
     G = G < 0.f ? 0.f : G;
     B = B < 0.f ? 0.f : B;
-    out(p) = i_float4(R, G, B, 1.f);
+    out(p) = i_float4(R, G, B, 1.f) * 255;
 
     // out(p) = i_float4(diff, diff, diff, 1.f);
   }
 
 
   template <typename P>
-  __global__ void of_reconstruction(kernel_image2d<i_float4> speed, kernel_image2d<i_float1> in, kernel_image2d<i_float4> out)
+  __global__ void of_reconstruction(kernel_image2d<i_uchar4> speed,
+                                    kernel_image2d<i_uchar1> in,
+                                    kernel_image2d<i_uchar4> out)
   {
     point2d<int> p = thread_pos2d();
     if (!speed.has(p))
       return;
 
-    if (speed(p) != i_float4(0, 0, 0, 1.f))
+    if (speed(p) != i_uchar4(0, 0, 0, 255.f))
     {
       out(p) = speed(p);
       return;
@@ -110,9 +113,9 @@ namespace cuimg
 
     i_float4 res = zero();
     int cpt = 0;
-    for_all_in_static_neighb2d(p, n, c49) if (speed.has(n) && speed(n) != i_float4(0, 0, 0, 1.f))
+    for_all_in_static_neighb2d(p, n, c49) if (speed.has(n) && speed(n) != i_uchar4(0, 0, 0, 255.f))
     {
-       if (norml2(in(p) - in(n)) < (30.f / 256.f))
+       if (norml2(in(p) - in(n)) < (30.f))
        {
           res += speed(n);
           cpt++;
@@ -122,7 +125,7 @@ namespace cuimg
     if (cpt >= 2)
       out(p) = res / cpt;
     else
-      out(p) = i_float4(0, 0, 0, 1.f);
+      out(p) = i_uchar4(0, 0, 0, 255);
   }
 
   template <typename P>
@@ -144,15 +147,15 @@ namespace cuimg
 
     template <typename P>
   __global__ void draw_particles(kernel_image2d<P> pts,
-                                 kernel_image2d<i_float4> out,
+                                 kernel_image2d<i_uchar4> out,
                                  int age_filter)
   {
     point2d<int> p = thread_pos2d();
     if (!out.has(p))
       return;
 
-    if (pts(p).age < age_filter) out(p) = i_float4(0.f, 0.f, 0.f, 1.f);
-    else out(p) = i_float4(1.f, 0.f, 0, 1.f);
+    if (pts(p).age < age_filter) out(p) = i_float4(0, 0, 0, 255);
+    else out(p) = i_float4(255, 0, 0, 255);
   }
 
 
@@ -161,8 +164,7 @@ namespace cuimg
   void multi_scale_tracker<F, SA_>::update(const host_image2d<i_uchar3>& in)
   {
     copy(in, frame_uc3_);
-    frame_ = (get_x(frame_uc3_) + get_y(frame_uc3_) + get_z(frame_uc3_)) / (255 * 3.f);
-
+    frame_ = (dsl_cast<int>::run(get_x(frame_uc3_)) + dsl_cast<int>::run(get_y(frame_uc3_)) + dsl_cast<int>::run(get_z(frame_uc3_))) / 3.f;
 
     update_mipmap(frame_, pyramid_, pyramid_tmp1_, pyramid_tmp2_, PS);
 
@@ -210,14 +212,14 @@ namespace cuimg
     feature_[TD]->display();
     matcher_[TD]->display();
     mvt_detector_thread_.mvt_detector().display();
-    traj_tracer_.display("trajectories", pyramid_[TD]);
+    //traj_tracer_.display("trajectories", pyramid_[TD]);
 
     dim3 dimblock(16, 16);
     dim3 dimgrid = dim3(grid_dimension(matcher_[TD]->particles().domain(), dimblock));
     draw_particles<P><<<dimgrid, dimblock>>>(pyramid_[TD], matcher_[TD]->particles(), pyramid_display1_[TD], Slider("age_filter").value());
     draw_particles<P><<<dimgrid, dimblock>>>(matcher_[TD]->particles(), pyramid_display2_[TD], Slider("age_filter").value());
 
-    static image2d<i_float4> of(matcher_[TD]->particles().domain());
+    static image2d<i_uchar4> of(matcher_[TD]->particles().domain());
     draw_speed<P><<<dimgrid, dimblock>>>(matcher_[TD]->particles(), pyramid_speed_[TD]);
     of_reconstruction<P><<<dimgrid, dimblock>>>(pyramid_speed_[TD], pyramid_[TD], of);
     ImageView("frame") <<= dg::dl() - pyramid_display1_[TD] - pyramid_display2_[TD] - pyramid_speed_[TD] - of;

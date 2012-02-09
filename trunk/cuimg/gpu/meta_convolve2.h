@@ -7,6 +7,7 @@
 # include <cuimg/gpu/kernel_image2d.h>
 # include <cuimg/gpu/meta_convolve.h>
 # include <cuimg/gpu/image2d.h>
+# include <cuimg/super_numeric_type.h>
 # include <cuimg/meta_gaussian/meta_gaussian.h>
 
 namespace cuimg
@@ -14,27 +15,29 @@ namespace cuimg
   namespace meta_convolve_internal
   {
 
+#define SNT(T) typename super_numeric_type<T>::ret
+
     template <typename I, int R, int E, typename G1, typename G2>
       struct meta_convolve2d_row_loop2
       {
-        template <typename U>
-        static __device__ inline void iter(U& r1, U& r2, const i_int2& p)
+        template <typename U, typename S>
+        static __device__ inline void iter(U& r1, U& r2, const S&,  const i_int2& p)
         {;
-          U v = U(tex2D(UNIT_STATIC(g_input_tex)<typename U::cuda_bt>::tex(), p.y + R, p.x));
+          S v = S(tex2D(UNIT_STATIC(g_input_tex)<typename S::cuda_bt>::tex(), p.y + R, p.x));
           r1 += v * meta_kernel<G1, R>::coef();
           r2 += v * meta_kernel<G2, R>::coef();
 
-          meta_convolve2d_row_loop2<I, R + 1, E, G1, G2>::iter(r1, r2, p);
+          meta_convolve2d_row_loop2<I, R + 1, E, G1, G2>::iter(r1, r2, S(), p);
         }
       };
 
     template <typename I, int E, typename G1, typename G2>
     struct meta_convolve2d_row_loop2<I, E, E, G1, G2>
     {
-      template <typename U>
-        static __device__ inline void iter(U& r1, U& r2, const i_int2& p)
+      template <typename U, typename S>
+      static __device__ inline void iter(U& r1, U& r2, const S&, const i_int2& p)
       {;
-        U v = U(tex2D(UNIT_STATIC(g_input_tex)<typename U::cuda_bt>::tex(), p.y + E, p.x));
+        S v = S(tex2D(UNIT_STATIC(g_input_tex)<typename S::cuda_bt>::tex(), p.y + E, p.x));
         r1 += v * meta_kernel<G1, E>::coef();
         r2 += v * meta_kernel<G2, E>::coef();
       }
@@ -49,9 +52,10 @@ namespace cuimg
       i_int2 p(idr, idc);
       if (!out1.has(p))
         return;
-      O r1 = zero();
-      O r2 = zero();
-      meta_convolve2d_row_loop2<I, -KERNEL_HALF_SIZE, KERNEL_HALF_SIZE, G1, G2>::iter(r1, r2, p);
+
+      SNT(O) r1 = zero();
+      SNT(O) r2 = zero();
+      meta_convolve2d_row_loop2<I, -KERNEL_HALF_SIZE, KERNEL_HALF_SIZE, G1, G2>::iter(r1, r2, O(), p);
       out1(p) = r1;
       out2(p) = r2;
     }

@@ -14,6 +14,7 @@ SET(SOURCES cuimg/video_capture.cpp
             cuimg/save_image.cpp
             )
 
+ADD_DEFINITIONS(-g -G)
 ADD_LIBRARY(cuimg ${SOURCES})
 
 
