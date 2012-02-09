@@ -1,5 +1,5 @@
-# include <cv.h>
-# include <highgui.h>
+# include <opencv/cv.h>
+# include <opencv/highgui.h>
 
 # include <cuimg/background_video_capture.h>
 
@@ -9,7 +9,7 @@ namespace cuimg
 
   void background_video_capture_loop(background_video_capture* v)
   {
-    while (true) v->prepare_next_frame();
+    while (!v->thread_end()) v->prepare_next_frame();
   }
 
   background_video_capture::background_video_capture(const background_video_capture& b)
@@ -26,7 +26,7 @@ namespace cuimg
     : cap_(filename),
       is_empty_cond_()
   {
-    if (is_opened()) 
+    if (is_opened())
     {
       init();
       start_producer_thread();
@@ -37,7 +37,7 @@ namespace cuimg
     : cap_(device),
       is_empty_cond_()
   {
-    if (is_opened()) 
+    if (is_opened())
     {
       init();
       start_producer_thread();
@@ -55,6 +55,7 @@ namespace cuimg
 
   void background_video_capture::start_producer_thread()
   {
+    thread_end_ = false;
     reader_pos_ = -1;
     producer_pos_ = -1;
     producer_thread_ = boost::thread(background_video_capture_loop, this);
@@ -66,14 +67,23 @@ namespace cuimg
     cap_.resize(nrows, ncols);
   }
 
+  bool
+  background_video_capture::thread_end() const
+  {
+    return thread_end_;
+  }
+
   background_video_capture::~background_video_capture()
   {
+    thread_end_ = true;
+    is_empty_cond_.notify_one();
+    producer_thread_.join();
   }
 
   bool background_video_capture::open(const std::string& filename)
   {
     bool b = cap_.open(filename);
-    if (is_opened()) 
+    if (is_opened())
     {
       init();
       start_producer_thread();
@@ -84,7 +94,7 @@ namespace cuimg
   bool background_video_capture::open(int device)
   {
     bool b = cap_.open(device);
-    if (is_opened()) 
+    if (is_opened())
     {
       init();
       start_producer_thread();
@@ -136,15 +146,18 @@ namespace cuimg
   background_video_capture::prepare_next_frame()
   {
     boost::unique_lock<boost::mutex> lock(mutex_);
-    while (is_full())
+    while (is_full() && !thread_end())
     {
       //std::cout << "waiting for consumer..." << std::endl;
       is_empty_cond_.wait(lock);
     }
-    int to_prepare = (producer_pos_ + 1) % max_buffer_size_;
-    cap_ >> buffer_[to_prepare];
-    producer_pos_ = to_prepare;
-    //std::cout << "Produce: producer: " << producer_pos_ << "  consumer: " << reader_pos_ << std::endl;
+    if (!thread_end())
+    {
+      int to_prepare = (producer_pos_ + 1) % max_buffer_size_;
+      cap_ >> buffer_[to_prepare];
+      producer_pos_ = to_prepare;
+      //std::cout << "Produce: producer: " << producer_pos_ << "  consumer: " << reader_pos_ << std::endl;
+    }
     is_empty_cond_.notify_one();
   }
 

@@ -1,5 +1,5 @@
-# include <cv.h>
-# include <highgui.h>
+# include <opencv/cv.h>
+# include <opencv/highgui.h>
 
 # include <cuimg/video_capture.h>
 
@@ -73,11 +73,20 @@ namespace cuimg
   video_capture&
   video_capture::operator>>(host_image2d<i_uchar3>& img)
   {
+    assert(img.data());
+    assert(cap_);
     static cv::Mat m;
     finished_ = !cap_->grab();
-    cap_->retrieve(m);
+    if (!cap_->retrieve(m))
+      finished_ = true;
+    if (finished_)
+      return *this;
+
     for (int i = 0; i < m.rows; i++)
+    {
+      assert(m.ptr(i));
       memcpy(&img(i, 0), m.ptr(i), m.cols * sizeof(i_uchar3));
+    }
     return *this;
   }
 

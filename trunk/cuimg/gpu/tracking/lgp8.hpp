@@ -1,5 +1,5 @@
-#ifndef CUIMG_FAST38_FEATURE_HPP_
-# define CUIMG_FAST38_FEATURE_HPP_
+#ifndef CUIMG_LGP8_FEATURE_HPP_
+# define CUIMG_LGP8_FEATURE_HPP_
 
 # include <cuda_runtime.h>
 # include <cuimg/gpu/local_jet_static.h>
@@ -11,7 +11,7 @@
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_4.h>
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_3.h>
 # include <cuimg/gpu/tracking/fast_tools.h>
-# include <cuimg/gpu/tracking/fast38_feature.h>
+# include <cuimg/gpu/tracking/lgp8.h>
 
 # include <cuimg/dige.h>
 
@@ -26,7 +26,7 @@ namespace cuimg
 
   inline
   __host__ __device__
-  float distance_mean(const dfast38& a, const dfast38& b)
+  float distance_mean(const dlgp8& a, const dlgp8& b)
   {
     if (::abs(a.pertinence - b.pertinence) > 0.1f ||
         b.pertinence < 0.15f ||
@@ -48,7 +48,7 @@ namespace cuimg
 
   inline
   __host__ __device__
-  float distance_mean_linear(const dfast38& a, const dfast38& b)
+  float distance_mean_linear(const dlgp8& a, const dlgp8& b)
   {
     float d = 0;
     for (unsigned i = 0; i < 8; i++)
@@ -63,7 +63,7 @@ namespace cuimg
 
   inline
   __host__ __device__
-  float distance_min(const dfast38& a, const dfast38& b)
+  float distance_min(const dlgp8& a, const dlgp8& b)
   {
     if (::abs(a.pertinence - b.pertinence) > 0.1f ||
         b.pertinence < 0.15f ||
@@ -85,7 +85,7 @@ namespace cuimg
 
   inline
   __host__ __device__
-  float distance_max(const dfast38& a, const dfast38& b)
+  float distance_max(const dlgp8& a, const dlgp8& b)
   {
     if (::abs(a.pertinence - b.pertinence) > 0.1f ||
         b.pertinence < 0.15f ||
@@ -106,9 +106,9 @@ namespace cuimg
   }
 
   __host__ __device__ inline
-  dfast38 operator+(const dfast38& a, const dfast38& b)
+  dlgp8 operator+(const dlgp8& a, const dlgp8& b)
   {
-    dfast38 res;
+    dlgp8 res;
     for (unsigned i = 0; i < 8; i++)
       res.distances[i] = a.distances[i] + b.distances[i];
     res.pertinence = a.pertinence + b.pertinence;
@@ -116,9 +116,9 @@ namespace cuimg
   }
 
   __host__ __device__ inline
-  dfast38 operator-(const dfast38& a, const dfast38& b)
+  dlgp8 operator-(const dlgp8& a, const dlgp8& b)
   {
-    dfast38 res;
+    dlgp8 res;
     for (unsigned i = 0; i < 8; i++)
       res.distances[i] = a.distances[i] - b.distances[i];
     res.pertinence = a.pertinence - b.pertinence;
@@ -127,9 +127,9 @@ namespace cuimg
 
   template <typename S>
   __host__ __device__ inline
-  dfast38 operator/(const dfast38& a, const S& s)
+  dlgp8 operator/(const dlgp8& a, const S& s)
   {
-    dfast38 res;
+    dlgp8 res;
     for (unsigned i = 0; i < 8; i++)
       res.distances[i] = a.distances[i] / s;
     res.pertinence = a.pertinence / s;
@@ -138,9 +138,9 @@ namespace cuimg
 
   template <typename S>
   __host__ __device__ inline
-  dfast38 operator*(const dfast38& a, const S& s)
+  dlgp8 operator*(const dlgp8& a, const S& s)
   {
-    dfast38 res;
+    dlgp8 res;
     for (unsigned i = 0; i < 8; i++)
       res.distances[i] = a.distances[i] * s;
     res.pertinence = a.pertinence * s;
@@ -148,14 +148,14 @@ namespace cuimg
   }
 
 
-   __constant__ const int circle_r3_fast38[8][2] = {
+   __constant__ const int circle_r3_lgp8[8][2] = {
      {-3, 0}, {-2, 2},
      { 0, 3}, { 2, 2},
      { 3, 0}, { 2,-2},
      { 0,-3}, {-2,-2}
    };
   /*
-  __constant__ const int circle_r3_fast38[8][2] = {
+  __constant__ const int circle_r3_lgp8[8][2] = {
     {-1, 0}, {-1, 1},
     { 0, 1}, { 1, 1},
     { 1, 0}, { 1,-1},
@@ -163,9 +163,9 @@ namespace cuimg
   };
   */
   template <typename V>
-  __global__ void FAST38(kernel_image2d<i_float4> frame_color,
+  __global__ void LGP8(kernel_image2d<i_float4> frame_color,
                        kernel_image2d<V> frame,
-                       kernel_image2d<dfast38> out,
+                       kernel_image2d<dlgp8> out,
                        kernel_image2d<i_float1> pertinence,
                        float grad_thresh)
   {
@@ -180,11 +180,14 @@ namespace cuimg
     {
       for(unsigned i = 0; i < 8; i++)
       {
-        point2d<int> n1(p.row() + circle_r3_fast38[i][0],
-                        p.col() + circle_r3_fast38[i][1]);
-        if (frame.has(n1))
+        point2d<int> n1(p.row() + circle_r3[i][0],
+                        p.col() + circle_r3[i][1]);
+        point2d<int> n2(p.row() + circle_r3[(i+8)][0],
+                        p.col() + circle_r3[(i+8)][1]);
+        if (frame.has(n1) && frame.has(n2))
           //distances[i] = norml2(frame(n1) - frame(p));
-          distances[i] = frame(n1) - frame(p);
+          //distances[i] = frame(n1) - frame(n2);
+          distances[i] = plj - (frame(n1) + frame(n2)) / 2.f;
           //distances[i] = frame(n1);
           //distances[i] = norml2(frame_color(n1) - frame_color(p)) / 2.f;
         else
@@ -221,8 +224,23 @@ namespace cuimg
         }
       }
 
-      for(unsigned i = 0; i < 8; i++)
-        out(p).distances[i] = distances[i] / max_single_diff;
+      for(unsigned i = 1; i < 7; i++)
+      {
+        out(p).distances[i] = (distances[i] +
+                               0.5f * distances[i-1] +
+                               0.5f * distances[i+1]) / (3.f * max_single_diff);
+      }
+
+      out(p).distances[0] = (distances[0] +
+                             0.5f * distances[1] +
+                             0.5f * distances[7]) / (2.f * max_single_diff);
+      out(p).distances[7] = (distances[7] +
+                             0.5f * distances[6] +
+                             0.5f * distances[0]) / (2.f * max_single_diff);
+
+      //for(unsigned i = 0; i < 8; i++)
+      //out(p).distances[i] = distances[i] / max_single_diff;
+
       if (max_single_diff >= grad_thresh)
       {
         out(p).pertinence = min_diff / max_single_diff;
@@ -243,7 +261,7 @@ namespace cuimg
   }
 
   template <typename T>
-  __global__  void dfast38_to_color(kernel_image2d<dfast38> in,
+  __global__  void dlgp8_to_color(kernel_image2d<dlgp8> in,
                                   kernel_image2d<i_float4> out)
   {
     point2d<int> p = thread_pos2d();
@@ -251,21 +269,21 @@ namespace cuimg
       return;
 
     i_float4 res;
-    for (unsigned i = 0; i < 8; i++)
-      res[i/2] = in(p).distances[i] / 2.f;
+    for (unsigned i = 0; i < 3; i++)
+      res[i] = in(p).distances[i];
     res.w = 1.f;
     out(p) = res;
   }
 
   inline
-  fast38_feature::fast38_feature(const domain_t& d)
+  lgp8_feature::lgp8_feature(const domain_t& d)
     : gl_frame_(d),
       blurred_(d),
       tmp_(d),
       pertinence_(d),
       f1_(d),
       f2_(d),
-      fast38_color_(d),
+      lgp8_color_(d),
       color_blurred_(d),
       color_tmp_(d),
       grad_thresh(0.3f)
@@ -276,7 +294,7 @@ namespace cuimg
 
   inline
   void
-  fast38_feature::update(const image2d<i_float4>& in)
+  lgp8_feature::update(const image2d<i_float4>& in)
   {
     gl_frame_ = (get_x(in) + get_y(in) + get_z(in)) / 3.f;
     update(gl_frame_);
@@ -284,7 +302,7 @@ namespace cuimg
 
   inline
   void
-  fast38_feature::update(const image2d<i_float1>& gl_frame)
+  lgp8_feature::update(const image2d<i_float1>& gl_frame)
   {
     swap_buffers();
     dim3 dimblock(16, 16, 1);
@@ -295,69 +313,69 @@ namespace cuimg
 
 
     grad_thresh = Slider("grad_thresh").value() / 100.f;
-    FAST38<i_float1><<<dimgrid, dimblock>>>
-      (color_blurred_, gl_frame, *f_, pertinence_, grad_thresh);
+    LGP8<i_float1><<<dimgrid, dimblock>>>
+      (color_blurred_, blurred_, *f_, pertinence_, grad_thresh);
 
     check_cuda_error();
   }
 
   inline
   void
-  fast38_feature::display() const
+  lgp8_feature::display() const
   {
 #ifdef WITH_DISPLAY
     dim3 dimblock(16, 16, 1);
     dim3 dimgrid = grid_dimension(pertinence_.domain(), dimblock);
 
-    dfast38_to_color<int><<<dimgrid, dimblock>>>(*f_, fast38_color_);
-    ImageView("test") <<= dg::dl() - pertinence_ - fast38_color_;
+    dlgp8_to_color<int><<<dimgrid, dimblock>>>(*f_, lgp8_color_);
+    ImageView("test") <<= dg::dl() - pertinence_ - lgp8_color_;
 #endif
   }
 
   inline
   const image2d<i_float4>&
-  fast38_feature::feature_color() const
+  lgp8_feature::feature_color() const
   {
-    return fast38_color_;
+    return lgp8_color_;
   }
 
   inline
   void
-  fast38_feature::swap_buffers()
+  lgp8_feature::swap_buffers()
   {
     std::swap(f_prev_, f_);
   }
 
   inline
-  const fast38_feature::domain_t&
-  fast38_feature::domain() const
+  const lgp8_feature::domain_t&
+  lgp8_feature::domain() const
   {
     return f1_.domain();
   }
 
   inline
-  image2d<dfast38>&
-  fast38_feature::previous_frame()
+  image2d<dlgp8>&
+  lgp8_feature::previous_frame()
   {
     return *f_prev_;
   }
 
   inline
-  image2d<dfast38>&
-  fast38_feature::current_frame()
+  image2d<dlgp8>&
+  lgp8_feature::current_frame()
   {
     return *f_;
   }
 
   inline
   image2d<i_float1>&
-  fast38_feature::pertinence()
+  lgp8_feature::pertinence()
   {
     return pertinence_;
   }
 
   inline
-  kernel_fast38_feature::kernel_fast38_feature(fast38_feature& f)
+  kernel_lgp8_feature::kernel_lgp8_feature(lgp8_feature& f)
     : pertinence_(f.pertinence()),
       f_prev_(f.previous_frame()),
       f_(f.current_frame())
@@ -366,7 +384,7 @@ namespace cuimg
 
   inline
   __device__ float
-  kernel_fast38_feature::distance(const point2d<int>& p_prev,
+  kernel_lgp8_feature::distance(const point2d<int>& p_prev,
                                 const point2d<int>& p_cur)
   {
     return cuimg::distance_mean(f_prev_(p_prev), f_(p_cur));
@@ -374,8 +392,8 @@ namespace cuimg
 
   inline
   __device__ float
-  kernel_fast38_feature::distance(const dfast38& a,
-                                const dfast38& b)
+  kernel_lgp8_feature::distance(const dlgp8& a,
+                                const dlgp8& b)
   {
     return cuimg::distance_mean(a, b);
   }
@@ -383,33 +401,33 @@ namespace cuimg
 
   inline
   __device__ float
-  kernel_fast38_feature::distance_linear(const dfast38& a,
-                                           const dfast38& b)
+  kernel_lgp8_feature::distance_linear(const dlgp8& a,
+                                         const dlgp8& b)
   {
     return cuimg::distance_mean_linear(a, b);
   }
 
   inline __device__
-  kernel_image2d<dfast38>&
-  kernel_fast38_feature::previous_frame()
+  kernel_image2d<dlgp8>&
+  kernel_lgp8_feature::previous_frame()
   {
     return f_prev_;
   }
 
   inline __device__
-  kernel_image2d<dfast38>&
-  kernel_fast38_feature::current_frame()
+  kernel_image2d<dlgp8>&
+  kernel_lgp8_feature::current_frame()
   {
     return f_;
   }
 
   inline __device__
   kernel_image2d<i_float1>&
-  kernel_fast38_feature::pertinence()
+  kernel_lgp8_feature::pertinence()
   {
     return pertinence_;
   }
 
 }
 
-#endif // ! CUIMG_FAST38_FEATURE_HPP_
+#endif // ! CUIMG_LGP8_FEATURE_HPP_

@@ -4,6 +4,7 @@
 # include <cuimg/dsl/expr.h>
 # include <cuimg/dsl/eval.h>
 # include <cuimg/meta.h>
+# include <cuimg/dsl/binary_op.h>
 
 namespace cuimg
 {
@@ -15,7 +16,7 @@ namespace cuimg
   {
     template <typename A, typename B>
       static inline __host__ __device__
-      typename return_type<binary_op<binary_add, A, B, 0, 0> >::ret
+      typename return_type<binary_op<binary_sub, A, B, 0, 0> >::ret
       run(A& a, B& b, point2d<int> p)
     {
       return eval(a, p) - eval(b, p);

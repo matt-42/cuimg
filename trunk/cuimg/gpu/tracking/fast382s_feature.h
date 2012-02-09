@@ -16,20 +16,20 @@ namespace cuimg
 
     __host__ __device__ dfast382s(const dfast382s& o)
     {
-      pertinence = o.pertinence;
+      //pertinence = o.pertinence;
       for (unsigned i = 0; i < 16; i++) distances[i] = o.distances[i];
     }
 
     __host__ __device__
     dfast382s& operator=(const dfast382s& o)
     {
-      pertinence = o.pertinence;
+      //pertinence = o.pertinence;
       for (unsigned i = 0; i < 16; i++) distances[i] = o.distances[i];
       return *this;
     }
 
     float distances[16];
-    float pertinence;
+    //float pertinence;
     //char distances[16];
   };
 
@@ -59,6 +59,7 @@ namespace cuimg
     inline fast382s_feature(const domain_t& d);
 
     inline void update(const image2d<i_float4>& in);
+    inline void update(const image2d<i_float1>& in);
 
     inline const domain_t& domain() const;
 
@@ -68,6 +69,7 @@ namespace cuimg
 
     const image2d<i_float4>& feature_color() const;
 
+    void display() const;
 
   private:
     inline void swap_buffers();
@@ -79,6 +81,7 @@ namespace cuimg
     image2d<i_float1> tmp_;
 
     image2d<i_float1> pertinence_;
+    image2d<i_float1> pertinence2_;
 
     image2d<dfast382s> f1_;
     image2d<dfast382s> f2_;
@@ -106,6 +109,10 @@ namespace cuimg
     __device__ float distance(const point2d<int>& p_prev,
                               const point2d<int>& p_cur);
 
+    inline
+    __device__ float distance_linear(const dfast382s& a, const dfast382s& b);
+    inline
+    __device__ float distance_linear_s2(const dfast382s& a, const dfast382s& b);
     inline
     __device__ float distance(const dfast382s& a, const dfast382s& b);
     inline

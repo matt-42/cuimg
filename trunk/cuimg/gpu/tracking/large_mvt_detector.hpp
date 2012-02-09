@@ -34,7 +34,9 @@
 
 
 # include <cuimg/gpu/tracking/fast_tools.h>
-# include <cuimg/gpu/tracking/fast_tools.h>
+
+# include <dige/widgets/image_view.h>
+
 
 namespace cuimg
 {
@@ -43,7 +45,6 @@ namespace cuimg
   large_mvt_detector<V>::large_mvt_detector()
     : h(400, 400)
   {
-    mvts.reserve(400);
   }
 
   template <typename V>
@@ -69,37 +70,36 @@ namespace cuimg
   }
 
   template <typename V>
+  template <typename P>
   i_short2
-  large_mvt_detector<V>::estimate(const host_image2d<i_short2>& matches)
+  large_mvt_detector<V>::estimate(const thrust::host_vector<P>& particles,
+                                  unsigned n_particles)
   {
-    mvts.clear();
-    // Put every matches in a vector.
-    for (unsigned r = 0; r < matches.nrows(); r++)
-      for (unsigned c = 0; c < matches.ncols(); c++)
-        if (matches(r, c).x > 0)
-          mvts.push_back(mvt(point2d<int>(r, c), matches(r, c) - i_int2(r, c)));
-
-    i_int2 h_center(h.nrows() / 2, h.ncols() / 2);
-    fill(h, unsigned short(0));
-
-    // Stats on translation
+    n_particles_ = n_particles;
+    typedef unsigned short US;
     tr_max_ = i_char2(0, 0);
     tr_max_cpt_ = 0;
-    for (unsigned i = 0; i < mvts.size(); i++)
+
+    if (n_particles < 20) return tr_max_;
+
+    i_int2 h_center(h.nrows() / 2, h.ncols() / 2);
+    fill(h, US(0));
+
+    // Stats on translation
+    for (unsigned i = 0; i < n_particles; i++)
     {
-      if (::abs(mvts[i].tr.x) >= h.nrows() / 2 || ::abs(mvts[i].tr.y) >= h.ncols() / 2) continue;
-      int c = ++h(mvts[i].tr + h_center);
+      if (particles[i].age < 5 ||
+          ::abs(particles[i].brut_acceleration.x) >= h.nrows() / 2 ||
+          ::abs(particles[i].brut_acceleration.y) >= h.ncols() / 2) continue;
+      int c = ++h(particles[i].brut_acceleration + h_center);
       if (c > tr_max_cpt_)
       {
         tr_max_cpt_ = c;
-        tr_max_ = mvts[i].tr;
+        tr_max_ = particles[i].brut_acceleration;
       }
     }
 
-    //if (tr_max_cpt_ / float(mvts.size()) > 0.10f)
-      return tr_max_;
-    //else
-    //  return i_short2(0,0);
+    return tr_max_;
   }
 
   template <typename V>
@@ -112,13 +112,12 @@ namespace cuimg
         for (unsigned c = 0; c < h.ncols(); c++)
           h(r, c) = (65535 * int(h(r, c))) / (tr_max_cpt_);
 
-    ImageView("big_mvt") <<= dg::dl() - h;
+    dg::widgets::ImageView("big_mvt") <<= dg::dl() - h;
     // Test.
-    if (tr_max_cpt_ > (mvts.size() / 20) &&
-        tr_max_ != i_char2(0, 0))
+    if (tr_max_ != i_char2(0, 0))
     {
-      std::cout << "Big translation detected: " << 100*tr_max_cpt_/mvts.size() << "%\t of "
-                << mvts.size() << " matches: " << i_int2(tr_max_) << std::endl;
+      std::cout << "Big translation detected: " << 100*tr_max_cpt_/n_particles_ << "%\t of "
+                << n_particles_ << " matches: " << i_int2(tr_max_) << std::endl;
     }
 #endif
   }

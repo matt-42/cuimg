@@ -33,6 +33,7 @@ class trajectory_tracer
   image2d<i_float4> rand_colors_;
   image2d<i_float4> display_image_;
   image2d<i_float4> traj_;
+  image2d<i_float4> straj_;
   image2d<i_float4> traj_heads_;
   image2d<trace> traces1_;
   image2d<trace> traces2_;

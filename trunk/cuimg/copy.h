@@ -132,7 +132,7 @@ namespace cuimg
   {
     assert(in.domain() == out.domain());
     cudaMemcpy2DAsync(out.data(), out.pitch(), in.data(), in.pitch(), in.ncols() * sizeof(T), in.nrows(),
-               cudaMemcpyDeviceToDevice);
+                      cudaMemcpyDeviceToDevice, stream);
     check_cuda_error();
   }
 

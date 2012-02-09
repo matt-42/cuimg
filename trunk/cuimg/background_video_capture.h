@@ -36,7 +36,7 @@ namespace cuimg
     host_image2d<i_uchar3>& next_frame();
     void prepare_next_frame();
 
-
+    bool thread_end() const;
     bool grab();
 
     bool set(int propId, double value);
@@ -63,6 +63,8 @@ namespace cuimg
     ::boost::condition_variable is_empty_cond_;
     ::boost::mutex mutex_;
     ::boost::thread producer_thread_;
+
+    bool thread_end_;
   };
 
 }

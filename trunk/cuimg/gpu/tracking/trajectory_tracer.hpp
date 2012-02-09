@@ -26,6 +26,7 @@ trajectory_tracer::trajectory_tracer(const domain_t& d)
   display_image_(d),
   traj_heads_(d),
   traj_(d),
+  straj_(d),
   traces1_(d),
   traces2_(d),
   age_(d)
@@ -116,6 +117,59 @@ __device__ void draw_line2d(kernel_image2d<V> frame,
     if (age_image.has(to_plot))
     {
     age_image(to_plot) = age;
+    frame(to_plot) = color;
+    }
+
+    error = error + deltaerr;
+    if (error >= 0.5)
+    {
+      y = y + ystep;
+      error = error - 1.0;
+    }
+  }
+}
+
+
+template <typename V>
+__device__ void draw_line2d(kernel_image2d<V> frame,
+			    point2d<int> a, point2d<int> b,
+			    V color)
+{
+  int x0 = a.col(); int y0 = a.row();
+  int x1 = b.col(); int y1 = b.row();
+
+  int steep = abs(y1 - y0) > abs(x1 - x0);
+
+  if (steep)
+  {
+    swap_kernel(x0, y0);
+    swap_kernel(x1, y1);
+  }
+
+  if (x0 > x1)
+  {
+    swap_kernel(x0, x1);
+    swap_kernel(y0, y1);
+  }
+
+  int deltax = x1 - x0;
+  int deltay = abs(y1 - y0);
+  float error = 0.f;
+  float deltaerr = deltay / float(deltax);
+  int ystep;
+  int y = y0;
+  if (y0 < y1) ystep = 1; else ystep = -1;
+
+  for (int x = x0; x <= x1; x++)
+  {
+    point2d<int> to_plot;
+    if (steep)
+      to_plot = point2d<int>(x, y);
+    else
+      to_plot = point2d<int>(y, x);
+
+    if (frame.has(to_plot))
+    {
     frame(to_plot) = color;
     }
 
@@ -245,12 +299,33 @@ __global__ void draw_traj_heads(kernel_image2d<trajectory_tracer::trace> traces,
                                 kernel_image2d<i_float4> out)
 {
   point2d<int> p = thread_pos2d();
-  if (!out.has(p)) return;
+  if (!traces.has(p)) return;
 
   trajectory_tracer::trace trace = traces(p);
   if (trace.is_valid())
   {
     out(p) = i_float4(1.f, 1.f, 1.f, 1.f);
+    //draw_c8(out, p, i_float4(1.f, 0.f, 0.f, 1.f));
+  }
+}
+
+
+template <typename P>
+__global__ void draw_straight_traj(kernel_image2d<P> particles,
+                                   kernel_image2d<i_float4> out)
+{
+  point2d<int> p = thread_pos2d();
+  if (!particles.has(p)) return;
+
+
+  if (particles(p).age > 10)
+  {
+    float dist = norml2(i_int2(particles(p).ipos) - i_int2(p));
+
+    // if (dist > 10.f)
+      draw_line2d(out, p, particles(p).ipos, i_float4(0.f, 0.f, 0.f, 1.f));
+
+    // out(p) = i_float4(1.f, 1.f, 1.f, 1.f);
     draw_c8(out, p, i_float4(1.f, 0.f, 0.f, 1.f));
   }
 }
@@ -272,6 +347,9 @@ trajectory_tracer::update(const image2d<i_short2>& matches,
     (rand_colors_, matches, *traces_, *new_traces_, particles, traj_, age_);
 
   traj_decay<int><<<dimgrid, dimblock>>>(traj_, age_);
+
+  fill(straj_, i_float4(1.f, 1.f, 1.f, 1.f));
+  draw_straight_traj<P><<<dimgrid, dimblock>>>(particles, straj_);
 
 }
 
@@ -295,5 +373,5 @@ trajectory_tracer::display(const std::string& w, const image2d<i_float1>& colors
   // traj_heads_ = threshold(norml2(traj_heads_), 1.01f, traj_heads_, traj_);
 
 
-  ImageView(w) <<= dg::dl() - traj_heads_ - display_image_;
+  ImageView(w) <<= dg::dl() - traj_heads_ - display_image_ - straj_;
 }

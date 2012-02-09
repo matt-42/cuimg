@@ -17,6 +17,10 @@ namespace cuimg
     struct UNIT_STATIC(g_input_tex);
     REGISTER_TEXTURE2D_PROXY(g_input_tex);
 
+    template <typename T>
+    struct UNIT_STATIC(g_input_tex2);
+    REGISTER_TEXTURE2D_PROXY(g_input_tex2);
+
     template <typename I, int R, int E, typename G>
       struct meta_convolve2d_row_loop
       {
@@ -84,7 +88,7 @@ namespace cuimg
 
   template <typename I, typename O, typename G, int KERNEL_HALF_SIZE>
   void meta_convolve_row2d(const I& in, O& out,
-                           cudaStream_t stream = 0, dim3 dimblock = dim3(16, 16))
+                           cudaStream_t stream = 0, dim3 dimblock = dim3(128, 1))
   {
     assert(in.domain() == out.domain());
     bindTexture2d(in, meta_convolve_internal::UNIT_STATIC(g_input_tex)<typename I::value_type::cuda_bt>::tex());
@@ -98,7 +102,7 @@ namespace cuimg
 
   template <typename I, typename O, typename G, int KERNEL_HALF_SIZE>
   void meta_convolve_col2d(const I& in, O& out,
-                           cudaStream_t stream = 0, dim3 dimblock = dim3(16, 16))
+                           cudaStream_t stream = 0, dim3 dimblock = dim3(128, 1))
   {
     assert(in.domain() == out.domain());
     bindTexture2d(in, meta_convolve_internal::UNIT_STATIC(g_input_tex)<typename I::value_type::cuda_bt>::tex());

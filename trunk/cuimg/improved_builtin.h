@@ -129,6 +129,7 @@ struct bt_getter<2>
 	}
 };
 
+
 template <>
 struct bt_getter<3>
 {

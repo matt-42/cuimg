@@ -25,8 +25,8 @@ namespace cuimg
     __host__ __device__ inline bool has(const point& p) const;
 
   private:
-    unsigned nrows_;
-    unsigned ncols_;
+    unsigned short nrows_;
+    unsigned short ncols_;
   };
 
   template <typename P>

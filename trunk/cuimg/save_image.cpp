@@ -1,5 +1,5 @@
-# include <cv.h>
-# include <highgui.h>
+# include <opencv/cv.h>
+# include <opencv/highgui.h>
 # include <cuimg/improved_builtin.h>
 # include <cuimg/cpu/host_image2d.h>
 

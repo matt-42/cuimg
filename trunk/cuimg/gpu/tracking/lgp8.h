@@ -1,5 +1,5 @@
-#ifndef CUIMG_FAST38_FEATURE_H_
-# define CUIMG_FAST38_FEATURE_H_
+#ifndef CUIMG_LGP8_FEATURE_H_
+# define CUIMG_LGP8_FEATURE_H_
 
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/gpu/kernel_image2d.h>
@@ -10,18 +10,18 @@
 namespace cuimg
 {
 
-  struct dfast38
+  struct dlgp8
   {
-    __host__ __device__ dfast38() {}
+    __host__ __device__ dlgp8() {}
 
-    __host__ __device__ dfast38(const dfast38& o)
+    __host__ __device__ dlgp8(const dlgp8& o)
     {
       pertinence = o.pertinence;
       for (unsigned i = 0; i < 8; i++) distances[i] = o.distances[i];
     }
 
     __host__ __device__
-    dfast38& operator=(const dfast38& o)
+    dlgp8& operator=(const dlgp8& o)
     {
       pertinence = o.pertinence;
       for (unsigned i = 0; i < 8; i++) distances[i] = o.distances[i];
@@ -33,29 +33,29 @@ namespace cuimg
   };
 
   __host__ __device__ inline
-  dfast38 operator+(const dfast38& a, const dfast38& b);
+  dlgp8 operator+(const dlgp8& a, const dlgp8& b);
   __host__ __device__ inline
-  dfast38 operator-(const dfast38& a, const dfast38& b);
+  dlgp8 operator-(const dlgp8& a, const dlgp8& b);
 
   template <typename S>
   __host__ __device__ inline
-  dfast38 operator/(const dfast38& a, const S& s);
+  dlgp8 operator/(const dlgp8& a, const S& s);
 
   template <typename S>
   __host__ __device__ inline
-  dfast38 operator*(const dfast38& a, const S& s);
+  dlgp8 operator*(const dlgp8& a, const S& s);
 
-  class kernel_fast38_feature;
+  class kernel_lgp8_feature;
 
-  class fast38_feature
+  class lgp8_feature
   {
   public:
-    typedef dfast38 feature_t;
+    typedef dlgp8 feature_t;
     typedef obox2d<point2d<int> > domain_t;
 
-    typedef kernel_fast38_feature kernel_type;
+    typedef kernel_lgp8_feature kernel_type;
 
-    inline fast38_feature(const domain_t& d);
+    inline lgp8_feature(const domain_t& d);
 
     inline void update(const image2d<i_float4>& in);
     inline void update(const image2d<i_float1>& in);
@@ -64,8 +64,8 @@ namespace cuimg
 
     inline const domain_t& domain() const;
 
-    inline image2d<dfast38>& previous_frame();
-    inline image2d<dfast38>& current_frame();
+    inline image2d<dlgp8>& previous_frame();
+    inline image2d<dlgp8>& current_frame();
     inline image2d<i_float1>& pertinence();
 
     const image2d<i_float4>& feature_color() const;
@@ -81,13 +81,13 @@ namespace cuimg
 
     image2d<i_float1> pertinence_;
 
-    image2d<dfast38> f1_;
-    image2d<dfast38> f2_;
+    image2d<dlgp8> f1_;
+    image2d<dlgp8> f2_;
 
-    image2d<dfast38>* f_prev_;
-    image2d<dfast38>* f_;
+    image2d<dlgp8>* f_prev_;
+    image2d<dlgp8>* f_;
 
-    image2d<i_float4> fast38_color_;
+    image2d<i_float4> lgp8_color_;
 
     image2d<i_float4> color_blurred_;
     image2d<i_float4> color_tmp_;
@@ -95,12 +95,12 @@ namespace cuimg
     float grad_thresh;
   };
 
-  class kernel_fast38_feature
+  class kernel_lgp8_feature
   {
   public:
-    typedef dfast38 feature_t;
+    typedef dlgp8 feature_t;
 
-    inline kernel_fast38_feature(fast38_feature& f);
+    inline kernel_lgp8_feature(lgp8_feature& f);
 
 
     inline
@@ -108,26 +108,25 @@ namespace cuimg
                               const point2d<int>& p_cur);
 
     inline
-    float distance(const dfast38& a, const dfast38& b);
-
+    float distance(const dlgp8& a, const dlgp8& b);
     inline
-    float distance_linear(const dfast38& a, const dfast38& b);
+    float distance_linear(const dlgp8& a, const dlgp8& b);
 
     __device__ inline
-    kernel_image2d<dfast38>& previous_frame();
+    kernel_image2d<dlgp8>& previous_frame();
     __device__ inline
-    kernel_image2d<dfast38>& current_frame();
+    kernel_image2d<dlgp8>& current_frame();
     __device__ inline
     kernel_image2d<i_float1>& pertinence();
 
   private:
     kernel_image2d<i_float1> pertinence_;
-    kernel_image2d<dfast38> f_prev_;
-    kernel_image2d<dfast38> f_;
+    kernel_image2d<dlgp8> f_prev_;
+    kernel_image2d<dlgp8> f_;
   };
 
 }
 
-# include <cuimg/gpu/tracking/fast38_feature.hpp>
+# include <cuimg/gpu/tracking/lgp8.hpp>
 
-#endif // ! CUIMG_FAST38_FEATURE_H_
+#endif // ! CUIMG_LGP8_FEATURE_H_
