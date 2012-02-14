@@ -7,7 +7,6 @@
 # include <cuimg/gpu/kernel_image2d.h>
 # include <cuimg/error.h>
 # include <cuimg/gpu/kernel_util.h>
-# include <cuimg/gpu/memtype.h>
 
 namespace cuimg
 {
