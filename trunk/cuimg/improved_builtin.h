@@ -53,6 +53,7 @@ class improved_builtin : public make_cuda_bt<T, N>::ret
   __host__ __device__ improved_builtin(vtype x_, vtype y_, vtype z_);
   __host__ __device__ improved_builtin(vtype x_, vtype y_, vtype z_, vtype w_);
   __host__ __device__ improved_builtin(const cuda_bt& bt);
+  __host__ __device__ improved_builtin(const vtype v[N]);
 
   __host__ __device__ improved_builtin<T, N>& operator=(vtype x_);
   __host__ __device__ operator vtype();

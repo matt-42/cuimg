@@ -142,6 +142,9 @@ namespace cuimg
     inline
     __device__ float distance_s2(const dfast382sl& a, const dfast382sl& b);
 
+    inline  __device__ dfast382sl
+    new_state(const point2d<int>& n);
+
     /* __device__ inline */
     /* kernel_image2d<dfast382sl>& previous_frame(); */
     __device__ inline

@@ -376,8 +376,7 @@ namespace cuimg
             min_diff = adiff;
           }
 
-          float sd = adiff;
-          if (max_single_diff < sd) max_single_diff = sd;
+          if (max_single_diff < adiff) max_single_diff = adiff;
 
         }
       }
@@ -386,6 +385,7 @@ namespace cuimg
       //pv = frame_s2(p);
       pv = tex2D(s2_tex, p);
       float min_diff_large = 9999999.f;
+      float max_single_diff_large = 0.f;
       //int min_orientation_large;
       for(int i = 0; i < 8; i++)
       {
@@ -419,12 +419,15 @@ namespace cuimg
             if (min_diff_large < 0.01) break;
           }
 
+          if (max_single_diff_large < adiff) max_single_diff_large = adiff;
         }
+
       }
 
       if (min_diff < min_diff_large)
       {
         min_diff = min_diff_large;
+        max_single_diff = max_single_diff_large;
       }
 
       // if (min_diff < min_diff_large)
@@ -690,7 +693,14 @@ namespace cuimg
     return pertinence_;
   }
 
-    inline
+  inline
+  __device__ dfast382sl
+  kernel_fast382sl_feature::new_state(const point2d<int>& n)
+  {
+    return f_(n);
+  }
+
+  inline
   void
   fast382sl_feature::display() const
   {

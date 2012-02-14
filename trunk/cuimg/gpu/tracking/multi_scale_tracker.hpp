@@ -102,11 +102,11 @@ namespace cuimg
     if (!speed.has(p))
       return;
 
-    if (speed(p) != i_float4(0, 0, 0, 1.f))
-    {
-      out(p) = speed(p);
-      return;
-    }
+    // if (speed(p) != i_float4(0, 0, 0, 1.f))
+    // {
+    //   out(p) = speed(p);
+    //   return;
+    // }
 
     i_float4 res = zero();
     int cpt = 0;
@@ -155,6 +155,20 @@ namespace cuimg
     else out(p) = i_float4(1.f, 0.f, 0, 1.f);
   }
 
+  template <typename P>
+  __global__ void draw_particle_pertinence(kernel_image2d<i_float1> pertinence,
+                                           kernel_image2d<P> pts,
+                                           kernel_image2d<i_float4> out,
+                                           int age_filter)
+  {
+    point2d<int> p = thread_pos2d();
+    if (!out.has(p))
+      return;
+
+    if (pts(p).age > age_filter) out(p) = i_float4(1.f, 0.f, 0.f, 1.f);
+    else
+      out(p) = i_float4(pertinence(p), pertinence(p), pertinence(p), 1.f);
+  }
 
   template <typename F, template <class>  class SA_>
   inline
@@ -184,7 +198,7 @@ namespace cuimg
       else
         matcher_[l]->update(*(feature_[l]), mvt_detector_thread_, dummy_matches_);
 
-      if (l > 0)
+      if (l > 1)
       {
         mvt_detector_thread_.update(*(matcher_[l]), l);
       }
@@ -217,10 +231,13 @@ namespace cuimg
     draw_particles<P><<<dimgrid, dimblock>>>(pyramid_[TD], matcher_[TD]->particles(), pyramid_display1_[TD], Slider("age_filter").value());
     draw_particles<P><<<dimgrid, dimblock>>>(matcher_[TD]->particles(), pyramid_display2_[TD], Slider("age_filter").value());
 
-    static image2d<i_float4> of(matcher_[TD]->particles().domain());
+    image2d<i_float4> particle_pertinence(matcher_[TD]->particles().domain());
+    image2d<i_float4> of(matcher_[TD]->particles().domain());
+    draw_particle_pertinence<P><<<dimgrid, dimblock>>>(feature_[TD]->pertinence(), matcher_[TD]->particles(),
+                                                       particle_pertinence, Slider("age_filter").value());
     draw_speed<P><<<dimgrid, dimblock>>>(matcher_[TD]->particles(), pyramid_speed_[TD]);
     of_reconstruction<P><<<dimgrid, dimblock>>>(pyramid_speed_[TD], pyramid_[TD], of);
-    ImageView("frame") <<= dg::dl() - pyramid_display1_[TD] - pyramid_display2_[TD] - pyramid_speed_[TD] - of;
+    ImageView("frame") <<= dg::dl() - pyramid_display1_[TD] - pyramid_display2_[TD] - pyramid_speed_[TD] + of - particle_pertinence;
 #endif
   }
 

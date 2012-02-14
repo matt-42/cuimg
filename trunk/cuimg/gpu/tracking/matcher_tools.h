@@ -64,7 +64,7 @@ namespace cuimg
       return;
     }
 
-    float v = particles(p).age / 400.f;
+    float v = particles(p).age / 50.f;
 
     if (v >= 1.f) v = 1.f;
 
@@ -107,7 +107,11 @@ namespace cuimg
     {
       point2d<int> n(p.row() + c25[i][0],
                      p.col() + c25[i][1]);
-      if (new_particles(n).age >= 1)
+    /* for(int i = 0; i < 49; i++) */
+    /* { */
+    /*   point2d<int> n(p.row() + c49[i][0], */
+    /*                  p.col() + c49[i][1]); */
+      if (new_particles.has(n) && new_particles(n).age >= 1)
       {
         if (norml2(new_particles(n).speed -
                    new_particles(p).speed) > 3.f)
@@ -144,7 +148,7 @@ namespace cuimg
     if (!particles.has(p) || particles(p).age != 0)
       return;
 
-    if (pertinence(p).x > 0.25f)
+    if (pertinence(p).x > 0.6f)
     {
       particles(p).age = 1;
       particles(p).fault = 0;
@@ -197,7 +201,7 @@ namespace cuimg
         T np;
         np.ipos = i_int2(p);
         np.age = 1;
-        np.state = f.current_frame()(p);
+        np.state = f.new_state(p);
         np.speed = i_float2(0.f, 0.f);
 
         particles(p) = np;

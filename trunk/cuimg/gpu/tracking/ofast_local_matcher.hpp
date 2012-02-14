@@ -1,5 +1,5 @@
-#ifndef CUIMG_NAIVE_LOCAL_MATCHER_THRUST_HPP_
-# define  CUIMG_NAIVE_LOCAL_MATCHER_THRUST_HPP_
+#ifndef CUIMG_OFAST_LOCAL_MATCHER_HPP_
+# define  CUIMG_OFAST_LOCAL_MATCHER_HPP_
 
 #include <GL/glew.h>
 #include <cuda.h>
@@ -131,11 +131,10 @@ namespace cuimg
       match = p;
 
       //match_distance = f.distance_linear(p_state, tex2D(feat_tex, p));
-      typename F::feature_t vnp = f.current_frame()(p);
-      match_distance = f.distance_linear(p_state, vnp);
+      match_distance = f.distance_linear(p_state, p);
 
       //if (match_distance > 0.01f)
-      if (true)
+      if (false)
       {
         if (ls_p_found)
           prediction = ls_pred;
@@ -181,7 +180,7 @@ namespace cuimg
       match = prediction;
 
       //match_distance = f.distance_linear(p_state, tex2D(feat_tex, prediction));
-      match_distance = f.distance_linear(p_state, f.current_frame()(prediction));
+      match_distance = f.distance_linear(p_state, prediction);
     }
 
     //    if (match_distance > 0.01f)
@@ -196,8 +195,7 @@ namespace cuimg
           point2d<int> n(prediction.row() + c8[i][0],
                          prediction.col() + c8[i][1]);
           {
-            typename F::feature_t vn = f.current_frame()(n);
-            float d = f.distance_linear(p_state, vn);
+            float d = f.distance_linear(p_state, n);
             if (d < match_distance)
             {
               match = n;
@@ -214,8 +212,7 @@ namespace cuimg
           point2d<int> n(prediction.row() + c8[i][0],
                          prediction.col() + c8[i][1]);
           {
-            typename F::feature_t vn = f.current_frame()(n);
-            float d = f.distance_linear(p_state, vn);
+            float d = f.distance_linear(p_state, n);
             if (d < match_distance)
             {
               match = n;
@@ -278,9 +275,7 @@ namespace cuimg
         //i_float2 s = new_speed;
         //new_particles(match).acceleration = s - particles(p).speed;
         new_particles(match).brut_acceleration =  new_speed - particles(p).speed;
-
         new_particles(match).speed = (new_speed * 3.f + particles(p).speed) / 4.f;
-
       }
       //new_particles(match).state = f.current_frame()(match); //p_state;//
 
@@ -291,8 +286,8 @@ namespace cuimg
         new_particles(match).ipos = particles(p).ipos;
 
       new_particles(match).state =
-        weighted_mean(p_state, 1.f,
-                      f.current_frame()(match), 3.f);
+        f.weighted_mean(p_state, 1.f,
+                        match, 3.f);
       // new_particles(match).state = (p_state*1.f + f.current_frame()(match)*3.f) / 4.f;
       new_particles(match).age = p_age + 1;
       //new_particles(match).pertinence = f.pertinence()(match);
@@ -336,7 +331,7 @@ namespace cuimg
   }
 
   template <typename F>
-  naive_local_matcher_thrust<F>::naive_local_matcher_thrust(const domain_t& d)
+  ofast_local_matcher<F>::ofast_local_matcher(const domain_t& d)
     : t1_(d),
       t2_(d),
       distance_(d),
@@ -360,7 +355,7 @@ namespace cuimg
 
    template <typename F>
   void
-  naive_local_matcher_thrust<F>::swap_buffers()
+  ofast_local_matcher<F>::swap_buffers()
   {
     std::swap(particles_, new_particles_);
 
@@ -399,14 +394,14 @@ namespace cuimg
 
   template <typename F>
   unsigned
-  naive_local_matcher_thrust<F>::n_particles() const
+  ofast_local_matcher<F>::n_particles() const
   {
     return n_particles_;
   }
 
   template <typename F>
   void
-  naive_local_matcher_thrust<F>::update(F& f, global_mvt_thread<naive_local_matcher_thrust<F> >& t_mvt,
+  ofast_local_matcher<F>::update(F& f, global_mvt_thread<ofast_local_matcher<F> >& t_mvt,
                                  const image2d<i_short2>& ls_matches)
   {
     frame_cpt++;
@@ -415,15 +410,16 @@ namespace cuimg
 
     swap_buffers();
 
+    //bindTexture2d(*(image2d<float4>*)&(f.current_frame()), feat_tex);
     particles_vec1_.resize(matches_.nrows() * matches_.ncols());
     particles_vec2_.resize(matches_.nrows() * matches_.ncols());
+    //std::cout << "particles_vec_.size " << particles_vec_.size() << std::endl;
     init_particles_vec<particle><<<dimgrid, dimblock>>>(thrust::raw_pointer_cast( &particles_vec1_[0]), *particles_);
     thrust::detail::normal_iterator<thrust::device_ptr<cuimg::i_short2> > end
       = thrust::remove_copy(particles_vec1_.begin(), particles_vec1_.end(), particles_vec2_.begin(), i_short2(-1, -1));
     particles_vec1_.swap(particles_vec2_);
-       n_particles_ = end - particles_vec1_.begin();
-
-    // n_particles_ = matches_.nrows() * matches_.ncols();
+    n_particles_ = end - particles_vec1_.begin();
+    //unsigned n_particles = matches_.nrows() * matches_.ncols();
     //std::cout << "particles_vec_.size after " << particles_vec_.size() << std::endl;
 
     dim3 reduced_dimgrid(1 + n_particles_ / (dimblock.x * dimblock.y), dimblock.y, 1);
@@ -473,7 +469,7 @@ namespace cuimg
 
   template <typename F>
   void
-  naive_local_matcher_thrust<F>::display() const
+  ofast_local_matcher<F>::display() const
   {
 #ifdef WITH_DISPLAY
     image2d<i_float4> age(distance_.domain());
@@ -488,8 +484,8 @@ namespace cuimg
   }
 
   template <typename F>
-  const image2d<typename naive_local_matcher_thrust<F>::particle>&
-  naive_local_matcher_thrust<F>::particles() const
+  const image2d<typename ofast_local_matcher<F>::particle>&
+  ofast_local_matcher<F>::particles() const
   {
     return *new_particles_;
   }
@@ -497,26 +493,26 @@ namespace cuimg
 
 
   template <typename F>
-  const thrust::device_vector<typename naive_local_matcher_thrust<F>::particle>&
-  naive_local_matcher_thrust<F>::compact_particles() const
+  const thrust::device_vector<typename ofast_local_matcher<F>::particle>&
+  ofast_local_matcher<F>::compact_particles() const
   {
     return compact_particles_;
   }
 
   template <typename F>
   const image2d<i_short2>&
-  naive_local_matcher_thrust<F>::matches() const
+  ofast_local_matcher<F>::matches() const
   {
     return matches_;
   }
 
   template <typename F>
   const image2d<char>&
-  naive_local_matcher_thrust<F>::errors() const
+  ofast_local_matcher<F>::errors() const
   {
     return errors_;
   }
 
 }
 
-#endif // !  CUIMG_NAIVE_LOCAL_MATCHER_THRUST_HPP_
+#endif // !  CUIMG_OFAST_LOCAL_MATCHER_HPP_

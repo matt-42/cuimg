@@ -38,6 +38,17 @@ namespace cuimg
     };
 
     template <int I>
+    class assign_array
+    {
+    public:
+      template <typename U, unsigned N>
+      static __device__ __host__ inline void run(improved_builtin<U, N>& a, const U b[N])
+      {
+        bt_getter<I>::get(a) = b[I];
+      }
+    };
+
+    template <int I>
     class reset
     {
     public:
@@ -176,6 +187,14 @@ namespace cuimg
   {
     meta::equal<meta::int_<size>, meta::int_<1> >::check(); // Member reserved for builtins of size 1.
     this->x = x_;
+  }
+
+
+  template <typename T, unsigned N>
+  improved_builtin<T, N>::improved_builtin(const vtype v[N])
+  {
+    meta::loop<internal::assign_array, 0, size - 1>::iter(*this, v);
+    return;
   }
 
   template <typename T, unsigned N>
