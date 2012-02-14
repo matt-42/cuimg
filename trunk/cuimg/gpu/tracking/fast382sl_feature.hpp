@@ -34,8 +34,8 @@ namespace cuimg
   #define s1_tex UNIT_STATIC(hawzxb)
   #define s2_tex UNIT_STATIC(xyhgtk)
 
-  texture<unsigned char, cudaTextureType2D, cudaReadModeElementType> s1_tex;
-  texture<unsigned char, cudaTextureType2D, cudaReadModeElementType> s2_tex;
+  texture<float, cudaTextureType2D, cudaReadModeElementType> s1_tex;
+  texture<float, cudaTextureType2D, cudaReadModeElementType> s2_tex;
 
   // inline
   // __host__ __device__
@@ -288,11 +288,12 @@ namespace cuimg
 
 
   template <typename V>
-  __global__ void FAST382SL(kernel_image2d<V> frame_s1,
-                            kernel_image2d<V> frame_s2,
-                            kernel_image2d<dfast382sl> out,
-                            kernel_image2d<i_float1> pertinence,
-                            float grad_thresh)
+  __global__ void FAST382SL(kernel_image2d<i_float4> frame_color,
+                           kernel_image2d<V> frame_s1,
+                           kernel_image2d<V> frame_s2,
+                           kernel_image2d<dfast382sl> out,
+                           kernel_image2d<i_float1> pertinence,
+                           float grad_thresh)
   {
     point2d<int> p = thread_pos2d();
     if (!frame_s1.has(p))//; || track(p).x == 0)
@@ -340,7 +341,7 @@ namespace cuimg
       float min_diff = 9999999.f;
       float max_single_diff = 0.f;
       //int min_orientation = 0;
-      pv = tex2D(s1_tex, p) / 255.f;
+      pv = tex2D(s1_tex, p);
 
       for(int i = 0; i < 8; i++)
       {
@@ -353,16 +354,17 @@ namespace cuimg
 
         float v1 = tex2D(s1_tex,
                          p.col() + circle_r3[i][1],
-                         p.row() + circle_r3[i][0]) / 255.f;
+                         p.row() + circle_r3[i][0]
+          );
 
         float v2 = tex2D(s1_tex,
                          p.col() + circle_r3[(i+8)][1],
-                         p.row() + circle_r3[(i+8)][0]) / 255.f;
+                         p.row() + circle_r3[(i+8)][0]);
 
         if (!(i % 2))
         {
-            distances[i/2] = (v1 * 255.f);
-            distances[i/2 + 4] = (v2 * 255.f);
+            distances[i/2] = (v1 * 255);
+            distances[i/2 + 4] = (v2 * 255);
         }
 
         {
@@ -382,7 +384,7 @@ namespace cuimg
 
 
       //pv = frame_s2(p);
-      pv = tex2D(s2_tex, p) / 255.f;
+      pv = tex2D(s2_tex, p);
       float min_diff_large = 9999999.f;
       //int min_orientation_large;
       for(int i = 0; i < 8; i++)
@@ -390,11 +392,11 @@ namespace cuimg
 
         float v1 = tex2D(s2_tex,
                          p.col() + 2 * circle_r3[i][1],
-                         p.row() + 2 * circle_r3[i][0]) / 255.f;
+                         p.row() + 2 * circle_r3[i][0]);
 
         float v2 = tex2D(s2_tex,
                          p.col() + 2 * circle_r3[(i+8)][1],
-                         p.row() + 2 * circle_r3[(i+8)][0]) / 255.f;
+                         p.row() + 2 * circle_r3[(i+8)][0]);
 
         // float v1 = frame_s2(p.row() + 2 * circle_r3[i][0],
         //                     p.col() + 2 * circle_r3[i][1]);
@@ -404,8 +406,8 @@ namespace cuimg
 
         if (!(i % 2))
         {
-            distances[8 + i/2] = (v1 * 255.f);
-            distances[8 + i/2 + 4] = (v2 * 255.f);
+            distances[8 + i/2] = (v1 * 255);
+            distances[8 + i/2 + 4] = (v2 * 255);
         }
 
         {
@@ -523,8 +525,7 @@ namespace cuimg
     : gl_frame_(d),
       blurred_s1_(d),
       blurred_s2_(d),
-      tmp1_(d),
-      tmp2_(d),
+      tmp_(d),
       pertinence_(d),
       pertinence2_(d),
       f1_(d),
@@ -541,7 +542,15 @@ namespace cuimg
 
   inline
   void
-  fast382sl_feature::update(const image2d<i_uchar1>& in)
+  fast382sl_feature::update(const image2d<i_float4>& in)
+  {
+    gl_frame_ = (get_x(in) + get_y(in) + get_z(in)) / 3.f;
+    update(gl_frame_);
+  }
+
+  inline
+  void
+  fast382sl_feature::update(const image2d<i_float1>& in)
   {
     swap_buffers();
     dim3 dimblock(32, 16, 1);
@@ -550,14 +559,14 @@ namespace cuimg
     // local_jet_static_<0, 0, 1, 3>::run(in, blurred_s1_, tmp_);
     // local_jet_static_<0, 0, 2, 6>::run(in, blurred_s2_, tmp_);
 
-    local_jet_static2_<0,0,1, 0,0,2, 6>::run(in, blurred_s1_, blurred_s2_, tmp1_, tmp2_);
+    local_jet_static2_<0,0,1, 0,0,2, 6>::run(in, blurred_s1_, blurred_s2_, tmp_, pertinence2_);
 
     bindTexture2d(blurred_s1_, s1_tex);
     bindTexture2d(blurred_s2_, s2_tex);
 
     grad_thresh = Slider("grad_thresh").value() / 100.f;
-    FAST382SL<i_uchar1><<<dimgrid, dimblock>>>
-      (blurred_s1_, blurred_s2_, *f_, pertinence_, grad_thresh);
+    FAST382SL<i_float1><<<dimgrid, dimblock>>>
+      (color_blurred_, blurred_s1_, blurred_s2_, *f_, pertinence_, grad_thresh);
 
     // filter_pertinence<i_float1><<<dimgrid, dimblock>>>
     //   (pertinence_, pertinence2_);

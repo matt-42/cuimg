@@ -107,9 +107,6 @@ namespace dg
   template <>
   struct ib_to_opengl_internal_type<cuimg::i_float1>
   { enum { val = GL_R32F }; };
-  template <>
-  struct ib_to_opengl_internal_type<cuimg::i_uchar4>
-  { enum { val = GL_RGBA8UI }; };
 
   template<typename V, unsigned N, template <class> class PT>
   class cuda_opengl_texture
@@ -139,7 +136,7 @@ namespace dg
         glTexImage2D(GL_TEXTURE_2D,
                      0, ib_to_opengl_internal_type<cuimg::improved_builtin<V, N> >::val,
                      img_.ncols(), img_.nrows(),
-                     0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+                     0, GL_RGBA, GL_FLOAT, 0);
         check_gl_error();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -207,43 +204,16 @@ namespace dg
     return cuda_opengl_texture<V, N, PT>(i);
   }
 
-
-
-  template<template <class> class PT>
-  cuda_opengl_texture<float, 4, boost::shared_ptr>
-  adapt(const cuimg::image2d<cuimg::improved_builtin<float, 1>, PT>& i)
+  template<typename V, template <class> class PT>
+  cuda_opengl_texture<V, 4, boost::shared_ptr>
+  adapt(const cuimg::image2d<cuimg::improved_builtin<V, 1>, PT>& i)
   {
     cuimg::image2d<cuimg::i_float4> res(i.domain());
     res = cuimg::aggregate<float>::run(cuimg::get_x(i),
                                        cuimg::get_x(i),
                                        cuimg::get_x(i),
                                        1.f);
-    return cuda_opengl_texture<float, 4, boost::shared_ptr>(res);
-  }
-
-  template<template <class> class PT>
-  cuda_opengl_texture<float, 4, boost::shared_ptr>
-  adapt(const cuimg::image2d<cuimg::improved_builtin<unsigned char, 1>, PT>& i)
-  {
-    cuimg::image2d<cuimg::i_float4> res(i.domain());
-    res = cuimg::aggregate<float>::run(cuimg::get_x(i),
-                                       cuimg::get_x(i),
-                                       cuimg::get_x(i),
-                                       255.f) / 255.f;
-    return cuda_opengl_texture<float, 4, boost::shared_ptr>(res);
-  }
-
-
-  template<template <class> class PT>
-  cuda_opengl_texture<float, 4, boost::shared_ptr>
-  adapt(const cuimg::image2d<cuimg::improved_builtin<unsigned char, 4>, PT>& i)
-  {
-    cuimg::image2d<cuimg::i_float4> res(i.domain());
-    res = cuimg::aggregate<float>::run(cuimg::get_x(i),
-                                       cuimg::get_y(i),
-                                       cuimg::get_z(i),
-                                       255.f) / 255.f;
-    return cuda_opengl_texture<float, 4, boost::shared_ptr>(res);
+    return cuda_opengl_texture<V, 4, boost::shared_ptr>(res);
   }
 
   template<typename V, template <class> class PT>

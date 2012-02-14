@@ -80,7 +80,8 @@ namespace cuimg
 
     inline fast382sl_feature(const domain_t& d);
 
-    inline void update(const image2d<i_uchar1>& in);
+    inline void update(const image2d<i_float4>& in);
+    inline void update(const image2d<i_float1>& in);
 
     inline const domain_t& domain() const;
 
@@ -96,11 +97,10 @@ namespace cuimg
     inline void swap_buffers();
 
 
-    image2d<i_uchar1> gl_frame_;
-    image2d<i_uchar1> blurred_s1_;
-    image2d<i_uchar1> blurred_s2_;
-    image2d<i_uchar1> tmp1_;
-    image2d<i_uchar1> tmp2_;
+    image2d<i_float1> gl_frame_;
+    image2d<i_float1> blurred_s1_;
+    image2d<i_float1> blurred_s2_;
+    image2d<i_float1> tmp_;
 
     image2d<i_float1> pertinence_;
     image2d<i_float1> pertinence2_;

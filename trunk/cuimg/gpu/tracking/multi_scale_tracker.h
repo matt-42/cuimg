@@ -45,19 +45,19 @@ namespace cuimg
 
   private:
     image2d<i_uchar3> frame_uc3_;
-    image2d<i_uchar1> frame_;
-    std::vector<image2d<i_uchar1> > pyramid_;
-    std::vector<image2d<i_uchar1> > pyramid_tmp1_;
-    std::vector<image2d<i_uchar1> > pyramid_tmp2_;
+    image2d<i_float1> frame_;
+    std::vector<image2d<i_float1> > pyramid_;
+    std::vector<image2d<i_float1> > pyramid_tmp1_;
+    std::vector<image2d<i_float1> > pyramid_tmp2_;
 
     std::vector<F*> feature_;
     std::vector<SA*> matcher_;
 
     static const unsigned PS = 4;
 
-    std::vector<image2d<i_uchar4> > pyramid_display1_;
-    std::vector<image2d<i_uchar4> > pyramid_display2_;
-    std::vector<image2d<i_uchar4> > pyramid_speed_;
+    std::vector<image2d<i_float4> > pyramid_display1_;
+    std::vector<image2d<i_float4> > pyramid_display2_;
+    std::vector<image2d<i_float4> > pyramid_speed_;
 
     image2d<i_short2> dummy_matches_;
 
