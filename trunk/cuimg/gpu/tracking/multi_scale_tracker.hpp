@@ -126,19 +126,27 @@ namespace cuimg
   }
 
   template <typename P>
-  __global__ void sub_global_mvt(kernel_image2d<P> particles, i_short2 mvt)
+  __global__ void sub_global_mvt(const i_short2* particles_vec,
+                                 unsigned n_particles, kernel_image2d<P> particles, i_short2 mvt)
   {
-    point2d<int> p = thread_pos2d();
-    if (!particles.has(p) || particles(p).age == 0)
+    unsigned threadid = blockIdx.x * blockDim.x + threadIdx.x;
+    if (threadid >= n_particles) return;
+    point2d<int> p = particles_vec[threadid];
+
+    // point2d<int> p = thread_pos2d();
+    if (!particles.has(p))
       return;
 
+    i_float2 speed = particles(p).speed;
     if (particles(p).age > 2)
     {
       //particles(p).acceleration -= mvt;
-      particles(p).speed -= mvt * 3.f / 4.f;
+      speed -= mvt * 3.f / 4.f;
     }
     else
-      particles(p).speed -= mvt;
+      speed -= mvt;
+
+    particles(p).speed = speed;
   }
 
 
@@ -203,12 +211,12 @@ namespace cuimg
         mvt_detector_thread_.update(*(matcher_[l]), l);
       }
 
-      dim3 dimblock(16, 16);
-      dim3 dimgrid = dim3(grid_dimension(matcher_[l]->particles().domain(),
-                                         dimblock));
+      dim3 dimblock(128, 1);
+      dim3 reduced_dimgrid(1 + matcher_[l]->n_particles() / (dimblock.x * dimblock.y), dimblock.y, 1);
 
-      sub_global_mvt<P><<<dimgrid, dimblock>>>
-        (matcher_[l]->particles(), mvt);
+      sub_global_mvt<P><<<reduced_dimgrid, dimblock>>>
+        (thrust::raw_pointer_cast(&matcher_[l]->particle_positions()[0]),
+         matcher_[l]->n_particles(), matcher_[l]->particles(), mvt);
 
       //if (l == pyramid_.size() - 3) mvt_detector.display();
     }

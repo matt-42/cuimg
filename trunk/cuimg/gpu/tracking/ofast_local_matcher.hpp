@@ -143,8 +143,8 @@ namespace cuimg
 
         if (!f.current_frame().has(prediction)
             ||
-            prediction.row() < 6 || prediction.row() >= particles.domain().nrows() - 6 ||
-            prediction.col() < 6 || prediction.col() >= particles.domain().ncols() - 6
+            prediction.row() < 7 || prediction.row() >= particles.domain().nrows() - 7 ||
+            prediction.col() < 7 || prediction.col() >= particles.domain().ncols() - 7
             ) return;
         // if (!particles.has(prediction)) return;
         /*
@@ -173,8 +173,8 @@ namespace cuimg
 
       if (!f.current_frame().has(prediction)
           ||
-          prediction.row() < 6 || prediction.row() >= particles.domain().nrows() - 6 ||
-          prediction.col() < 6 || prediction.col() >= particles.domain().ncols() - 6
+          prediction.row() < 7 || prediction.row() >= particles.domain().nrows() - 7 ||
+          prediction.col() < 7 || prediction.col() >= particles.domain().ncols() - 7
           ) return;
 
       match = prediction;
@@ -224,8 +224,8 @@ namespace cuimg
 
 
         if (i_int2(prediction) == i_int2(match) ||
-            match.row() < 6 || match.row() >= (particles.domain().nrows() - 6) ||
-            match.col() < 6 || match.col() >= (particles.domain().ncols() - 6)
+            match.row() < 7 || match.row() >= (particles.domain().nrows() - 7) ||
+            match.col() < 7 || match.col() >= (particles.domain().ncols() - 7)
             )
           break;
         else
@@ -446,8 +446,16 @@ namespace cuimg
                                                             *particles_, *new_particles_, matches_);
     check_cuda_error();
 
+#ifdef WITH_STATS
     fill(errors_, char(0));
     fill(fm_disp_, i_float4(0.f, 0.f, 0.f, 1.f));
+#
+#else
+# ifdef WITH_DISPLAY
+    fill(fm_disp_, i_float4(0.f, 0.f, 0.f, 1.f));
+# endif
+#endif
+
     filter_false_matching<particle><<<reduced_dimgrid, dimblock>>>(thrust::raw_pointer_cast( &particles_vec1_[0]),
                                                                    n_particles_,
                                                                    *particles_, *new_particles_, matches_, errors_, fm_disp_);

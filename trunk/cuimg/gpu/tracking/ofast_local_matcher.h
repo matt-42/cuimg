@@ -49,6 +49,7 @@ namespace cuimg
     void swap_buffers();
 
     const thrust::device_vector<particle>& compact_particles() const;
+    const thrust::device_vector<i_short2>& particle_positions() const { return particles_vec1_; }
 
     unsigned n_particles() const;
 

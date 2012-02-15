@@ -184,6 +184,7 @@ namespace cuimg
     {
       bool max = true;
       //for_all_in_static_neighb2d(p, n, c8)
+#pragma unroll
       for (int i = 0; i < 8; i++)
       {
         point2d<int> n(p.row() + c8[i][0],

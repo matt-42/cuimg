@@ -29,6 +29,7 @@ namespace cuimg
     }
 
     char o1, o2;
+    i_char2 padding__;
   };
 
   struct dofast382sl_state
