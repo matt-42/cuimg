@@ -4,6 +4,7 @@
 # define CUIMG_IMAGE2D_H_
 
 # include <boost/shared_ptr.hpp>
+# include <cuimg/target.h>
 # include <cuimg/concepts.h>
 # include <cuimg/point2d.h>
 # include <cuimg/obox2d.h>
@@ -15,6 +16,8 @@ namespace cuimg
   class image2d : public Image2d<image2d<V, PT> >
   {
   public:
+    enum { target = GPU };
+
     typedef V value_type;
     typedef point2d<int> point;
     typedef obox2d<point> domain_type;

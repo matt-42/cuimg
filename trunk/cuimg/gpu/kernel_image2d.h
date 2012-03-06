@@ -3,12 +3,14 @@
 
 # include <cuda_runtime.h>
 # include <cuimg/point2d.h>
+# include <cuimg/concepts.h>
 # include <cuimg/gpu/image2d.h>
+# include <cuimg/cpu/host_image2d.h>
 
 namespace cuimg
 {
   template <typename V>
-  class kernel_image2d
+  class kernel_image2d : public Image2d<kernel_image2d<V> >
   {
   public:
     typedef V value_type;
@@ -19,27 +21,27 @@ namespace cuimg
 
     __host__ __device__ inline kernel_image2d(const kernel_image2d<V>& img);
 
-    template <template <class> class PT>
-    __host__ __device__ inline kernel_image2d(const image2d<V, PT>& img);
+    template <typename I>
+    __host__ __device__ inline kernel_image2d(const Image2d<I>& img);
 
     __host__ __device__ inline kernel_image2d<V>& operator=(const kernel_image2d<V>& img);
 
-    template <template <class> class PT>
-    __host__ __device__ inline kernel_image2d<V>& operator=(const image2d<V, PT>& img);
+    template <typename I>
+    __host__ __device__ inline kernel_image2d<V>& operator=(const Image2d<I>& img);
 
     __host__ __device__ inline const domain_type& domain() const;
     __host__ __device__ inline unsigned nrows() const;
     __host__ __device__ inline unsigned ncols() const;
     __host__ __device__ inline unsigned pitch() const;
 
-    __device__ inline V& operator()(const point& p);
-    __device__ inline const V& operator()(const point& p) const;
+    __host__ __device__ inline V& operator()(const point& p);
+    __host__ __device__ inline const V& operator()(const point& p) const;
 
-    __device__ inline V& operator()(unsigned i, unsigned j);
-    __device__ inline const V& operator()(unsigned i, unsigned j) const;
+    __host__ __device__ inline V& operator()(unsigned i, unsigned j);
+    __host__ __device__ inline const V& operator()(unsigned i, unsigned j) const;
 
-    __device__ inline V& operator[](unsigned i);
-    __device__ inline const V& operator[](unsigned i) const;
+    __host__ __device__ inline V& operator[](unsigned i);
+    __host__ __device__ inline const V& operator[](unsigned i) const;
 
     __host__ __device__ inline bool has(const point& p) const;
 
@@ -52,11 +54,11 @@ namespace cuimg
     V* data_;
   };
 
-  template <typename V, template <class> class PT>
-  kernel_image2d<V> mki(const image2d<V, PT>& img)
+  template <typename I>
+  kernel_image2d<typename I::value_type> mki(const Image2d<I>& img)
   {
-    assert(img.data());
-    return img;
+    assert(exact(img).data());
+    return exact(img);
   }
 
 }

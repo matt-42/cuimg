@@ -12,6 +12,7 @@ namespace cuimg
       finished_(false)
   {
     cap_->set(CV_CAP_PROP_CONVERT_RGB, true);
+    // cap_->set(CV_CAP_PROP_FORMAT, CV_8UC4);
   }
 
   video_capture::video_capture(const std::string& filename)
@@ -19,6 +20,7 @@ namespace cuimg
       finished_(false)
   {
     cap_->set(CV_CAP_PROP_CONVERT_RGB, true);
+    // cap_->set(CV_CAP_PROP_FORMAT, CV_8UC4);
   }
 
   video_capture::video_capture(int device)
@@ -26,6 +28,7 @@ namespace cuimg
       finished_(false)
   {
     cap_->set(CV_CAP_PROP_CONVERT_RGB, true);
+    // cap_->set(CV_CAP_PROP_FORMAT, CV_8UC4);
   }
 
   void
@@ -70,24 +73,70 @@ namespace cuimg
     return cap_->retrieve(image, channel);
   }
 */
+
+  video_capture&
+  video_capture::operator>>(host_image2d<i_float1>& img)
+  {
+    // cap_->set(CV_CAP_PROP_FORMAT, CV_8UC4);
+    get_frame((char*) img.data(), img.pitch(), sizeof(i_float1));
+    return *this;
+  }
+
+  video_capture&
+  video_capture::operator>>(host_image2d<i_uchar4>& img)
+  {
+    cap_->set(CV_CAP_PROP_FORMAT, CV_8UC4);
+    get_frame((char*) img.data(), img.pitch(), sizeof(i_uchar4));
+    return *this;
+  }
+
+
   video_capture&
   video_capture::operator>>(host_image2d<i_uchar3>& img)
   {
-    assert(img.data());
+     cap_->set(CV_CAP_PROP_FORMAT, CV_8UC3);
+
+    // assert(img.data());
+    // assert(cap_);
+    // static cv::Mat m;
+    // finished_ = !cap_->grab();
+    // if (!cap_->retrieve(m))
+    //   finished_ = true;
+    // if (finished_)
+    // {
+    //   std::cout << "[Warning] video end... "  << std::endl;
+    //   return *this;
+    // }
+
+    // std::cout << "copy... "  << std::endl;
+
+    // for (int i = 0; i < m.rows; i++)
+    // {
+    //   assert(m.ptr(i));
+    //   memcpy(img.data(), m.ptr(i), m.cols * sizeof(i_uchar3));
+    // }
+
+    get_frame((char*) img.data(), img.pitch(), sizeof(i_uchar4));
+    return *this;
+  }
+
+  void
+  video_capture::get_frame(char* buffer, unsigned pitch, unsigned pixel_sizeof)
+  {
+    assert(buffer);
     assert(cap_);
     static cv::Mat m;
     finished_ = !cap_->grab();
     if (!cap_->retrieve(m))
       finished_ = true;
     if (finished_)
-      return *this;
+      return;
 
     for (int i = 0; i < m.rows; i++)
     {
       assert(m.ptr(i));
-      memcpy(&img(i, 0), m.ptr(i), m.cols * sizeof(i_uchar3));
+      memcpy(buffer + i * pitch, m.ptr(i), m.cols * pixel_sizeof);
     }
-    return *this;
   }
 
   unsigned video_capture::nrows()

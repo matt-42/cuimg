@@ -30,7 +30,9 @@ namespace cuimg
     bool grab();
 //    bool retrieve(host_image2d<i_uchar3>& image, int channel=0);
 
-    video_capture& operator >> (host_image2d<i_uchar3>& image);
+    video_capture& operator>>(host_image2d<i_uchar4>& image);
+    video_capture& operator>>(host_image2d<i_uchar3>& image);
+    video_capture& operator>>(host_image2d<i_float1>& image);
 
     bool set(int propId, double value);
     double get(int propId);
@@ -42,6 +44,7 @@ namespace cuimg
     unsigned nframes();
 
   protected:
+    void get_frame(char* buffer, unsigned pitch, unsigned pixel_sizeof);
     cv::VideoCapture* cap_;
     bool finished_;
   };

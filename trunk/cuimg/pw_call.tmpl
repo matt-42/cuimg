@@ -1,0 +1,126 @@
+#ifndef CUIMG_PW_CALL_H_
+# define CUIMG_PW_CALL_H_
+
+# include <omp.h>
+# include <cuimg/target.h>
+
+namespace cuimg
+{
+  template <unsigned T>
+  struct thread_info
+  {
+    dim3 blockDim;
+    dim3 blockIdx;
+    dim3 threadIdx;
+  };
+
+#def template_headers($i, $arch)
+  template <#slurp
+#for $j in range(1, $i + 1)
+typename A$j, #slurp
+#end for
+#slurp
+void F(thread_info<$arch>#slurp
+#for $j in range(1, $i + 1)
+, #slurp
+A$j#slurp
+#end for
+)> #slurp
+#end def
+
+#def arg_decl($i)
+#for $j in range(1, $i + 1)
+, #slurp
+A$j a$j#slurp
+#end for
+#end def
+
+#def arg_decl_($i)
+#for $j in range(1, $i + 1)
+A$j a$j#slurp
+#if $i != $j
+, #slurp
+#end if
+#end for
+#end def
+
+#def arg_decl($i)
+#if $i > 0
+, #slurp
+#end if
+$arg_decl_($i) #slurp
+#end def
+
+#def fun_args_($i)
+#for $j in range(1, $i + 1)
+a$j#slurp
+#if $j != $i
+, #slurp
+#end if
+#end for
+#end def
+
+#def fun_args($i)
+#if $i > 0
+, #slurp
+#end if
+$fun_args_($i) #slurp
+#end def
+
+#def tpl_args($i)
+#for $j in range(1, $i + 1)
+A$j#slurp
+, #slurp
+#end for
+#end def
+
+#for $i in range(0, 15)
+$template_headers($i, "CPU")
+  void pw_call(const flag<CPU>&, dim3 dimgrid, dim3 dimblock$arg_decl($i))
+  {
+//#pragma omp parallel shared(dimgrid, dimblock$fun_args($i))
+{
+#pragma omp parallel for schedule(static, 1) collapse(2)
+    for(unsigned bz = 0; bz < dimgrid.z; bz++)
+    for(unsigned by = 0; by < dimgrid.y; by++)
+    for(unsigned bx = 0; bx < dimgrid.x; bx++)
+
+    for(unsigned tz = 0; tz < dimblock.z; tz++)
+
+    for(unsigned ty = 0; ty < dimblock.y; ty++)
+    for(unsigned tx = 0; tx < dimblock.x; tx++)
+    {
+      thread_info<CPU> ti;
+      ti.blockDim = dimblock;
+      ti.blockIdx = dim3(bx, by, bz);
+      ti.threadIdx = dim3(tx, ty, tz);
+      F(ti$fun_args($i));
+    }
+}
+  }
+
+#ifdef NVCC
+$template_headers($i, "GPU")
+  __global__ void pw_call_kernel($arg_decl_($i))
+  {
+    thread_info<GPU> ti;
+    ti.blockDim = blockDim;
+    ti.blockIdx = blockIdx;
+    ti.threadIdx = threadIdx;
+
+    F(ti$fun_args($i));
+  }
+
+$template_headers($i, "GPU")
+  void pw_call(const flag<GPU>&, dim3 dimgrid, dim3 dimblock$arg_decl($i))
+  {
+    pw_call_kernel<$tpl_args($i) F><<<dimgrid, dimblock>>>($fun_args_($i));
+  }
+
+#endif
+
+#end for
+
+} // end of namespace cuimg.
+
+#endif // !CUIMG_PW_CALL_H_

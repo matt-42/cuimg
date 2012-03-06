@@ -1,6 +1,8 @@
 #ifndef CUIMG_IMAGE2D_MATH_H_
 # define CUIMG_IMAGE2D_MATH_H_
 
+# ifdef NVCC
+
 # include <cuda.h>
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/gpu/kernel_image2d.h>
@@ -133,5 +135,7 @@ namespace cuimg
 
 
 }
+
+#endif
 
 #endif

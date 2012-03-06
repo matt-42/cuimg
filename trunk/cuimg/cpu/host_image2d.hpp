@@ -82,50 +82,50 @@ namespace cuimg
   }
 
   template <typename V>
-  size_t host_image2d<V>::pitch() const
+  inline size_t host_image2d<V>::pitch() const
   {
     return pitch_;
   }
 
   template <typename V>
-  V* host_image2d<V>::data()
+  inline V* host_image2d<V>::data()
   {
     return data_.get();
   }
 
   template <typename V>
-  const V* host_image2d<V>::data() const
+  inline const V* host_image2d<V>::data() const
   {
     return data_.get();
   }
 
   template <typename V>
-  size_t host_image2d<V>::buffer_size() const
+  inline size_t host_image2d<V>::buffer_size() const
   {
     return sizeof(V) * nrows() * ncols();
   }
 
   template <typename V>
-  V& host_image2d<V>::operator()(const point& p)
+  inline V& host_image2d<V>::operator()(const point& p)
   {
     return buffer_[p.row() * domain_.ncols() + p.col()];
   }
 
   template <typename V>
-  const V& host_image2d<V>::operator()(const point& p) const
+  inline const V& host_image2d<V>::operator()(const point& p) const
   {
     return buffer_[p.row() * domain_.ncols() + p.col()];
   }
 
   template <typename V>
-  V&
+  inline V&
   host_image2d<V>::operator()(int r, int c)
   {
     return operator()(point(r, c));
   }
 
   template <typename V>
-  const V&
+  inline const V&
   host_image2d<V>::operator()(int r, int c) const
   {
     return operator()(point(r, c));

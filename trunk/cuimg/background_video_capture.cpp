@@ -50,7 +50,7 @@ namespace cuimg
     cap_.set(CV_CAP_PROP_CONVERT_RGB, true);
     buffer_.resize(max_buffer_size_);
     for (unsigned i = 0; i < buffer_.size(); i++)
-      buffer_[i] = host_image2d<i_uchar3>(nrows(), ncols());
+      buffer_[i] = host_image2d<i_uchar4>(nrows(), ncols());
   }
 
   void background_video_capture::start_producer_thread()
@@ -127,15 +127,21 @@ namespace cuimg
     return producer_pos_ == reader_pos_;
   }
 
-  host_image2d<i_uchar3>&
+  host_image2d<i_uchar4>&
   background_video_capture::next_frame()
   {
-    boost::unique_lock<boost::mutex> lock(mutex_);
-    while (is_empty())
-    {
-      //std::cout << "waiting for producer..." << std::endl;
-      is_empty_cond_.wait(lock);
-    }
+    // if (is_empty()) wait_until_full();
+
+    // if (is_empty())
+    // {
+    //   boost::unique_lock<boost::mutex> lock(mutex_);
+    //   while (is_empty())
+    //   {
+    //     //std::cout << "waiting for producer..." << std::endl;
+    //     is_empty_cond_.wait(lock);
+    //   }
+    // }
+
     reader_pos_ = (reader_pos_ + 1) % max_buffer_size_;
     //std::cout << "Consume: producer: " << producer_pos_ << "  consumer: " << reader_pos_ << std::endl;
     is_empty_cond_.notify_one();
@@ -159,6 +165,16 @@ namespace cuimg
       //std::cout << "Produce: producer: " << producer_pos_ << "  consumer: " << reader_pos_ << std::endl;
     }
     is_empty_cond_.notify_one();
+  }
+
+  void
+  background_video_capture::wait_until_full()
+  {
+    boost::unique_lock<boost::mutex> lock(mutex_);
+    while (!is_full() && !thread_end())
+    {
+      is_empty_cond_.wait(lock);
+    }
   }
 
   unsigned background_video_capture::nrows()

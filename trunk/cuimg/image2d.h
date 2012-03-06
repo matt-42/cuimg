@@ -3,6 +3,7 @@
 
 namespace cuimg
 {
+
   template <typename I>
   class Image
   {

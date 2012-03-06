@@ -2,7 +2,10 @@
 # define CUIMG_HOST_IMAGE2D_H_
 
 # include <boost/shared_ptr.hpp>
+# include <omp.h>
+
 # include <cuda_runtime_api.h>
+# include <cuimg/target.h>
 # include <cuimg/concepts.h>
 # include <cuimg/dsl/expr.h>
 # include <cuimg/point2d.h>
@@ -14,6 +17,8 @@ namespace cuimg
   class host_image2d : public Image2d<host_image2d<V> >
   {
   public:
+    enum { target = CPU };
+
     typedef V value_type;
     typedef point2d<int> point;
     typedef obox2d<point> domain_type;
@@ -44,9 +49,10 @@ namespace cuimg
     __host__ __device__ size_t buffer_size() const;
 
     template <typename E>
-    host_image2d<V>& operator=(expr<E>& e)
+    host_image2d<V>& operator=(const expr<E>& e)
     {
-      E x(*static_cast<E*>(&e));
+      const E& x(*(E*)&e);
+#pragma omp parallel for schedule(static, 8)
       for (unsigned r = 0; r < nrows(); r++)
         for (unsigned c = 0; c < ncols(); c++)
           (*this)(r, c) = x.eval(point2d<int>(r, c));

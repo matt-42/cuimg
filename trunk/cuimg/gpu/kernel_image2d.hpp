@@ -1,6 +1,7 @@
 #ifndef KERNEL_IMAGE2D_HPP_
 # define KERNEL_IMAGE2D_HPP_
 
+# include <cassert>
 # include <cuimg/point2d.h>
 # include <cuimg/gpu/kernel_image2d.h>
 
@@ -21,13 +22,12 @@ namespace cuimg
   }
 
   template <typename V>
-  template <template <class> class PT>
-  kernel_image2d<V>::kernel_image2d(const image2d<V, PT>& img)
-    : domain_(img.domain()),
-      pitch_(img.pitch()),
-      data_(const_cast<V*>(img.data()))
+  template <typename I>
+  kernel_image2d<V>::kernel_image2d(const Image2d<I>& img)
+    : domain_(exact(img).domain()),
+      pitch_(exact(img).pitch()),
+      data_(const_cast<V*>(exact(img).data()))
   {
-    assert(data_);
   }
 
   template <typename V>
@@ -41,14 +41,13 @@ namespace cuimg
   }
 
   template <typename V>
-  template <template <class> class PT>
+  template <typename I>
   kernel_image2d<V>&
-  kernel_image2d<V>::operator=(const image2d<V, PT>& img)
+  kernel_image2d<V>::operator=(const Image2d<I>& img)
   {
     domain_ = img.domain();
     pitch_ = img.pitch();
     data_ = const_cast<V*>(img.data());
-    assert(data_);
     return *this;
   }
 

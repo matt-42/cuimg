@@ -5,11 +5,13 @@ namespace cuimg
 {
 
   template <typename C>
+  inline
   point2d<C>::point2d()
   {
   }
 
   template <typename C>
+  inline
   point2d<C>::point2d(C row, C col)
   {
     coords_[0] = row;
@@ -17,6 +19,7 @@ namespace cuimg
   }
 
   template <typename C>
+  inline
   point2d<C>::point2d(const point2d<C>& d)
   {
     coords_[0] = d.row();
@@ -24,6 +27,7 @@ namespace cuimg
   }
 
   template <typename C>
+  inline
   point2d<C>&
   point2d<C>::operator=(const point2d<C>& d)
   {
@@ -33,14 +37,14 @@ namespace cuimg
   }
 
   template <typename C>
-  C
+  inline C
   point2d<C>::row() const
   {
     return coords_[0];
   }
 
   template <typename C>
-  C
+  inline C
   point2d<C>::col() const
   {
     return coords_[1];
@@ -48,14 +52,14 @@ namespace cuimg
 
 
   template <typename C>
-  C&
+  inline C&
   point2d<C>::row()
   {
     return coords_[0];
   }
 
   template <typename C>
-  C&
+  inline C&
   point2d<C>::col()
   {
     return coords_[1];
@@ -63,6 +67,7 @@ namespace cuimg
 
   template <typename C>
   template <typename T>
+  inline
   point2d<C>::point2d(const improved_builtin<T, 2>& bt)
   {
     coords_[0] = bt.x;
@@ -70,12 +75,14 @@ namespace cuimg
   }
 
   template <typename C>
+  inline
   point2d<C>::operator typename make_bt<C, 2>::ret() const
   {
     return typename make_bt<C, 2>::ret(row(), col());
   }
 
   template <typename C, typename D>
+  inline
   bool operator==(const point2d<C>& a, const point2d<D>& b)
   {
     return a.row() == b.row() && a.col() == b.col();

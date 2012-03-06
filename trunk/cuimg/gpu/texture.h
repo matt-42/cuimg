@@ -8,8 +8,24 @@
 # include <cuimg/gpu/image2d.h>
 # include <cuimg/error.h>
 
+#ifndef NVCC
+template<typename U, unsigned D, enum cudaTextureReadMode READMODE>
+struct texture
+{
+  operator const textureReference*() { return 0; }
+};
+
+#endif
+
 namespace cuimg
 {
+
+  template<typename U, typename T,
+           enum cudaTextureReadMode READMODE>
+  void bindTexture2d(const host_image2d<U>& img, ::texture<T, 2, READMODE>& texref)
+  {
+    assert(0);
+  }
 
   template<typename U, template <class> class IPT, typename T,
            enum cudaTextureReadMode READMODE>
@@ -22,10 +38,50 @@ namespace cuimg
   }
 
   template<typename T, enum cudaTextureReadMode READMODE>
-  __device__ inline T tex2D(::texture<T, 2, READMODE>& texref, const point2d<int>& p)
+  __host__ __device__ inline T tex2D(::texture<T, 2, READMODE>& texref, const point2d<int>& p)
   {
     return tex2D(texref, p.col(), p.row());
   }
+
+
+  template<typename T, typename U, enum cudaTextureReadMode READMODE>
+  __host__ __device__ inline T tex2D(const flag<GPU>&, ::texture<T, 2, READMODE>& texref,
+                              const Image2d<U>& img, const point2d<int>& p)
+  {
+    return tex2D(texref, p.col(), p.row());
+  }
+
+  template<typename T, typename U, enum cudaTextureReadMode READMODE>
+  __host__ __device__ inline T tex2D(const flag<GPU>&, ::texture<T, 2, READMODE>& texref,
+                            const Image2d<U>& img, int c, int r)
+  {
+    return tex2D(texref, c, r);
+  }
+
+  // CPU fallbacks.
+  template<typename T, typename U, enum cudaTextureReadMode READMODE>
+  __host__ __device__ inline T tex2D(const flag<CPU>&, ::texture<T, 2, READMODE>& texref,
+                            const Image2d<U>& img, const point2d<int>& p)
+  {
+    return T(exact(img)(p));
+  }
+
+  template<typename T, typename U, enum cudaTextureReadMode READMODE>
+  __host__ __device__ inline T tex2D(const flag<CPU>&, ::texture<T, 2, READMODE>& texref,
+                            const Image2d<U>& img, int c, int r)
+  {
+    return T(exact(img)(r, c));
+  }
+
+#ifndef NVCC
+
+  template<typename T, unsigned N, enum cudaTextureReadMode READMODE>
+  __host__ __device__ T tex2D(::texture<T, N, READMODE> texref, int c, int r)
+  {
+    return T();
+  }
+
+#endif
 
 #define EXPAND(X) X
 

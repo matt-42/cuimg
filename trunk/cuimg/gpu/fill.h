@@ -8,6 +8,8 @@
 
 namespace cuimg
 {
+
+#ifdef NVCC
   namespace internal
   {
     template<typename U>
@@ -28,6 +30,8 @@ namespace cuimg
     dim3 dim_grid = grid_dimension(out.domain(), dim_block);
     internal::fill_kernel<<<dim_grid, dim_block>>>(mki(out), v);
   }
+
+#endif
 
 }
 

@@ -33,7 +33,7 @@ namespace cuimg
     void release();
     void resize(unsigned nrows, unsigned ncols);
 
-    host_image2d<i_uchar3>& next_frame();
+    host_image2d<i_uchar4>& next_frame();
     void prepare_next_frame();
 
     bool thread_end() const;
@@ -48,6 +48,8 @@ namespace cuimg
     void rewind();
     unsigned nframes();
 
+    void wait_until_full();
+
   protected:
     void init();
     void start_producer_thread();
@@ -58,8 +60,8 @@ namespace cuimg
     video_capture cap_;
     int producer_pos_;
     int reader_pos_;
-    static const int max_buffer_size_ = 10;
-    std::vector<host_image2d<i_uchar3> > buffer_;
+    static const int max_buffer_size_ = 5;
+    std::vector<host_image2d<i_uchar4> > buffer_;
     ::boost::condition_variable is_empty_cond_;
     ::boost::mutex mutex_;
     ::boost::thread producer_thread_;

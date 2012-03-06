@@ -31,10 +31,10 @@ namespace dg
 
 
   template <typename T>
-  image<trait::format::bgra, T>
+  image<trait::format::rgba, T>
     adapt(const cuimg::host_image2d<cuimg::improved_builtin<T, 4> >& i)
   {
-    return image<trait::format::bgra, T>
+    return image<trait::format::rgba, T>
       (i.ncols(), i.nrows(), (T*)i.data());
   }
 

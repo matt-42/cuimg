@@ -22,7 +22,6 @@ namespace cuimg
       (in, tmp, stream, dimblock);
     meta_convolve_col2d<TT, TO, meta_gaussian<J, SIGMA>, KERNEL_HALF_SIZE>
       (tmp, out, stream, dimblock);
-    check_cuda_error();
   }
 
   template <typename TI, typename TO, typename TT,
@@ -32,8 +31,10 @@ namespace cuimg
   void local_jet_static(const TI& in, TO& out1, TO& out2, TT& tmp1, TT& tmp2,
                         cudaStream_t stream = 0, dim3 dimblock = dim3(16, 16))
   {
-    assert(in.domain() == out.domain());
-    assert(in.domain() == tmp.domain());
+    assert(in.domain() == out1.domain());
+    assert(in.domain() == tmp1.domain());
+    assert(in.domain() == out2.domain());
+    assert(in.domain() == tmp2.domain());
 
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
 
@@ -43,7 +44,6 @@ namespace cuimg
     meta_convolve_col2d<TT, TO, meta_gaussian<J1, SIGMA1>, meta_gaussian<J2, SIGMA2>,
       KERNEL_HALF_SIZE>
       (tmp1, tmp2, out1, out2, stream, dimblock);
-    check_cuda_error();
   }
 
   template <int I1, int J1, int SIGMA1, int I2, int J2, int SIGMA2, int KERNEL_HALF_SIZE>

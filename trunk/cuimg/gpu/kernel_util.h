@@ -5,11 +5,19 @@
 # include <cuimg/obox2d.h>
 # include <cuimg/obox3d.h>
 # include <cuimg/util.h>
+# include <cuimg/pw_call.h>
 
 namespace cuimg
 {
   __host__ __device__ inline i_int2 thread_pos2d();
   __host__ __device__ inline i_int3 thread_pos3d();
+
+  template <unsigned T>
+  __host__ __device__ inline i_int2 thread_pos2d(const thread_info<T>& ti)
+  {
+    return i_int2(ti.blockIdx.y * ti.blockDim.y + ti.threadIdx.y,
+                  ti.blockIdx.x * ti.blockDim.x + ti.threadIdx.x);
+  }
 
 #ifdef NVCC
   __host__ __device__ inline i_int2 thread_pos2d()

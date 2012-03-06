@@ -23,6 +23,7 @@ namespace cuimg
     typedef typename return_type<KE>::ret e_return_type;
     typedef typename boost::remove_reference<typename return_type<E>::ret>::type::vtype local_return_type;
 
+    inline
     get_comp_(E& e)
       : e_(e)
     {
@@ -47,6 +48,7 @@ namespace cuimg
   struct get_comp
   {
     template <typename E>
+    inline
     static get_comp_<N, E> run(E& e)
     {
       return get_comp_<N, E>(e);
@@ -68,6 +70,7 @@ namespace cuimg
     typedef typename meta::remove_constref<typename return_type<KE>::ret>::ret e_return_type;
     typedef typename return_type<self>::ret local_return_type;
 
+    inline
     get_comp_by_tag_(E& e)
       : e_(e)
     {
@@ -99,13 +102,13 @@ namespace cuimg
   };
 
   template <typename E>
-  get_comp_<0, E> get_x(E& e) { return get_comp_<0, E>(e); }
+  inline get_comp_<0, E> get_x(E& e) { return get_comp_<0, E>(e); }
   template <typename E>
-  get_comp_<1, E> get_y(E& e) { return get_comp_<1, E>(e); }
+  inline get_comp_<1, E> get_y(E& e) { return get_comp_<1, E>(e); }
   template <typename E>
-  get_comp_<2, E> get_z(E& e) { return get_comp_<2, E>(e); }
+  inline get_comp_<2, E> get_z(E& e) { return get_comp_<2, E>(e); }
   template <typename E>
-  get_comp_<3, E> get_w(E& e) { return get_comp_<3, E>(e); }
+  inline get_comp_<3, E> get_w(E& e) { return get_comp_<3, E>(e); }
 
 }
 
