@@ -15,6 +15,7 @@ namespace cuimg
     if(error != cudaSuccess)
     {
       std::cerr << "Cuda error: " << cudaGetErrorString(error) << std::endl;
+      exit(1);
       assert(error == cudaSuccess);
     }
   }
