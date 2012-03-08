@@ -14,7 +14,7 @@ namespace cuimg
 
   template <typename SA, typename F>
   template <typename V>
-  void tracker<SA, F>::update(const image2d<V>& in)
+  void tracker<SA, F>::update(const device_image2d<V>& in)
   {
     f_.update(in);
     sa_.update(f_);

@@ -72,18 +72,18 @@ namespace cuimg
 
   template <typename A typename B
   inline
-  binary_add<image2d<A>, image2d<B> >
-  operator+(const image2d<A>& a, const image2d<B>& b)
+  binary_add<device_image2d<A>, device_image2d<B> >
+  operator+(const device_image2d<A>& a, const device_image2d<B>& b)
   {
-    return binary_add<image2d<A>, image2d<B> >(a, b);
+    return binary_add<device_image2d<A>, device_image2d<B> >(a, b);
   }
 
   template <typename A typename S>
   inline
-  binary_add<image2d<A>, S>
-  operator+(const image2d<A>& a, const S s)
+  binary_add<device_image2d<A>, S>
+  operator+(const device_image2d<A>& a, const S s)
   {
-    return binary_add<image2d<A>, S>(a, s);
+    return binary_add<device_image2d<A>, S>(a, s);
   }
 
   template <typename E, typename S>

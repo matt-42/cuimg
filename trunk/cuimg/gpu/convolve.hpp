@@ -38,7 +38,7 @@ namespace cuimg
   }
 
   template <typename U, typename V, typename WW>
-  void convolve(const image2d<U>& in, image2d<V>& out,
+  void convolve(const device_image2d<U>& in, device_image2d<V>& out,
                 const WW& weighted_window, dim3 dimblock)
   {
     using namespace conv_internals;
@@ -78,13 +78,13 @@ namespace cuimg
   }
 
 //   template <typename U, typename V, typename WW>
-//   void convolveRows(const image2d<U>& in, const image2d<V>& out, const WW& weighted_window)
+//   void convolveRows(const device_image2d<U>& in, const device_image2d<V>& out, const WW& weighted_window)
 //   {
 //     using namespace conv_internals;
 //   }
 
 //   template <typename U, typename V, typename WW>
-//   void convolveCols(const image2d<U>& in, const image2d<V>& out, const WW& weighted_window)
+//   void convolveCols(const device_image2d<U>& in, const device_image2d<V>& out, const WW& weighted_window)
 //   {
 //     using namespace conv_internals;
 //   }

@@ -2,7 +2,7 @@
 # define CUIMG_PASTE_H_
 
 # include <cuimg/improved_builtin.h>
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/error.h>
 # include <cuimg/point2d.h>
 # include <cuimg/gpu/util.h>
@@ -34,8 +34,8 @@ namespace cuimg
 
 
   template<typename U, typename V>
-  void paste(const image2d<U>& in,
-             image2d<V>& out,
+  void paste(const device_image2d<U>& in,
+             device_image2d<V>& out,
              dim3 dim_block = dim3(16, 16, 1))
   {
     assert(in.domain() == out.domain());

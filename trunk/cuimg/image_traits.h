@@ -23,9 +23,9 @@ namespace cuimg
   };
 
   template <typename V, typename NV>
-  struct change_value_type<image2d<V>, NV>
+  struct change_value_type<device_image2d<V>, NV>
   {
-    typedef image2d<NV> ret;
+    typedef device_image2d<NV> ret;
   };
 
 }

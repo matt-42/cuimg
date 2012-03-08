@@ -30,7 +30,7 @@ int main()
   srand(time(0));
   host_image3d<i_float4> img(3, 3, 3);
   host_image3d<i_float4> img_copy(img.domain());
-  image3d<i_float4> img_d(img.domain());
+  device_image3d<i_float4> img_d(img.domain());
 
   for (unsigned i = 0; i < img.ncols() * img.nrows() * img.nslices(); i++)
     img[i] = i_float4(rand(), rand(), rand(), rand());

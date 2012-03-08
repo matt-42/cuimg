@@ -3,7 +3,7 @@
 
 # include <cuda_runtime.h>
 # include <cuimg/point3d.h>
-# include <cuimg/gpu/image3d.h>
+# include <cuimg/gpu/device_image3d.h>
 
 namespace cuimg
 {
@@ -17,10 +17,10 @@ namespace cuimg
 
     __host__ __device__ inline kernel_image3d();
     __host__ __device__ inline kernel_image3d(const kernel_image3d<V>& img);
-    __host__ __device__ inline kernel_image3d(const image3d<V>& img);
+    __host__ __device__ inline kernel_image3d(const device_image3d<V>& img);
 
     __host__ __device__ inline kernel_image3d<V>& operator=(const kernel_image3d<V>& img);
-    __host__ __device__ inline kernel_image3d<V>& operator=(const image3d<V>& img);
+    __host__ __device__ inline kernel_image3d<V>& operator=(const device_image3d<V>& img);
 
     __host__ __device__ inline const domain_type& domain() const;
     __host__ __device__ inline unsigned nrows() const;
@@ -52,7 +52,7 @@ namespace cuimg
   };
 
   template <typename V>
-  kernel_image3d<V> mki(const image3d<V>& img)
+  kernel_image3d<V> mki(const device_image3d<V>& img)
   {
     assert(img.data());
     return img;

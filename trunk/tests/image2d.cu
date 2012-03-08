@@ -9,6 +9,6 @@
 
 int main()
 {
- //image2d<i_float4> img(300, 400);
+ //device_image2d<i_float4> img(300, 400);
 //  test<<<42, 54>>>(test);
 }

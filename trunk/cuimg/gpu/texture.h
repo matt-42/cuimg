@@ -5,7 +5,7 @@
 # include <cuda_runtime_api.h>
 # include <cuda_runtime.h>
 # include <cuda_texture_types.h>
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/error.h>
 
 #ifndef NVCC
@@ -41,7 +41,7 @@ namespace cuimg
 
   template<typename U, typename T,
            enum cudaTextureReadMode READMODE>
-  void bindTexture2d(const image2d<U>& img, ::texture<T, 2, READMODE>& texref)
+  void bindTexture2d(const device_image2d<U>& img, ::texture<T, 2, READMODE>& texref)
   {
     cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
     cudaBindTexture2D(0, texref, (void*)img.data(), channelDesc,
@@ -58,14 +58,14 @@ namespace cuimg
 
   template<typename T, typename U, enum cudaTextureReadMode READMODE>
   __host__ __device__ inline T tex2D(const flag<GPU>&, ::texture<T, 2, READMODE>& texref,
-                              const Image2d<U>& img, const point2d<int>& p)
+                              const device_image2d<U>& img, const point2d<int>& p)
   {
     return tex2D(texref, p.col(), p.row());
   }
 
   template<typename T, typename U, enum cudaTextureReadMode READMODE>
   __host__ __device__ inline T tex2D(const flag<GPU>&, ::texture<T, 2, READMODE>& texref,
-                            const Image2d<U>& img, int c, int r)
+                            const device_image2d<U>& img, int c, int r)
   {
     return tex2D(texref, c, r);
   }
@@ -74,28 +74,28 @@ namespace cuimg
 
   template<typename T, typename U, enum cudaTextureReadMode READMODE>
   __host__ __device__ inline T tex2D(const flag<CPU>&, ::texture<T, 2, READMODE>& texref,
-                            const Image2d<U>& img, const point2d<int>& p)
+                            const device_image2d<U>& img, const point2d<int>& p)
   {
     return T(exact(img)(p));
   }
 
   template<typename T, typename U, enum cudaTextureReadMode READMODE>
   __host__ __device__ inline T tex2D(const flag<CPU>&, ::texture<T, 2, READMODE>& texref,
-                            const Image2d<U>& img, int c, int r)
+                            const device_image2d<U>& img, int c, int r)
   {
     return T(exact(img)(r, c));
   }
 
   template<typename U>
     __host__ __device__ inline typename U::value_type tex2D(const flag<CPU>&, int texref,
-                            const Image2d<U>& img, const point2d<int>& p)
+                            const device_image2d<U>& img, const point2d<int>& p)
   {
     return exact(img)(p);
   }
 
   template<typename U>
   __host__ __device__ inline typename U::value_type tex2D(const flag<CPU>&, int texref,
-                            const Image2d<U>& img, int c, int r)
+                            const device_image2d<U>& img, int c, int r)
   {
     return exact(img)(r, c);
   }

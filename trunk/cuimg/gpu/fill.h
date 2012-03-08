@@ -2,7 +2,7 @@
 # define CUIMG_FILL_H_
 
 # include <cuimg/improved_builtin.h>
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/error.h>
 # include <cuimg/util.h>
 
@@ -24,7 +24,7 @@ namespace cuimg
 
 
   template<typename U>
-  void fill(image2d<U>& out,
+  void fill(device_image2d<U>& out,
             const U& v,
             dim3 dim_block = dim3(16, 16, 1))
   {

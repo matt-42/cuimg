@@ -4,7 +4,7 @@
 # ifdef NVCC
 
 # include <cuda.h>
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/gpu/kernel_image2d.h>
 # include <cuimg/builtin_math.h>
 # include <cuimg/util.h>
@@ -84,7 +84,7 @@ namespace cuimg
 
   template <typename I, typename O>
   inline
-  void abs(const image2d<I>& in, const image2d<O>& out, dim3 dimblock = dim3(16, 16))
+  void abs(const device_image2d<I>& in, const device_image2d<O>& out, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
     internal::abs_kernel<<<dimgrid, dimblock>>>(mki(in), mki(out));
@@ -92,7 +92,7 @@ namespace cuimg
 
   template <typename I>
   inline
-  void set_alpha_channel(image2d<I>& in, dim3 dimblock = dim3(16, 16))
+  void set_alpha_channel(device_image2d<I>& in, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
     internal::set_alpha_kernel<<<dimgrid, dimblock>>>(mki(in));
@@ -101,7 +101,7 @@ namespace cuimg
 
   template <typename I, typename S>
   inline
-  void mult(image2d<I>& in, const S& s, dim3 dimblock = dim3(16, 16))
+  void mult(device_image2d<I>& in, const S& s, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
     internal::mult_kernel<<<dimgrid, dimblock>>>(mki(in), s);
@@ -109,7 +109,7 @@ namespace cuimg
 
   template <typename I>
   inline
-  void add(image2d<I>& in, const I& s, dim3 dimblock = dim3(16, 16))
+  void add(device_image2d<I>& in, const I& s, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
     internal::add_kernel<<<dimgrid, dimblock>>>(mki(in), s);
@@ -119,7 +119,7 @@ namespace cuimg
             typename B,
             typename O>
   inline
-  void minus(image2d<A>& a, image2d<B>& b, image2d<O>& out, dim3 dimblock = dim3(16, 16))
+  void minus(device_image2d<A>& a, device_image2d<B>& b, device_image2d<O>& out, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(a.domain(), dimblock);
     internal::minus_kernel<<<dimgrid, dimblock>>>(mki(a), mki(b), mki(out));
@@ -127,7 +127,7 @@ namespace cuimg
 
   template <typename A, typename V>
   inline
-  void unsaturate(image2d<A>& a, V v, dim3 dimblock = dim3(16, 16))
+  void unsaturate(device_image2d<A>& a, V v, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(a.domain(), dimblock);
     internal::unsaturate_kernel<<<dimgrid, dimblock>>>(mki(a), v);

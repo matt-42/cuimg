@@ -17,7 +17,7 @@ namespace cuimg
     tracker(SA& sa, F& f);
 
     template <typename V>
-    void update(const image2d<V>& in);
+    void update(const device_image2d<V>& in);
 
   private:
     F& f_; // Feature maker

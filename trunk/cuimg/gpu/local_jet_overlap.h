@@ -6,7 +6,7 @@
 # include <boost/mpl/size.hpp>
 
 # include <cuimg/gpu/kernel_image2d.h>
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/gpu/local_jet_static.h>
 
 namespace cuimg
@@ -17,7 +17,7 @@ namespace cuimg
     struct local_jet_loop_ij
     {
       template <typename T, typename U>
-      static void run(image2d<T>& in, image2d<U>& tmp, image2d<U>* out[])
+      static void run(device_image2d<T>& in, device_image2d<U>& tmp, device_image2d<U>* out[])
       {
         std::cout << "lj[" << ((I*(I+1)) / 2 + J) << "]: " << N - I << ", "<< J << "| ";
         local_jet_static<T, U, N - I, J, SIGMA, KERNEL_HALF_SIZE>(in, *(out[(I*(I+1)) / 2 + J]), tmp);
@@ -31,7 +31,7 @@ namespace cuimg
     struct local_jet_loop_ij<I, I, N, SIGMA, KERNEL_HALF_SIZE>
   {
     template <typename T, typename U>
-      static void run(image2d<T>& in, image2d<U>& tmp, image2d<U>* out[])
+      static void run(device_image2d<T>& in, device_image2d<U>& tmp, device_image2d<U>* out[])
     {
       std::cout << "lj[" << ((I*(I+1)) / 2 + I) << "]: " << N - I << ", "<< I << std::endl;
       local_jet_static<T, U, N - I, I, SIGMA, KERNEL_HALF_SIZE>(in, *(out[(I*(I+1)) / 2 + I]), tmp);
@@ -44,7 +44,7 @@ namespace cuimg
     struct local_jet_loop_ij<N, N, N, SIGMA, KERNEL_HALF_SIZE>
   {
     template <typename T, typename U>
-      static void run(image2d<T>& in, image2d<U>& tmp, image2d<U>* out[])
+      static void run(device_image2d<T>& in, device_image2d<U>& tmp, device_image2d<U>* out[])
     {
       std::cout << "lj[" << ((N * (N + 1)) / 2 + N) << "]: " << 0 << ", "<< N << std::endl;
       //local_jet_static<T, U, 0, 0, SIGMA, KERNEL_HALF_SIZE>(in, *(out[(N * (N + 1)) / 2 + N]), tmp);
@@ -56,7 +56,7 @@ namespace cuimg
   struct local_jet_loop_scale
   {
     template <typename T, typename U>
-    static void run(image2d<T>& in, image2d<U>& tmp, image2d<U>* out[])
+    static void run(device_image2d<T>& in, device_image2d<U>& tmp, device_image2d<U>* out[])
     {
       local_jet_loop_ij<0, 0, N,
         boost::mpl::at_c<SIGMAS, SCALE>::type::value,
@@ -70,16 +70,16 @@ namespace cuimg
   struct local_jet_loop_scale<-1, N, SIGMAS>
   {
     template <typename T, typename U>
-    static void run(image2d<T>& in, image2d<U>& tmp, image2d<U>* out[])
+    static void run(device_image2d<T>& in, device_image2d<U>& tmp, device_image2d<U>* out[])
     {
     }
   };
 
   template <typename T, typename U, unsigned N,
             typename SIGMAS>
-  void local_jet_static_(image2d<T>& in,
-  image2d<U>* images[((N+1)*(N+2)/2) * boost::mpl::size<SIGMAS>::type::value],
-                        image2d<U>& tmp)
+  void local_jet_static_(device_image2d<T>& in,
+  device_image2d<U>* images[((N+1)*(N+2)/2) * boost::mpl::size<SIGMAS>::type::value],
+                        device_image2d<U>& tmp)
   {
     local_jet_loop_scale<boost::mpl::size<SIGMAS>::type::value - 1, N, SIGMAS>::run(in, tmp, images);
   }

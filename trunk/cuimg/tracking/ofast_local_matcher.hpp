@@ -421,7 +421,7 @@ namespace cuimg
 
     swap_buffers();
 
-    //bindTexture2d(*(image2d<float4>*)&(f.current_frame()), feat_tex);
+    //bindTexture2d(*(device_image2d<float4>*)&(f.current_frame()), feat_tex);
     particles_vec1_.resize(matches_.nrows() * matches_.ncols());
     particles_vec2_.resize(matches_.nrows() * matches_.ncols());
 
@@ -528,7 +528,7 @@ namespace cuimg
 
     swap_buffers();
 
-    //bindTexture2d(*(image2d<float4>*)&(f.current_frame()), feat_tex);
+    //bindTexture2d(*(device_image2d<float4>*)&(f.current_frame()), feat_tex);
     particles_vec1_.resize(matches_.nrows() * matches_.ncols());
     particles_vec2_.resize(matches_.nrows() * matches_.ncols());
     //std::cout << "particles_vec_.size " << particles_vec_.size() << std::endl;

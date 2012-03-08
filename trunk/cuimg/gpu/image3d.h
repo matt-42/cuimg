@@ -7,23 +7,23 @@
 # include <cuimg/point3d.h>
 # include <cuimg/simple_ptr.h>
 # include <cuimg/obox3d.h>
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 
 namespace cuimg
 {
   template <typename V>
-  class image3d
+  class device_image3d
   {
   public:
     typedef V value_type;
     typedef point3d<int> point;
     typedef obox3d<point> domain_type;
 
-    inline image3d(unsigned nslices, unsigned nrows, unsigned ncols);
-    inline image3d(const domain_type& d);
+    inline device_image3d(unsigned nslices, unsigned nrows, unsigned ncols);
+    inline device_image3d(const domain_type& d);
 
-    __host__ __device__ inline image3d(const image3d<V>& d);
-    __host__ __device__ inline image3d<V>& operator=(const image3d<V>& d);
+    __host__ __device__ inline device_image3d(const device_image3d<V>& d);
+    __host__ __device__ inline device_image3d<V>& operator=(const device_image3d<V>& d);
 
     __host__ __device__ inline const domain_type& domain() const;
     __host__ __device__ inline unsigned nrows() const;
@@ -34,8 +34,8 @@ namespace cuimg
     __host__ __device__ inline V* data();
     __host__ __device__ inline const V* data() const;
 
-    __host__ __device__ inline image2d<V> slice(unsigned s);
-    __host__ __device__ inline const image2d<V> slice(unsigned s) const;
+    __host__ __device__ inline device_image2d<V> slice(unsigned s);
+    __host__ __device__ inline const device_image2d<V> slice(unsigned s) const;
 
     __host__ __device__ inline V* slice_data(unsigned s);
     __host__ __device__ inline const V* slice_data(unsigned s) const;
@@ -49,6 +49,6 @@ namespace cuimg
 
 }
 
-# include <cuimg/gpu/image3d.hpp>
+# include <cuimg/gpu/device_image3d.hpp>
 
 #endif

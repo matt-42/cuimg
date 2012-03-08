@@ -12,7 +12,7 @@ namespace cuimg
     typedef int is_expr;
     typedef typename I::value_type value_type;
 
-    rgb_to_hsv(const Image2d<I>& img)
+    rgb_to_hsv(const device_image2d<I>& img)
       : img_(exact(img))
     {
     }

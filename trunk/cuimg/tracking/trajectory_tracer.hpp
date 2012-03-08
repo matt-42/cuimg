@@ -394,7 +394,7 @@ template <typename P>
 inline
 void
 trajectory_tracer<TG>::update(const image2d_s2& matches,
-                          const image2d<P>& particles)
+                          const device_image2d<P>& particles)
 {
   std::swap(traces_, new_traces_);
   if (TG == GPU)

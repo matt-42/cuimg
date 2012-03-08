@@ -102,25 +102,25 @@ namespace cuimg
 
   /*
   template <typename U>
-  void build_fast_mipmap(image2d<U>& in,
-                         image2d<U>& out,
+  void build_fast_mipmap(device_image2d<U>& in,
+                         device_image2d<U>& out,
                          unsigned nlevel,
                          dim3 dimblock = (16, 16, 1))
   {
     using namespace mipmap_internals;
 
     typedef typename U::cuda_bt V;
-    std::vector<image2d<U> > res(nlevel);
+    std::vector<device_image2d<U> > res(nlevel);
 
     res[0] = in;
-    image2d<U> c = in;
+    device_image2d<U> c = in;
     for (unsigned l = 1; l < nlevel; l++)
     {
-      image2d<U> gaussian(c.domain());
-      image2d<U> tmp(c.domain());
-      image2d<U> out(c.nrows() / 2, c.ncols() / 2);
+      device_image2d<U> gaussian(c.domain());
+      device_image2d<U> tmp(c.domain());
+      device_image2d<U> out(c.nrows() / 2, c.ncols() / 2);
 
-      local_jet_static<image2d<U>, image2d<U>, image2d<U>, 0, 0, 1, 6>(c, gaussian, tmp);
+      local_jet_static<device_image2d<U>, device_image2d<U>, device_image2d<U>, 0, 0, 1, 6>(c, gaussian, tmp);
 
       dim3 dimgrid = grid_dimension(out.domain(), dimblock);
       bindTexture2d(gaussian, mipmap_internals::UNIT_STATIC(mipmap_input_tex)<V>::tex());

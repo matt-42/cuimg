@@ -1,7 +1,7 @@
 #ifndef CUIMG_LOCAL_JET_STATIC_H_
 # define CUIMG_LOCAL_JET_STATIC_H_
 
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/gpu/meta_convolve.h>
 # include <cuimg/gpu/meta_convolve2.h>
 # include <cuimg/meta_gaussian/meta_gaussian.h>

@@ -25,7 +25,7 @@ namespace cuimg
     template <typename V>
     struct run
     {
-      typedef image2d<V> ret;
+      typedef device_image2d<V> ret;
     };
   };
 

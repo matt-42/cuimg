@@ -36,7 +36,7 @@ template <typename T>
 struct tex2d;
 REGISTER_TEXTURE2D_PROXY(tex2d);
 
-  
+
 texture<float, 1, cudaReadModeElementType> kernel_weights;
 texture<int2, 1, cudaReadModeElementType> kernel_dpoints;
 
@@ -55,7 +55,7 @@ __constant__ const int c9_rows[9][2] = {{-4, 0}, {-3, 0}, {-2, 0}, {-1, 0}, {0, 
 __constant__ const int c15_rows[15][2] = {{-7, 0}, {-6, 0}, {-5, 0}, {-4, 0}, {-3, 0}, {-2, 0}, {-1, 0}, {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}};
          const int c15_rows_cpu[15][2] = {{-7, 0}, {-6, 0}, {-5, 0}, {-4, 0}, {-3, 0}, {-2, 0}, {-1, 0}, {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}};
 
-__constant__ const int c31_rows[31][2] = {{-15, 0}, {-14, 0}, {-13, 0}, {-12, 0}, {-10, 0}, {-9, 0}, {-8, 0}, {-7, 0}, {-6, 0}, {-5, 0}, {-4, 0}, {-3, 0}, {-2, 0},{-1, 0}, 
+__constant__ const int c31_rows[31][2] = {{-15, 0}, {-14, 0}, {-13, 0}, {-12, 0}, {-10, 0}, {-9, 0}, {-8, 0}, {-7, 0}, {-6, 0}, {-5, 0}, {-4, 0}, {-3, 0}, {-2, 0},{-1, 0},
                                   {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}, {12, 0}, {13, 0}, {14, 0}, {15, 0}};
          const int c31_rows_cpu[31][2] = {{-7, 0}, {-6, 0}, {-5, 0}, {-4, 0}, {-3, 0}, {-2, 0}, {-1, 0}, {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}};
 
@@ -221,7 +221,7 @@ __global__ void convolve_rows_unrolled_texture_special(kernel_image2d<T> out)
 
   bt_change_vtype(T, type_mult(bt_vtype(T), float)) r  = zero();
 /*
-  convolve_rows_unrolled_texture_loop<31>::run(p, out, r); 
+  convolve_rows_unrolled_texture_loop<31>::run(p, out, r);
   convolve_rows_unrolled_texture_loop<0>::run(p, out, r);
   convolve_rows_unrolled_texture_loop<27>::run(p, out, r);
   convolve_rows_unrolled_texture_loop<1>::run(p, out, r);
@@ -333,7 +333,7 @@ void reset(host_image2d<T>& in)
 }
 
 template <typename T>
-void reset(image2d<T>& in)
+void reset(device_image2d<T>& in)
 {
   cudaMemset(in.data(), 0, in.domain().nrows() * in.pitch());
 }
@@ -383,7 +383,7 @@ void print(const host_image2d<T>& a)
 }
 
 template <typename T>
-void print(const image2d<T>& a)
+void print(const device_image2d<T>& a)
 {
   if (a.nrows() * a.ncols() > 20)
     return;
@@ -398,8 +398,8 @@ int main()
 
   srand(time(0));
   obox2d<point2d<int> > domain(IMG_SIZE, IMG_SIZE);
-  image2d<VTYPE> img(domain);
-  image2d<VTYPE> img_conv(domain);
+  device_image2d<VTYPE> img(domain);
+  device_image2d<VTYPE> img_conv(domain);
   host_image2d<VTYPE> img_conv_h(domain);
 
   host_image2d<VTYPE> imgh(domain);

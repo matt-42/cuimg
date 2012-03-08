@@ -115,13 +115,13 @@ namespace cuimg
   };
 
   template <typename I>
-  struct kernel_type<image2d<I> >
+  struct kernel_type<device_image2d<I> >
   {
     typedef kernel_image2d<I> ret;
   };
 
   template <typename I>
-  struct kernel_type<const image2d<I> >
+  struct kernel_type<const device_image2d<I> >
   {
     typedef kernel_image2d<I> ret;
   };

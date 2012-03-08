@@ -42,7 +42,7 @@ namespace cuimg
                 const image2d_s2& ls_matches);
     void display() const;
 
-    const image2d<particle>& particles() const;
+    const device_image2d<particle>& particles() const;
     const image2d_s2& matches() const;
     const image2d_c& errors() const;
 
@@ -54,11 +54,11 @@ namespace cuimg
 
   private:
 
-    image2d<particle> t1_;
-    image2d<particle> t2_;
+    device_image2d<particle> t1_;
+    device_image2d<particle> t2_;
 
-    image2d<particle>* particles_;
-    image2d<particle>* new_particles_;
+    device_image2d<particle>* particles_;
+    device_image2d<particle>* new_particles_;
 
     image2d_f4 distance_;
     image2d_f4 test_;

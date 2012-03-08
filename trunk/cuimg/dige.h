@@ -114,7 +114,7 @@ namespace dg
   public:
     typedef int dige_texture_type;
 
-    cuda_opengl_texture(const cuimg::image2d<cuimg::improved_builtin<V, N> >& img)
+    cuda_opengl_texture(const cuimg::device_image2d<cuimg::improved_builtin<V, N> >& img)
       : img_(img)
     {
     }
@@ -192,23 +192,23 @@ namespace dg
     unsigned height() const { return img_.nrows(); }
 
   private:
-    cuimg::image2d<cuimg::improved_builtin<V, N> > img_;
+    cuimg::device_image2d<cuimg::improved_builtin<V, N> > img_;
     internal::cuda_texture cuda_tex_;
   };
 
 
   template<typename V, unsigned N>
   cuda_opengl_texture<V, N>
-  adapt(const cuimg::image2d<cuimg::improved_builtin<V, N> >& i)
+  adapt(const cuimg::device_image2d<cuimg::improved_builtin<V, N> >& i)
   {
     return cuda_opengl_texture<V, N>(i);
   }
 
   template<typename V>
   cuda_opengl_texture<V, 4>
-  adapt(const cuimg::image2d<cuimg::improved_builtin<V, 1> >& i)
+  adapt(const cuimg::device_image2d<cuimg::improved_builtin<V, 1> >& i)
   {
-    cuimg::image2d<cuimg::i_float4> res(i.domain());
+    cuimg::device_image2d<cuimg::i_float4> res(i.domain());
     res = cuimg::aggregate<float>::run(cuimg::get_x(i),
                                        cuimg::get_x(i),
                                        cuimg::get_x(i),
@@ -218,9 +218,9 @@ namespace dg
 
   template<typename V>
   cuda_opengl_texture<V, 4>
-  adapt(const cuimg::image2d<cuimg::improved_builtin<V, 4> >& i)
+  adapt(const cuimg::device_image2d<cuimg::improved_builtin<V, 4> >& i)
   {
-    set_alpha_channel(*const_cast<cuimg::image2d<cuimg::improved_builtin<V, 4> >*>(&i));
+    set_alpha_channel(*const_cast<cuimg::device_image2d<cuimg::improved_builtin<V, 4> >*>(&i));
     return cuda_opengl_texture<V, 4>(i);
   }
 

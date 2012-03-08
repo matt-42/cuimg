@@ -72,7 +72,7 @@ namespace dg
   }
 
   template <typename T>
-  ogl_texture2d<T>::ogl_texture2d(const image2d<T>& img)
+  ogl_texture2d<T>::ogl_texture2d(const device_image2d<T>& img)
     : ogl_abstract_texture2d(img.nrows(), img.ncols(), img.data()),
       holder_(img.data_sptr())
   {

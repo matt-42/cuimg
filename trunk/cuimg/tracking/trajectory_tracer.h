@@ -25,7 +25,7 @@ class trajectory_tracer
 
   template <typename P>
   void update(const image2d_s2& matches,
-              const image2d<P>& particles);
+              const device_image2d<P>& particles);
 
   void display(const std::string& w, const image2d_f1& colors);
 
@@ -76,11 +76,11 @@ class trajectory_tracer
   image2d_f4 traj_;
   image2d_f4 straj_;
   image2d_f4 traj_heads_;
-  image2d<trace> traces1_;
-  image2d<trace> traces2_;
-  image2d<trace>* traces_;
-  image2d<trace>* new_traces_;
-  image2d<short> age_;
+  device_image2d<trace> traces1_;
+  device_image2d<trace> traces2_;
+  device_image2d<trace>* traces_;
+  device_image2d<trace>* new_traces_;
+  device_image2d<short> age_;
 };
 
 # include <cuimg/tracking/trajectory_tracer.hpp>

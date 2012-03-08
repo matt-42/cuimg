@@ -1,13 +1,13 @@
 #ifndef CUIMG_IMAGE3D_HPP_
 # define CUIMG_IMAGE3D_HPP_
 
-# include <cuimg/gpu/image3d.h>
+# include <cuimg/gpu/device_image3d.h>
 # include <cuimg/error.h>
 
 namespace cuimg
 {
   template <typename V>
-  image3d<V>::image3d(unsigned nslices, unsigned nrows, unsigned ncols)
+  device_image3d<V>::device_image3d(unsigned nslices, unsigned nrows, unsigned ncols)
     : domain_(nslices, nrows, ncols)
   {
     cudaExtent extent;
@@ -25,7 +25,7 @@ namespace cuimg
   }
 
   template <typename V>
-  image3d<V>::image3d(const domain_type& d)
+  device_image3d<V>::device_image3d(const domain_type& d)
     : domain_(d)
   {
     cudaExtent extent;
@@ -43,7 +43,7 @@ namespace cuimg
   }
 
   template <typename V>
-  image3d<V>::image3d(const image3d<V>& img)
+  device_image3d<V>::device_image3d(const device_image3d<V>& img)
     : domain_(img.domain()),
       pitch_(img.pitch()),
       data_(img.data_),
@@ -52,8 +52,8 @@ namespace cuimg
   }
 
   template <typename V>
-  image3d<V>&
-  image3d<V>::operator=(const image3d<V>& img)
+  device_image3d<V>&
+  device_image3d<V>::operator=(const device_image3d<V>& img)
   {
     domain_ = img.domain();
     pitch_ = img.pitch();
@@ -63,72 +63,72 @@ namespace cuimg
   }
 
   template <typename V>
-  const typename image3d<V>::domain_type& image3d<V>::domain() const
+  const typename device_image3d<V>::domain_type& device_image3d<V>::domain() const
   {
     return domain_;
   }
 
   template <typename V>
-  unsigned image3d<V>::nrows() const
+  unsigned device_image3d<V>::nrows() const
   {
     return domain_.nrows();
   }
 
   template <typename V>
-  unsigned image3d<V>::nslices() const
+  unsigned device_image3d<V>::nslices() const
   {
     return domain_.nslices();
   }
   template <typename V>
-  unsigned image3d<V>::ncols() const
+  unsigned device_image3d<V>::ncols() const
   {
     return domain_.ncols();
   }
 
   template <typename V>
-  size_t image3d<V>::pitch() const
+  size_t device_image3d<V>::pitch() const
   {
     return pitch_;
   }
 
   template <typename V>
-  V* image3d<V>::data()
+  V* device_image3d<V>::data()
   {
     return data_ptr_;
   }
 
   template <typename V>
-  const V* image3d<V>::data() const
+  const V* device_image3d<V>::data() const
   {
     return data_ptr_;
   }
 
   template <typename V>
-  image2d<V>
-  image3d<V>::slice(unsigned s)
+  device_image2d<V>
+  device_image3d<V>::slice(unsigned s)
   {
-    return image2d<V>((V*)(((char*)data_ptr_) + s * pitch_ * nrows()),
+    return device_image2d<V>((V*)(((char*)data_ptr_) + s * pitch_ * nrows()),
                                   nrows(), ncols(), pitch());
   }
 
   template <typename V>
-  const image2d<V>
-  image3d<V>::slice(unsigned s) const
+  const device_image2d<V>
+  device_image3d<V>::slice(unsigned s) const
   {
-    return image2d<V>((V*)(((char*)data_ptr_) + s * pitch_ * nrows()),
+    return device_image2d<V>((V*)(((char*)data_ptr_) + s * pitch_ * nrows()),
                                   nrows(), ncols(), pitch());
   }
 
   template <typename V>
   V*
-  image3d<V>::slice_data(unsigned s)
+  device_image3d<V>::slice_data(unsigned s)
   {
     return (V*)(((char*)data_ptr_) + s * pitch_ * nrows());
   }
 
   template <typename V>
   const V*
-  image3d<V>::slice_data(unsigned s) const
+  device_image3d<V>::slice_data(unsigned s) const
   {
     return (V*)(((char*)data_ptr_) + s * pitch_ * nrows());
   }

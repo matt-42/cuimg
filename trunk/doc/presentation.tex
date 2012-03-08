@@ -156,13 +156,13 @@ template <typename T> kernel_image2d;
 template <typename T> kernel_image3d;
 
 {
-  image2d<float4> img(100, 100); // creation.
-  image2d<float4> img2 = img; // light copy.
+  device_image2d<float4> img(100, 100); // creation.
+  device_image2d<float4> img2 = img; // light copy.
 } // Images are freed automatically here.
 
 // See a slice as a 2d image:
-image3d<float4> img3d(100, 100, 100);
-image2d<float4> slice = img3d.slice(42);
+device_image3d<float4> img3d(100, 100, 100);
+device_image2d<float4> slice = img3d.slice(42);
 \end{lstlisting}
 \end{frame}
 
@@ -202,7 +202,7 @@ vid >> v; // Get the next video frame
 \begin{lstlisting}
 
 host_image2d<uchar3> img_h = load("test.jpg"); // Lives in CPU RAM
-image2d<uchar3> img(img_h.domain()); // Lives in GPU RAM
+device_image2d<uchar3> img(img_h.domain()); // Lives in GPU RAM
 
 copy(img_h, img); // CPU -> GPU
 copy(img, img_h); // GPU -> CPU
@@ -292,9 +292,9 @@ simple_kernel<<<dimgrid, dimblock>>>(a, b, c);
 
 \begin{block}{Examples}
 \begin{lstlisting}
-image2d<i_int4> a(200, 100);
-image2d<i_short4> b(a.domain());
-image2d<i_float4>   c(a.domain());
+device_image2d<i_int4> a(200, 100);
+device_image2d<i_short4> b(a.domain());
+device_image2d<i_float4>   c(a.domain());
 
 // Generates and calls simple_kernel.
 c = a * b / 2.5;
@@ -312,8 +312,8 @@ a = aggregate<int>::run(get_z(a), get_y(a), get_x(a), 1.0f);
   // Type of
   a * b / 2.5
   // is
-  div<mult<image2d<i_int4>,
-           image2d<i_short4> >,
+  div<mult<device_image2d<i_int4>,
+           device_image2d<i_short4> >,
       float>
 
 

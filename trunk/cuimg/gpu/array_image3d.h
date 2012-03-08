@@ -33,8 +33,8 @@ namespace cuimg
     __host__ __device__ inline V* data();
     __host__ __device__ inline const V* data() const;
 
-    __host__ __device__ inline image2d<V> slice(unsigned s);
-    __host__ __device__ inline const image2d<V> slice(unsigned s) const;
+    __host__ __device__ inline device_image2d<V> slice(unsigned s);
+    __host__ __device__ inline const device_image2d<V> slice(unsigned s) const;
 
     __host__ __device__ inline V* slice_data(unsigned s);
     __host__ __device__ inline const V* slice_data(unsigned s) const;

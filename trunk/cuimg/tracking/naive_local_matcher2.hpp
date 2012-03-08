@@ -405,7 +405,7 @@ namespace cuimg
 
     swap_buffers();
 
-    //bindTexture2d(*(image2d<float4>*)&(f.current_frame()), feat_tex);
+    //bindTexture2d(*(device_image2d<float4>*)&(f.current_frame()), feat_tex);
 
     naive_matching_kernel2<typename F::kernel_type, particle><<<dimgrid, dimblock>>>(f, *particles_, *new_particles_, matches_,ls_matches, mvt
 #ifdef WITH_DISPLAY
@@ -444,7 +444,7 @@ namespace cuimg
   }
 
   template <typename F>
-  const image2d<typename naive_local_matcher2<F>::particle>&
+  const device_image2d<typename naive_local_matcher2<F>::particle>&
   naive_local_matcher2<F>::particles()
   {
     return *new_particles_;

@@ -488,7 +488,7 @@ namespace cuimg
   }
 
   template <typename F>
-  const image2d<typename naive_local_matcher_thrust<F>::particle>&
+  const device_image2d<typename naive_local_matcher_thrust<F>::particle>&
   naive_local_matcher_thrust<F>::particles() const
   {
     return *new_particles_;

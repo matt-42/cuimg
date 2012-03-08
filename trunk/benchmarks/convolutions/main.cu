@@ -241,7 +241,7 @@ void reset(host_image2d<T>& in)
 }
 
 template <typename T>
-void reset(image2d<T>& in)
+void reset(device_image2d<T>& in)
 {
   cudaMemset(in.data(), 0, in.domain().nrows() * in.pitch());
 }
@@ -291,7 +291,7 @@ void print(const host_image2d<T>& a)
 }
 
 template <typename T>
-void print(const image2d<T>& a)
+void print(const device_image2d<T>& a)
 {
   if (a.nrows() * a.ncols() > 20)
     return;
@@ -305,8 +305,8 @@ int main()
 {
   srand(time(0));
   obox2d<point2d<int> > domain(IMG_SIZE, IMG_SIZE);
-  image2d<VTYPE> img(domain);
-  image2d<VTYPE> img_conv(domain);
+  device_image2d<VTYPE> img(domain);
+  device_image2d<VTYPE> img_conv(domain);
   host_image2d<VTYPE> img_conv_h(domain);
 
   host_image2d<VTYPE> imgh(domain);
@@ -327,7 +327,7 @@ int main()
 
   copy(imgh, img);
   copy(img, img_conv_h);
-  
+
   stats_diff(imgh, img_conv_h);
 
   print(img);
@@ -339,7 +339,7 @@ int main()
     clock_t t = clock();
     for (unsigned i = 0; i < 1; i++)
       convolve_cpu(imgh, imgh_conv);
-  
+
      naive_cpu_time = (clock() - t) / float(1* CLOCKS_PER_SEC);
      std::cout << "naive cpu convolution: " << naive_cpu_time << std::endl;
   }

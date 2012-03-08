@@ -295,7 +295,7 @@ namespace cuimg
   }
 
   template <typename F>
-  const image2d<typename multi_scale_matcher<F>::particle>&
+  const device_image2d<typename multi_scale_matcher<F>::particle>&
   multi_scale_matcher<F>::particles()
   {
     return *new_particles_;

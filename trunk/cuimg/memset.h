@@ -11,7 +11,7 @@
 namespace cuimg
 {
   template <typename T>
-  void memset(image2d<T>& out, int v)
+  void memset(device_image2d<T>& out, int v)
   {
     cudaMemset2D(out.data(), out.pitch(), v,
                  out.pitch(), out.nrows());

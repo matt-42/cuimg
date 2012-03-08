@@ -22,7 +22,7 @@ namespace cuimg
   }
 
   template <typename V>
-  kernel_image3d<V>::kernel_image3d(const image3d<V>& img)
+  kernel_image3d<V>::kernel_image3d(const device_image3d<V>& img)
     : domain_(img.domain()),
       pitch_(img.pitch()),
       data_(const_cast<V*>(img.data()))
@@ -43,7 +43,7 @@ namespace cuimg
 
   template <typename V>
   kernel_image3d<V>&
-  kernel_image3d<V>::operator=(const image3d<V>& img)
+  kernel_image3d<V>::operator=(const device_image3d<V>& img)
   {
     domain_ = img.domain();
     pitch_ = img.pitch();

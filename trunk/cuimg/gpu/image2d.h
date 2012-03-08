@@ -13,7 +13,7 @@
 namespace cuimg
 {
   template <typename V>
-  class image2d : public Image2d<image2d<V> >
+  class device_image2d : public Image2d<device_image2d<V> >
   {
   public:
     enum { target = GPU };
@@ -23,17 +23,17 @@ namespace cuimg
     typedef point2d<int> point;
     typedef obox2d<point> domain_type;
 
-    inline image2d();
-    inline image2d(unsigned nrows, unsigned ncols);
-    inline image2d(V* data, unsigned nrows, unsigned ncols, unsigned pitch);
-    inline image2d(const domain_type& d);
+    inline device_image2d();
+    inline device_image2d(unsigned nrows, unsigned ncols);
+    inline device_image2d(V* data, unsigned nrows, unsigned ncols, unsigned pitch);
+    inline device_image2d(const domain_type& d);
 
-    __host__ __device__ inline image2d(const image2d<V>& d);
+    __host__ __device__ inline device_image2d(const device_image2d<V>& d);
 
-    __host__ __device__ inline image2d<V>& operator=(const image2d<V>& d);
+    __host__ __device__ inline device_image2d<V>& operator=(const device_image2d<V>& d);
 
     template <typename E>
-    __host__ inline image2d<V>& operator=(const expr<E>& e);
+    __host__ inline device_image2d<V>& operator=(const expr<E>& e);
 
     __host__ __device__ inline const domain_type& domain() const;
     __host__ __device__ inline unsigned nrows() const;
@@ -62,6 +62,6 @@ namespace cuimg
 
 # include <cuimg/gpu/kernel_image2d.h>
 
-# include <cuimg/gpu/image2d.hpp>
+# include <cuimg/gpu/device_image2d.hpp>
 
 #endif

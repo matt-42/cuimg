@@ -3,7 +3,7 @@
 
 # include <cuda.h>
 # include <cuda_runtime.h>
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/gpu/kernel_image2d.h>
 # include <cuimg/error.h>
 # include <cuimg/gpu/kernel_util.h>
@@ -18,12 +18,12 @@ namespace cuimg
   }
 
   template <typename V>
-  image2d<V>::image2d()
+  device_image2d<V>::device_image2d()
   {
   }
 
   template <typename V>
-  image2d<V>::image2d(unsigned nrows, unsigned ncols)
+  device_image2d<V>::device_image2d(unsigned nrows, unsigned ncols)
     : domain_(nrows, ncols)
   {
     V* b;
@@ -38,7 +38,7 @@ namespace cuimg
   }
 
   template <typename V>
-  image2d<V>::image2d(V* data, unsigned nrows, unsigned ncols, unsigned pitch)
+  device_image2d<V>::device_image2d(V* data, unsigned nrows, unsigned ncols, unsigned pitch)
     : domain_(nrows, ncols),
       pitch_(pitch),
       data_ptr_(data)
@@ -47,7 +47,7 @@ namespace cuimg
   }
 
   template <typename V>
-  image2d<V>::image2d(const domain_type& d)
+  device_image2d<V>::device_image2d(const domain_type& d)
     : domain_(d)
   {
     V* b;
@@ -61,7 +61,7 @@ namespace cuimg
   }
 
   template <typename V>
-  image2d<V>::image2d(const image2d<V>& img)
+  device_image2d<V>::device_image2d(const device_image2d<V>& img)
     : domain_(img.domain()),
       pitch_(img.pitch()),
       data_(img.data_sptr()),
@@ -70,8 +70,8 @@ namespace cuimg
   }
 
   template <typename V>
-  image2d<V>&
-  image2d<V>::operator=(const image2d<V>& img)
+  device_image2d<V>&
+  device_image2d<V>::operator=(const device_image2d<V>& img)
   {
     domain_ = img.domain();
     pitch_ = img.pitch();
@@ -105,7 +105,7 @@ namespace cuimg
 
   template <typename A, typename E>
   inline void
-  assign(image2d<A>& out, const expr<E>& e, dim3 dimblock = dim3(16, 16))
+  assign(device_image2d<A>& out, const expr<E>& e, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(out.domain(), dimblock);
 #ifdef NVCC
@@ -118,7 +118,7 @@ namespace cuimg
 
   template <typename A>
   inline void
-  assign2(image2d<A>& out, dim3 dimblock = dim3(16, 16))
+  assign2(device_image2d<A>& out, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(out.domain(), dimblock);
 #ifdef NVCC
@@ -129,65 +129,65 @@ namespace cuimg
 
   template <typename V>
   template <typename E>
-  image2d<V>&
-  image2d<V>::operator=(const expr<E>& e)
+  device_image2d<V>&
+  device_image2d<V>::operator=(const expr<E>& e)
   {
     assign(*this, e);
     return *this;
   }
 
   template <typename V>
-  const typename image2d<V>::domain_type& image2d<V>::domain() const
+  const typename device_image2d<V>::domain_type& device_image2d<V>::domain() const
   {
     return domain_;
   }
 
   template <typename V>
-  unsigned image2d<V>::nrows() const
+  unsigned device_image2d<V>::nrows() const
   {
     return domain_.nrows();
   }
   template <typename V>
-  unsigned image2d<V>::ncols() const
+  unsigned device_image2d<V>::ncols() const
   {
     return domain_.ncols();
   }
 
   template <typename V>
-  size_t image2d<V>::pitch() const
+  size_t device_image2d<V>::pitch() const
   {
     return pitch_;
   }
 
   template <typename V>
-  V* image2d<V>::data() const
+  V* device_image2d<V>::data() const
   {
     return data_ptr_;
   }
 
   template <typename V>
-  bool image2d<V>::has(const point& p) const
+  bool device_image2d<V>::has(const point& p) const
   {
     return domain_.has(p);
   }
 
   template <typename V>
-  const typename image2d<V>::PT
-  image2d<V>::data_sptr() const
+  const typename device_image2d<V>::PT
+  device_image2d<V>::data_sptr() const
   {
     return data_;
   }
 
   template <typename V>
-  typename image2d<V>::PT
-  image2d<V>::data_sptr()
+  typename device_image2d<V>::PT
+  device_image2d<V>::data_sptr()
   {
     return data_;
   }
 
   template <typename V>
   V
-  image2d<V>::read_back_pixel(const point& p) const
+  device_image2d<V>::read_back_pixel(const point& p) const
   {
     V res;
     cudaMemcpy(&res, ((char*)data_ptr_) + p.row() * pitch_ + p.col() * sizeof(V),
@@ -197,7 +197,7 @@ namespace cuimg
 
   template <typename V>
   void
-  image2d<V>::set_pixel(const point& p, const V& v)
+  device_image2d<V>::set_pixel(const point& p, const V& v)
   {
     cudaMemcpy(((char*)data_ptr_) + p.row() * pitch_ + p.col() * sizeof(V), &v,
                sizeof(V), cudaMemcpyHostToDevice);

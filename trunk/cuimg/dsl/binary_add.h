@@ -32,19 +32,19 @@ namespace cuimg
 
   template <typename A, typename B>
   inline
-  typename binary_op_<binary_add, image2d<A>, image2d<B> >::ret
-  operator+(const image2d<A>& a, const image2d<B>& b)
+  typename binary_op_<binary_add, device_image2d<A>, device_image2d<B> >::ret
+  operator+(const device_image2d<A>& a, const device_image2d<B>& b)
   {
-    typedef typename binary_op_<binary_add, image2d<A>, image2d<B> >::ret return_type;
+    typedef typename binary_op_<binary_add, device_image2d<A>, device_image2d<B> >::ret return_type;
     return return_type(a, b);
   }
 
   template <typename A, typename S>
   inline
-  typename binary_op_<binary_add, image2d<A>, S>::ret
-  operator+(const image2d<A>& a, const S s)
+  typename binary_op_<binary_add, device_image2d<A>, S>::ret
+  operator+(const device_image2d<A>& a, const S s)
   {
-    typedef typename binary_op_<binary_add, image2d<A>, S>::ret return_type;
+    typedef typename binary_op_<binary_add, device_image2d<A>, S>::ret return_type;
     return return_type(a, s);
   }
 

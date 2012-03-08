@@ -57,7 +57,7 @@ __constant__ const int c9_rows[9][2] = {{-4, 0}, {-3, 0}, {-2, 0}, {-1, 0}, {0, 
 __constant__ const int c15_rows[15][2] = {{-7, 0}, {-6, 0}, {-5, 0}, {-4, 0}, {-3, 0}, {-2, 0}, {-1, 0}, {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}};
          const int c15_rows_cpu[15][2] = {{-7, 0}, {-6, 0}, {-5, 0}, {-4, 0}, {-3, 0}, {-2, 0}, {-1, 0}, {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}};
 
-__constant__ const int c31_rows[31][2] = {{-15, 0}, {-14, 0}, {-13, 0}, {-12, 0}, {-10, 0}, {-9, 0}, {-8, 0}, {-7, 0}, {-6, 0}, {-5, 0}, {-4, 0}, {-3, 0}, {-2, 0},{-1, 0}, 
+__constant__ const int c31_rows[31][2] = {{-15, 0}, {-14, 0}, {-13, 0}, {-12, 0}, {-10, 0}, {-9, 0}, {-8, 0}, {-7, 0}, {-6, 0}, {-5, 0}, {-4, 0}, {-3, 0}, {-2, 0},{-1, 0},
                                   {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}, {12, 0}, {13, 0}, {14, 0}, {15, 0}};
          const int c31_rows_cpu[31][2] = {{-7, 0}, {-6, 0}, {-5, 0}, {-4, 0}, {-3, 0}, {-2, 0}, {-1, 0}, {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}};
 
@@ -122,13 +122,13 @@ __global__ void gausssian_row_static_sm(kernel_image2d<T> in, kernel_image2d<T> 
   #pragma unroll
   for (int i = APRON_BLOCK; i < PIX_PER_THREAD + APRON_BLOCK; i++)
     s_data[threadIdx.x + i * BLOCKDIM_X] = in_[i * BLOCKDIM_X];
-  
+
   // left apron
   {
   #pragma unroll
   for (int i = 0;
        i < APRON_BLOCK; i++)
-     s_data[threadIdx.x + i * BLOCKDIM_X] = (minx + i * BLOCKDIM_X >= 0) ? 
+     s_data[threadIdx.x + i * BLOCKDIM_X] = (minx + i * BLOCKDIM_X >= 0) ?
                 in_[i * BLOCKDIM_X] : zero();
   }
 
@@ -137,8 +137,8 @@ __global__ void gausssian_row_static_sm(kernel_image2d<T> in, kernel_image2d<T> 
   #pragma unroll
   for (int i = APRON_BLOCK + PIX_PER_THREAD;
        i < APRON_BLOCK + APRON_BLOCK + PIX_PER_THREAD; i++)
-     s_data[threadIdx.x + i * BLOCKDIM_X] = 
-         (minx  + i * BLOCKDIM_X < in.ncols()) ? 
+     s_data[threadIdx.x + i * BLOCKDIM_X] =
+         (minx  + i * BLOCKDIM_X < in.ncols()) ?
                 in_[i * BLOCKDIM_X] : zero();
   }
 
@@ -147,7 +147,7 @@ __global__ void gausssian_row_static_sm(kernel_image2d<T> in, kernel_image2d<T> 
  T res = zero();
  #pragma unroll
  for (int pc = APRON_BLOCK; pc < PIX_PER_THREAD + APRON_BLOCK; pc++)
- { 
+ {
   #pragma unroll
   for (int i = 0; i < KERNEL_HALF_SIZE_M * 2 + 1; i++)
     res += s_data[pc * BLOCKDIM_X + threadIdx.x + i] * 3.f;
@@ -163,7 +163,7 @@ void reset(host_image2d<T>& in)
 }
 
 template <typename T>
-void reset(image2d<T>& in)
+void reset(device_image2d<T>& in)
 {
   cudaMemset(in.data(), 0, in.domain().nrows() * in.pitch());
 }
@@ -213,7 +213,7 @@ void print(const host_image2d<T>& a)
 }
 
 template <typename T>
-void print(const image2d<T>& a)
+void print(const device_image2d<T>& a)
 {
   if (a.nrows() * a.ncols() > 20)
     return;
@@ -228,8 +228,8 @@ int main()
 
   srand(time(0));
   obox2d<point2d<int> > domain(IMG_SIZE, IMG_SIZE);
-  image2d<VTYPE> img(domain);
-  image2d<VTYPE> img_conv(domain);
+  device_image2d<VTYPE> img(domain);
+  device_image2d<VTYPE> img_conv(domain);
   host_image2d<VTYPE> img_conv_h(domain);
 
   host_image2d<VTYPE> imgh(domain);

@@ -5,7 +5,7 @@
 # include <cuda.h>
 # include <cuimg/util.h>
 
-# include <cuimg/gpu/image3d.h>
+# include <cuimg/gpu/device_image3d.h>
 
 namespace cuimg
 {
@@ -26,7 +26,7 @@ namespace cuimg
   }
 
   template <typename T>
-  void copy_nslices_to_array(image3d<T>& in, cudaArray* arr, unsigned start_slice,
+  void copy_nslices_to_array(device_image3d<T>& in, cudaArray* arr, unsigned start_slice,
                              unsigned n_slices)
   {
     cudaExtent ca_extent;
