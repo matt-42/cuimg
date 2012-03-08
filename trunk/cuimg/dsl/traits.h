@@ -2,7 +2,7 @@
 # define CUIMG_GPU_TRAITS_H_
 
 # include <cuimg/dsl/expr.h>
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/improved_builtin.h>
 # include <cuimg/dsl/tuple.h>
 

@@ -5,7 +5,7 @@
 
 #include <cuimg/improved_builtin.h>
 #include <cuimg/cpu/host_image3d.h>
-#include <cuimg/gpu/image3d.h>
+#include <cuimg/gpu/device_image3d.h>
 #include <cuimg/copy.h>
 
 using namespace cuimg;

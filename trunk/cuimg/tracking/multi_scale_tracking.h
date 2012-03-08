@@ -2,7 +2,7 @@
 # define CUIMG_TRACKER_H_
 
 
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 
 namespace cuimg
 {

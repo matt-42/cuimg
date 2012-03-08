@@ -2,7 +2,7 @@
 # define CUIMG_MULTI_SCALE_TRACKER_H_
 
 # include <cuimg/cpu/host_image2d.h>
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 
 # include <cuimg/tracking/large_mvt_detector.h>
 # include <cuimg/tracking/trajectory_tracer.h>

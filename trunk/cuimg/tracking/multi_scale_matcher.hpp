@@ -26,7 +26,7 @@
 #include <cuimg/dige.h>
 
 
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/gpu/fill.h>
 # include <cuimg/neighb2d_data.h>
 # include <cuimg/neighb_iterator2d.h>

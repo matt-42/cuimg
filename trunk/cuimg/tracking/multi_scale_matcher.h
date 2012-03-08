@@ -1,7 +1,7 @@
 #ifndef CUIMG_MULTI_SCALE_MATCHER_H_
 # define  CUIMG_MULTI_SCALE_MATCHER_H_
 
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 
 namespace cuimg
 {

@@ -11,8 +11,8 @@
 # include <dige/image.h>
 
 # include <cuimg/cpu/host_image2d.h>
-# include <cuimg/gpu/image2d.h>
-# include <cuimg/gpu/image2d_math.h>
+# include <cuimg/gpu/device_image2d.h>
+# include <cuimg/gpu/device_image2d_math.h>
 # include <cuimg/simple_ptr.h>
 # include <cuimg/dsl/aggregate.h>
 # include <cuimg/dsl/get_comp.h>

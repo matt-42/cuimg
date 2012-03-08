@@ -1,7 +1,7 @@
 #ifndef CUIMG_NAIVE_LOCAL_MATCHER2_H_
 # define  CUIMG_NAIVE_LOCAL_MATCHER2_H_
 
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 
 namespace cuimg
 {

@@ -2,9 +2,9 @@
 # define CUIMG_MEMSET_H_
 
 # include <cstring>
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/cpu/host_image2d.h>
-# include <cuimg/gpu/image3d.h>
+# include <cuimg/gpu/device_image3d.h>
 # include <cuimg/cpu/host_image3d.h>
 # include <cuimg/error.h>
 

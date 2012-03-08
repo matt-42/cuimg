@@ -5,7 +5,7 @@
 
 # include <thrust/host_vector.h>
 
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/cpu/host_image2d.h>
 # include <cuimg/improved_builtin.h>
 

@@ -1,9 +1,9 @@
 #ifndef CUIMG_COPY_H_
 # define CUIMG_COPY_H_
 
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/cpu/host_image2d.h>
-# include <cuimg/gpu/image3d.h>
+# include <cuimg/gpu/device_image3d.h>
 # include <cuimg/cpu/host_image3d.h>
 # include <cuimg/error.h>
 

@@ -1,7 +1,7 @@
 #ifndef CUIMG_FAST38_FEATURE_H_
 # define CUIMG_FAST38_FEATURE_H_
 
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/gpu/kernel_image2d.h>
 # include <cuimg/point2d.h>
 # include <cuimg/obox2d.h>

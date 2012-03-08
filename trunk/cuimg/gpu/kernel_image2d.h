@@ -10,7 +10,7 @@
 namespace cuimg
 {
   template <typename V>
-  class kernel_image2d : public device_image2d<kernel_image2d<V> >
+  class kernel_image2d : public Image2d<kernel_image2d<V> >
   {
   public:
     typedef V value_type;
@@ -22,12 +22,12 @@ namespace cuimg
     __host__ __device__ inline kernel_image2d(const kernel_image2d<V>& img);
 
     template <typename I>
-    __host__ __device__ inline kernel_image2d(const device_image2d<I>& img);
+    __host__ __device__ inline kernel_image2d(const Image2d<I>& img);
 
     __host__ __device__ inline kernel_image2d<V>& operator=(const kernel_image2d<V>& img);
 
     template <typename I>
-    __host__ __device__ inline kernel_image2d<V>& operator=(const device_image2d<I>& img);
+    __host__ __device__ inline kernel_image2d<V>& operator=(const Image2d<I>& img);
 
     __host__ __device__ inline const domain_type& domain() const;
     __host__ __device__ inline unsigned nrows() const;
@@ -55,7 +55,7 @@ namespace cuimg
   };
 
   template <typename I>
-  kernel_image2d<typename I::value_type> mki(const device_image2d<I>& img)
+  kernel_image2d<typename I::value_type> mki(const Image2d<I>& img)
   {
     assert(exact(img).data());
     return exact(img);

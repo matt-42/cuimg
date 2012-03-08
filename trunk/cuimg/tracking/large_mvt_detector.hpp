@@ -18,7 +18,7 @@
 # include <cuimg/dsl/binary_sub.h>
 # include <cuimg/dsl/abs.h>
 
-# include <cuimg/gpu/image2d.h>
+# include <cuimg/gpu/device_image2d.h>
 # include <cuimg/gpu/fill.h>
 # include <cuimg/gpu/mipmap.h>
 # include <cuimg/gpu/kernel_util.h>
