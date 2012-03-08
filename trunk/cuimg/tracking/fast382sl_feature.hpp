@@ -38,8 +38,13 @@ namespace cuimg
   #define s1_tex UNIT_STATIC(hawzxb)
   #define s2_tex UNIT_STATIC(xyhgtk)
 
+#ifdef NVCC
   texture<float1, cudaTextureType2D, cudaReadModeElementType> s1_tex;
   texture<float1, cudaTextureType2D, cudaReadModeElementType> s2_tex;
+#else
+  int s1_tex;
+  int s2_tex;
+#endif
 
   // inline
   // __host__ __device__
@@ -297,16 +302,16 @@ namespace cuimg
     kernel_image2d<dfast382sl>,                 \
     kernel_image2d<i_float1>,                   \
     float,                                      \
-    &FAST382SL<T, V>
+    &FAST382SL<V>
 
-  template <unsigned target, typename V>
-  __host__ __device__ void FAST382SL(thread_info<target> ti,
-                                     kernel_image2d<i_float4> frame_color,
-                                     kernel_image2d<V> frame_s1,
-                                     kernel_image2d<V> frame_s2,
-                                     kernel_image2d<dfast382sl> out,
-                                     kernel_image2d<i_float1> pertinence,
-                                     float grad_thresh)
+  template <typename V>
+  __device__ void FAST382SL(thread_info<GPU> ti,
+                            kernel_image2d<i_float4> frame_color,
+                            kernel_image2d<V> frame_s1,
+                            kernel_image2d<V> frame_s2,
+                            kernel_image2d<dfast382sl> out,
+                            kernel_image2d<i_float1> pertinence,
+                            float grad_thresh)
   {
     point2d<int> p = thread_pos2d(ti);
     if (!frame_s1.has(p))//; || track(p).x == 0)
@@ -327,16 +332,140 @@ namespace cuimg
     {
       float min_diff = 9999999.f;
       float max_single_diff = 0.f;
-      pv = tex2D(flag<target>(), s1_tex, frame_s1, p).x;
+      pv = tex2D(flag<GPU>(), s1_tex, frame_s1, p).x;
       int sign = 0;
       for(int i = 0; i < 8; i++)
       {
 
-        float v1 = tex2D(flag<target>(), s1_tex, frame_s1,
+        float v1 = tex2D(flag<GPU>(), s1_tex, frame_s1,
+                                 p.col() + circle_r3[i][1],
+                                 p.row() + circle_r3[i][0]).x;
+
+        float v2 = tex2D(flag<GPU>(), s1_tex, frame_s1,
+                                 p.col() + circle_r3[(i+8)][1],
+                                 p.row() + circle_r3[(i+8)][0]).x;
+
+
+        if (!(i % 2))
+        {
+            distances[i/2] = (v1 * 255);
+            distances[i/2 + 4] = (v2 * 255);
+        }
+
+        {
+          float diff = pv -
+            (v1 + v2) / 2.f;
+
+
+          float adiff = fabs(diff);
+
+          if (adiff < min_diff)
+            min_diff = adiff;
+
+
+
+          if (max_single_diff < adiff) max_single_diff = adiff;
+
+        }
+      }
+
+      pv = tex2D(flag<GPU>(), s2_tex, frame_s2, p).x;
+      float min_diff_large = 9999999.f;
+      float max_single_diff_large = 0.f;
+      //int min_orientation_large;
+      for(int i = 0; i < 8; i++)
+      {
+
+        float v1 = tex2D(flag<GPU>(), s2_tex, frame_s2,
+                         p.col() + 2 * circle_r3[i][1],
+                         p.row() + 2 * circle_r3[i][0]).x;
+
+        float v2 = tex2D(flag<GPU>(), s2_tex, frame_s2,
+                         p.col() + 2 * circle_r3[(i+8)][1],
+                         p.row() + 2 * circle_r3[(i+8)][0]).x;
+
+        if (!(i % 2))
+        {
+            distances[8 + i/2] = (v1 * 255);
+            distances[8 + i/2 + 4] = (v2 * 255);
+        }
+
+        {
+          float diff = pv - (v1 + v2) / 2.f;
+          float adiff = fabs(diff);
+
+          if (adiff < min_diff_large)
+          {
+            min_diff_large = adiff;
+            //if (min_diff_large < 0.01) break;
+          }
+
+          if (max_single_diff_large < adiff) max_single_diff_large = adiff;
+        }
+
+      }
+
+
+      if (min_diff < min_diff_large)
+      {
+        min_diff = min_diff_large;
+        max_single_diff = max_single_diff_large;
+      }
+
+
+      if (max_single_diff >= grad_thresh)
+      {
+        min_diff = min_diff / max_single_diff;
+      }
+      else
+        min_diff = 0;
+
+      pertinence(p) = min_diff;
+      out(p) = distances;
+
+    }
+
+  }
+
+  template <typename V>
+  void FAST382SL(thread_info<CPU> ti,
+                 kernel_image2d<i_float4> frame_color,
+                 kernel_image2d<V> frame_s1,
+                 kernel_image2d<V> frame_s2,
+                 kernel_image2d<dfast382sl> out,
+                 kernel_image2d<i_float1> pertinence,
+                 float grad_thresh)
+  {
+
+    point2d<int> p = thread_pos2d(ti);
+    if (!frame_s1.has(p))//; || track(p).x == 0)
+      return;
+
+
+    if (p.row() < 6 || p.row() >= pertinence.domain().nrows() - 6 ||
+        p.col() < 6 || p.col() >= pertinence.domain().ncols() - 6)
+    {
+      pertinence(p).x = 0.f;
+      return;
+    }
+
+    dfast382sl distances;
+
+    float pv;
+
+    {
+      float min_diff = 9999999.f;
+      float max_single_diff = 0.f;
+      pv = tex2D(flag<CPU>(), s1_tex, frame_s1, p).x;
+      int sign = 0;
+      for(int i = 0; i < 8; i++)
+      {
+
+        float v1 = tex2D(flag<CPU>(), s1_tex, frame_s1,
                                  p.col() + circle_r3_h[i][1],
                                  p.row() + circle_r3_h[i][0]).x;
 
-        float v2 = tex2D(flag<target>(), s1_tex, frame_s1,
+        float v2 = tex2D(flag<CPU>(), s1_tex, frame_s1,
                                  p.col() + circle_r3_h[(i+8)][1],
                                  p.row() + circle_r3_h[(i+8)][0]).x;
 
@@ -364,18 +493,18 @@ namespace cuimg
         }
       }
 
-      pv = tex2D(flag<target>(), s2_tex, frame_s2, p).x;
+      pv = tex2D(flag<CPU>(), s2_tex, frame_s2, p).x;
       float min_diff_large = 9999999.f;
       float max_single_diff_large = 0.f;
       //int min_orientation_large;
       for(int i = 0; i < 8; i++)
       {
 
-        float v1 = tex2D(flag<target>(), s2_tex, frame_s2,
+        float v1 = tex2D(flag<CPU>(), s2_tex, frame_s2,
                          p.col() + 2 * circle_r3_h[i][1],
                          p.row() + 2 * circle_r3_h[i][0]).x;
 
-        float v2 = tex2D(flag<target>(), s2_tex, frame_s2,
+        float v2 = tex2D(flag<CPU>(), s2_tex, frame_s2,
                          p.col() + 2 * circle_r3_h[(i+8)][1],
                          p.row() + 2 * circle_r3_h[(i+8)][0]).x;
 

@@ -5,8 +5,8 @@ namespace cuimg
 {
   enum target
   {
-    CPU = 3,
-    GPU = 4
+    CPU = 0,
+    GPU = 1
   };
 
   template <unsigned F>

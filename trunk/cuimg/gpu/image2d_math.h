@@ -82,52 +82,52 @@ namespace cuimg
 
   }
 
-  template <typename I, template <class> class IPT, typename O, template <class> class OPT>
+  template <typename I, typename O>
   inline
-  void abs(const image2d<I, IPT>& in, const image2d<O, OPT>& out, dim3 dimblock = dim3(16, 16))
+  void abs(const image2d<I>& in, const image2d<O>& out, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
     internal::abs_kernel<<<dimgrid, dimblock>>>(mki(in), mki(out));
   }
 
-  template <typename I, template <class> class IPT>
+  template <typename I>
   inline
-  void set_alpha_channel(image2d<I, IPT>& in, dim3 dimblock = dim3(16, 16))
+  void set_alpha_channel(image2d<I>& in, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
     internal::set_alpha_kernel<<<dimgrid, dimblock>>>(mki(in));
   }
 
 
-  template <typename I, template <class> class IPT, typename S>
+  template <typename I, typename S>
   inline
-  void mult(image2d<I, IPT>& in, const S& s, dim3 dimblock = dim3(16, 16))
+  void mult(image2d<I>& in, const S& s, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
     internal::mult_kernel<<<dimgrid, dimblock>>>(mki(in), s);
   }
 
-  template <typename I, template <class> class IPT>
+  template <typename I>
   inline
-  void add(image2d<I, IPT>& in, const I& s, dim3 dimblock = dim3(16, 16))
+  void add(image2d<I>& in, const I& s, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
     internal::add_kernel<<<dimgrid, dimblock>>>(mki(in), s);
   }
 
-  template <typename A, template <class> class APT,
-            typename B, template <class> class BPT,
-            typename O, template <class> class OPT>
+  template <typename A,
+            typename B,
+            typename O>
   inline
-  void minus(image2d<A, APT>& a, image2d<B, BPT>& b, image2d<O, OPT>& out, dim3 dimblock = dim3(16, 16))
+  void minus(image2d<A>& a, image2d<B>& b, image2d<O>& out, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(a.domain(), dimblock);
     internal::minus_kernel<<<dimgrid, dimblock>>>(mki(a), mki(b), mki(out));
   }
 
-  template <typename A, template <class> class APT, typename V>
+  template <typename A, typename V>
   inline
-  void unsaturate(image2d<A, APT>& a, V v, dim3 dimblock = dim3(16, 16))
+  void unsaturate(image2d<A>& a, V v, dim3 dimblock = dim3(16, 16))
   {
     dim3 dimgrid = grid_dimension(a.domain(), dimblock);
     internal::unsaturate_kernel<<<dimgrid, dimblock>>>(mki(a), v);

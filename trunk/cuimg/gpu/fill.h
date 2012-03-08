@@ -9,9 +9,9 @@
 namespace cuimg
 {
 
-#ifdef NVCC
   namespace internal
   {
+#ifdef NVCC
     template<typename U>
     __global__ void fill_kernel(kernel_image2d<U> out, U v)
     {
@@ -19,19 +19,21 @@ namespace cuimg
       if (out.has(p))
         out(p) = v;
     }
+#endif
   }
 
 
-  template<typename U, template <class> class AP>
-  void fill(image2d<U, AP>& out,
+  template<typename U>
+  void fill(image2d<U>& out,
             const U& v,
             dim3 dim_block = dim3(16, 16, 1))
   {
     dim3 dim_grid = grid_dimension(out.domain(), dim_block);
+#ifdef NVCC
     internal::fill_kernel<<<dim_grid, dim_block>>>(mki(out), v);
+#endif
   }
 
-#endif
 
 }
 

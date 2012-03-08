@@ -31,21 +31,21 @@ namespace cuimg
                                     typename return_type<A2>::ret>::ret ret;
   };
 
-  template <typename A, template <class> class AP, typename B, template <class> class BP>
+  template <typename A, typename B>
   inline
-  typename binary_op_<binary_sub, image2d<A, AP>, image2d<B, BP> >::ret
-  operator-(const image2d<A, AP>& a, const image2d<B, BP>& b)
+  typename binary_op_<binary_sub, image2d<A>, image2d<B> >::ret
+  operator-(const image2d<A>& a, const image2d<B>& b)
   {
-    typedef typename binary_op_<binary_sub, image2d<A, AP>, image2d<B, BP> >::ret return_type;
+    typedef typename binary_op_<binary_sub, image2d<A>, image2d<B> >::ret return_type;
     return return_type(a, b);
   }
 
-  template <typename A, template <class> class AP, typename S>
+  template <typename A, typename S>
   inline
-  typename binary_op_<binary_sub, image2d<A, AP>, S>::ret
-  operator-(const image2d<A, AP>& a, const S s)
+  typename binary_op_<binary_sub, image2d<A>, S>::ret
+  operator-(const image2d<A>& a, const S s)
   {
-    typedef typename binary_op_<binary_sub, image2d<A, AP>, S>::ret return_type;
+    typedef typename binary_op_<binary_sub, image2d<A>, S>::ret return_type;
     return return_type(a, s);
   }
 

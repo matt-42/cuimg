@@ -20,8 +20,8 @@ namespace cuimg
     }
 
     template<typename U, typename V, unsigned US, unsigned VS>
-    __global__ void paste_kernel(const kernel_image2d<improved_builtin<U, US> > in,
-                                 kernel_image2d<improved_builtin<V, VS> > out)
+    __global__ void paste_kernel(const kernel_image2d<improved_builtin<U> > in,
+                                 kernel_image2d<improved_builtin<V> > out)
     {
       point2d<int> p = thread_pos2d();
       if (in.has(p))
@@ -33,9 +33,9 @@ namespace cuimg
   }
 
 
-  template<typename U, template <class> class IPT, typename V, template <class> class OPT>
-  void paste(const image2d<U, IPT>& in,
-             image2d<V, OPT>& out,
+  template<typename U, typename V>
+  void paste(const image2d<U>& in,
+             image2d<V>& out,
              dim3 dim_block = dim3(16, 16, 1))
   {
     assert(in.domain() == out.domain());

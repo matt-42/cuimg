@@ -50,7 +50,7 @@ namespace cuimg
     cap_.set(CV_CAP_PROP_CONVERT_RGB, true);
     buffer_.resize(max_buffer_size_);
     for (unsigned i = 0; i < buffer_.size(); i++)
-      buffer_[i] = host_image2d<i_uchar4>(nrows(), ncols());
+      buffer_[i] = host_image2d<i_uchar3>(nrows(), ncols());
   }
 
   void background_video_capture::start_producer_thread()
@@ -127,7 +127,7 @@ namespace cuimg
     return producer_pos_ == reader_pos_;
   }
 
-  host_image2d<i_uchar4>&
+  host_image2d<i_uchar3>&
   background_video_capture::next_frame()
   {
     // if (is_empty()) wait_until_full();

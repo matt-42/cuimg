@@ -10,8 +10,8 @@
 
 namespace cuimg
 {
-  template <typename T, template <class> class IPT>
-  void memset(image2d<T, IPT>& out, int v)
+  template <typename T>
+  void memset(image2d<T>& out, int v)
   {
     cudaMemset2D(out.data(), out.pitch(), v,
                  out.pitch(), out.nrows());

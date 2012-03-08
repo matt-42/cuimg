@@ -17,24 +17,32 @@
 namespace cuimg
 {
 
+
+#ifdef NVCC
   template <unsigned T, typename V>
   struct thrust_vector
   {
+    typedef thrust::device_vector<V> ret;
   };
+
+  template <typename V>
+  struct thrust_vector<GPU, V>
+  {
+    typedef thrust::device_vector<V> ret;
+  };
+#else
+  template <unsigned T, typename V>
+  struct thrust_vector
+  {
+    typedef thrust::host_vector<V> ret;
+  };
+#endif
 
   template <typename V>
   struct thrust_vector<CPU, V>
   {
     typedef thrust::host_vector<V> ret;
   };
-
-#ifdef NVCC
-  template <typename V>
-  struct thrust_vector<GPU, V>
-  {
-    typedef thrust::device_vector<V> ret;
-  };
-#endif
 
   template <typename F>
   class ofast_local_matcher

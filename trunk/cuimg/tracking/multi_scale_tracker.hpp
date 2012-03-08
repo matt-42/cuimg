@@ -230,8 +230,12 @@ extern "C" {
   typedef unsigned long long ull;                                       \
   std::cout << "[" << #M << "]\tCycles per pixel: " << std::fixed << float((double(cycles_##M) / (NP))) << std::endl;
 
-  void to_graylevelf(const host_image2d<i_uchar3>& in, host_image2d<i_float1>& out)
+  template <typename I, typename O>
+  void to_graylevelf(const Image2d<I>& in_, Image2d<O>& out_)
   {
+    const I& in = exact(in_);
+    O& out = exact(out_);
+
 #pragma omp parallel for schedule(static, 8)
     for (unsigned r = 0; r < in.nrows(); r++)
       for (unsigned c = 0; c < in.ncols(); c++)
@@ -241,23 +245,28 @@ extern "C" {
       }
   }
 
+
+  template <typename I, typename J>
+  void prepare_input_frame(const flag<GPU>&, const host_image2d<i_uchar3>& in, I& frame, J& tmp_uc3)
+  {
+      copy(in, tmp_uc3);
+      frame = (get_x(tmp_uc3) + get_y(tmp_uc3) + get_z(tmp_uc3)) / (3.f * 255.f);
+  }
+
+  template <typename I, typename J>
+  void prepare_input_frame(const flag<CPU>&, const host_image2d<i_uchar3>& in, I& frame, J&)
+  {
+      to_graylevelf(in, frame);
+  }
+
   template <typename F, template <class>  class SA_>
   inline
   void multi_scale_tracker<F, SA_>::update(const host_image2d<i_uchar3>& in)
   {
-    if (target == int(GPU))
-    {
-      copy(in, frame_uc3_);
-      frame_ = (get_x(frame_uc3_) + get_y(frame_uc3_) + get_z(frame_uc3_)) / (3.f * 255.f);
-      update_mipmap(frame_, pyramid_, pyramid_tmp1_, pyramid_tmp2_, PS);
-    }
-    else
-    {
-      to_graylevelf(in, frame_);
-      // BENCH_CPP_START(mipmap);
-      update_mipmap(frame_, pyramid_, pyramid_tmp1_, pyramid_tmp2_, PS, 0, dim3(16, 16, 1));
-      // BENCH_CPP_END(mipmap, in.nrows()*in.ncols());
-    }
+    prepare_input_frame(flag<target>(), in, frame_, frame_uc3_);
+
+    update_mipmap(frame_, pyramid_, pyramid_tmp1_, pyramid_tmp2_, PS);
+
 
     i_short2 mvt(0, 0);
 
@@ -270,7 +279,6 @@ extern "C" {
       mvt *= 2;
 
       feature_[l]->update(pyramid_[l], pyramid_[l + 1]);
-
       if (l != pyramid_.size() - 1)
         matcher_[l]->update(*(feature_[l]), mvt_detector_thread_, matcher_[l+1]->matches());
       else

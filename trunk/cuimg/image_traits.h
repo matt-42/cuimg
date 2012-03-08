@@ -22,10 +22,10 @@ namespace cuimg
     typedef host_image2d<NV> ret;
   };
 
-  template <typename V, template <class> class PT, typename NV>
-  struct change_value_type<image2d<V, PT>, NV>
+  template <typename V, typename NV>
+  struct change_value_type<image2d<V>, NV>
   {
-    typedef image2d<NV, PT> ret;
+    typedef image2d<NV> ret;
   };
 
 }

@@ -70,20 +70,20 @@ namespace cuimg
     typedef binary_add_<>
   };
 
-  template <typename A, template <class> class AP, typename B, template <class> class BP>
+  template <typename A typename B
   inline
-  binary_add<image2d<A, AP>, image2d<B, BP> >
-  operator+(const image2d<A, AP>& a, const image2d<B, BP>& b)
+  binary_add<image2d<A>, image2d<B> >
+  operator+(const image2d<A>& a, const image2d<B>& b)
   {
-    return binary_add<image2d<A, AP>, image2d<B, BP> >(a, b);
+    return binary_add<image2d<A>, image2d<B> >(a, b);
   }
 
-  template <typename A, template <class> class AP, typename S>
+  template <typename A typename S>
   inline
-  binary_add<image2d<A, AP>, S>
-  operator+(const image2d<A, AP>& a, const S s)
+  binary_add<image2d<A>, S>
+  operator+(const image2d<A>& a, const S s)
   {
-    return binary_add<image2d<A, AP>, S>(a, s);
+    return binary_add<image2d<A>, S>(a, s);
   }
 
   template <typename E, typename S>

@@ -12,12 +12,13 @@
 
 namespace cuimg
 {
-  template <typename V, template <class> class PT = boost::shared_ptr>
-  class image2d : public Image2d<image2d<V, PT> >
+  template <typename V>
+  class image2d : public Image2d<image2d<V> >
   {
   public:
     enum { target = GPU };
 
+    typedef boost::shared_ptr<V> PT;
     typedef V value_type;
     typedef point2d<int> point;
     typedef obox2d<point> domain_type;
@@ -27,12 +28,12 @@ namespace cuimg
     inline image2d(V* data, unsigned nrows, unsigned ncols, unsigned pitch);
     inline image2d(const domain_type& d);
 
-    __host__ __device__ inline image2d(const image2d<V, PT>& d);
+    __host__ __device__ inline image2d(const image2d<V>& d);
 
-    __host__ __device__ inline image2d<V, PT>& operator=(const image2d<V, PT>& d);
+    __host__ __device__ inline image2d<V>& operator=(const image2d<V>& d);
 
     template <typename E>
-    __host__ inline image2d<V, PT>& operator=(const expr<E>& e);
+    __host__ inline image2d<V>& operator=(const expr<E>& e);
 
     __host__ __device__ inline const domain_type& domain() const;
     __host__ __device__ inline unsigned nrows() const;
@@ -47,13 +48,13 @@ namespace cuimg
 
     __host__ __device__ inline bool has(const point& p) const;
 
-    __host__ __device__ inline const PT<V> data_sptr() const;
-    __host__ __device__ inline PT<V> data_sptr();
+    __host__ __device__ inline const PT data_sptr() const;
+    __host__ __device__ inline PT data_sptr();
 
   private:
     domain_type domain_;
     size_t pitch_;
-    PT<V> data_;
+    PT data_;
     V* data_ptr_;
   };
 

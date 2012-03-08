@@ -51,9 +51,9 @@ namespace cuimg
   i_short2*, kernel_image2d<T>, &init_particles_vec<TG, T>
 
   template <unsigned target, typename T>
-  __global__ void init_particles_vec(thread_info<target> ti,
-                                     i_short2* particles_vec,
-                                     kernel_image2d<T> particles)
+  __host__ __device__ void init_particles_vec(thread_info<target> ti,
+                                              i_short2* particles_vec,
+                                              kernel_image2d<T> particles)
   {
     point2d<int> p = thread_pos2d(ti);
 
@@ -410,7 +410,6 @@ namespace cuimg
     update(flag<F::target>(), f, t_mvt, ls_matches);
   }
 
-#ifdef NVCC
   template <typename F>
   void
   ofast_local_matcher<F>::update(const flag<GPU>&, F& f, global_mvt_thread<ofast_local_matcher<F> >& t_mvt,
@@ -425,15 +424,24 @@ namespace cuimg
     //bindTexture2d(*(image2d<float4>*)&(f.current_frame()), feat_tex);
     particles_vec1_.resize(matches_.nrows() * matches_.ncols());
     particles_vec2_.resize(matches_.nrows() * matches_.ncols());
+
+
+
     //std::cout << "particles_vec_.size " << particles_vec_.size() << std::endl;
     pw_call<init_particles_vec_sig(GPU, particle)>(flag<GPU>(), dimgrid, dimblock,
                                                    thrust::raw_pointer_cast( &particles_vec1_[0]), *particles_);
+
+    // return;
+
     thrust::detail::normal_iterator<thrust::device_ptr<cuimg::i_short2> > end
       = thrust::remove_copy(particles_vec1_.begin(), particles_vec1_.end(), particles_vec2_.begin(), i_short2(-1, -1));
     particles_vec1_.swap(particles_vec2_);
     n_particles_ = end - particles_vec1_.begin();
+
+
     //unsigned n_particles = matches_.nrows() * matches_.ncols();
     //std::cout << "particles_vec_.size after " << particles_vec_.size() << std::endl;
+
 
     if (n_particles_ > 0)
     {
@@ -443,21 +451,32 @@ namespace cuimg
       distance_ = aggregate<float>::run(1.f, 0.f, 0.f, 1.f);
 #endif
       i_short2 mvt = t_mvt.mvt();
+
+      mvt = i_short2(0, 0);
       pw_call<naive_matching_kernel2_sig(GPU, typename F::kernel_type, particle)>
-        (reduced_dimgrid, dimblock,
+        (flag<GPU>(), reduced_dimgrid, dimblock,
          //naive_matching_kernel2<typename F::kernel_type, particle><<<dimgrid, dimblock>>>
          thrust::raw_pointer_cast( &particles_vec1_[0]),
          n_particles_, f, *particles_, *new_particles_, matches_,
          ls_matches, mvt, thrust::raw_pointer_cast( &compact_particles_[0])
          ,distance_, dg::widgets::Slider("age_filter").value());
 
+      // pw_call<naive_matching_kernel2_sig(GPU, typename F::kernel_type, particle)>
+      //   (flag<GPU>(), reduced_dimgrid, dimblock,
+      //    //naive_matching_kernel2<typename F::kernel_type, particle><<<dimgrid, dimblock>>>
+      //    thrust::raw_pointer_cast( &particles_vec1_[0]),
+      //    n_particles_, f, *particles_, *new_particles_, matches_,
+      //    ls_matches, mvt, thrust::raw_pointer_cast( &compact_particles_[0])
+      //    ,distance_, dg::widgets::Slider("age_filter").value());
+
+
       // check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test_);
-      pw_call<filter_robbers_sig(GPU, particle)>(reduced_dimgrid, dimblock,
+      pw_call<filter_robbers_sig(GPU, particle)>(flag<GPU>(), reduced_dimgrid, dimblock,
                                                  thrust::raw_pointer_cast( &particles_vec1_[0]),
                                                  n_particles_,
                                                  *particles_, *new_particles_, matches_);
 
-      pw_call<filter_robbers_sig(GPU, particle)>(reduced_dimgrid, dimblock,
+      pw_call<filter_robbers_sig(GPU, particle)>(flag<GPU>(), reduced_dimgrid, dimblock,
                                                  thrust::raw_pointer_cast( &particles_vec1_[0]),
                                                  n_particles_,
                                                  *particles_, *new_particles_, matches_);
@@ -474,7 +493,7 @@ namespace cuimg
 # endif
 #endif
 
-      pw_call<filter_false_matching_sig(GPU, particle)>(reduced_dimgrid, dimblock,
+      pw_call<filter_false_matching_sig(GPU, particle)>(flag<GPU>(),reduced_dimgrid, dimblock,
                                                         thrust::raw_pointer_cast( &particles_vec1_[0]),
                                                         n_particles_,
                                                         *particles_, *new_particles_,
@@ -490,15 +509,13 @@ namespace cuimg
     // check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test2_);
 
     //if (!(frame_cpt % 5))
-    pw_call<create_particles_kernel_sig(GPU, typename F::kernel_type, particle)>(dimgrid, dimblock, f, *new_particles_, f.pertinence(), test_);
+    pw_call<create_particles_kernel_sig(GPU, typename F::kernel_type, particle)>(flag<GPU>(), dimgrid, dimblock, f, *new_particles_, f.pertinence(), test_);
 
     check_cuda_error();
     return;
 
 
   }
-
-#endif
 
   template <typename F>
   void

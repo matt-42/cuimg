@@ -114,14 +114,14 @@ namespace cuimg
     typedef T ret;
   };
 
-  template <typename I, template <class> class PT>
-  struct kernel_type<image2d<I, PT> >
+  template <typename I>
+  struct kernel_type<image2d<I> >
   {
     typedef kernel_image2d<I> ret;
   };
 
-  template <typename I, template <class> class PT>
-  struct kernel_type<const image2d<I, PT> >
+  template <typename I>
+  struct kernel_type<const image2d<I> >
   {
     typedef kernel_image2d<I> ret;
   };

@@ -104,18 +104,18 @@ namespace cuimg
   }
 
   template <typename V>
-  image2d<V, simple_ptr>
+  image2d<V>
   image3d<V>::slice(unsigned s)
   {
-    return image2d<V, simple_ptr>((V*)(((char*)data_ptr_) + s * pitch_ * nrows()),
+    return image2d<V>((V*)(((char*)data_ptr_) + s * pitch_ * nrows()),
                                   nrows(), ncols(), pitch());
   }
 
   template <typename V>
-  const image2d<V, simple_ptr>
+  const image2d<V>
   image3d<V>::slice(unsigned s) const
   {
-    return image2d<V, simple_ptr>((V*)(((char*)data_ptr_) + s * pitch_ * nrows()),
+    return image2d<V>((V*)(((char*)data_ptr_) + s * pitch_ * nrows()),
                                   nrows(), ncols(), pitch());
   }
 
