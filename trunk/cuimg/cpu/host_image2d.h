@@ -24,8 +24,8 @@ namespace cuimg
     typedef obox2d<point> domain_type;
 
     host_image2d();
-    host_image2d(unsigned nrows, unsigned ncols);
-    host_image2d(const domain_type& d);
+    host_image2d(unsigned nrows, unsigned ncols, bool pinned = 0);
+    host_image2d(const domain_type& d, bool pinned = 0);
 
     host_image2d(const host_image2d<V>& d);
     host_image2d<V>& operator=(const host_image2d<V>& d);
@@ -60,6 +60,8 @@ namespace cuimg
     }
 
   private:
+    void allocate(const domain_type& d, bool pinned);
+
     domain_type domain_;
     size_t pitch_;
     boost::shared_ptr<V> data_;

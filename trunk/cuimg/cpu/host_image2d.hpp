@@ -3,40 +3,55 @@
 
 # include <cuimg/cpu/host_image2d.h>
 # include <cuimg/error.h>
+# include <cuimg/free.h>
 
 namespace cuimg
 {
+
+
   template <typename V>
   host_image2d<V>::host_image2d()
   {
   }
 
   template <typename V>
-  host_image2d<V>::host_image2d(unsigned nrows, unsigned ncols)
+  host_image2d<V>::host_image2d(unsigned nrows, unsigned ncols, bool pinned)
     : domain_(nrows, ncols),
       pitch_(ncols * sizeof(V))
   {
-    V* ptr;
-    cudaMallocHost(&ptr, domain_.nrows() * domain_.ncols() * sizeof(V));
-    data_ = boost::shared_ptr<V>(ptr, cudaFreeHost);
-
-    //data_ = boost::shared_ptr<V>(ptr, );
-    //data_ = boost::shared_ptr<V>(new V[nrows * ncols]());
-    buffer_ = data_.get();
+    allocate(domain_, pinned);
   }
 
   template <typename V>
-  host_image2d<V>::host_image2d(const domain_type& d)
+  host_image2d<V>::host_image2d(const domain_type& d, bool pinned)
     : domain_(d),
       pitch_(ncols() * sizeof(V))
   {
-    V* ptr;
-    cudaMallocHost(&ptr, domain_.nrows() * domain_.ncols() * sizeof(V));
-    data_ = boost::shared_ptr<V>(ptr, cudaFreeHost);
+    allocate(domain_, pinned);
+  }
 
-    //data_ = boost::shared_ptr<V>(new V[d.nrows() * d.ncols()]());
+  template <typename V>
+  void
+  host_image2d<V>::allocate(const domain_type& d, bool pinned)
+  {
+    V* ptr;
+
+#ifndef NO_CUDA
+    if (pinned)
+    {
+      cudaMallocHost(&ptr, domain_.nrows() * domain_.ncols() * sizeof(V));
+      data_ = boost::shared_ptr<V>(ptr, cudaFreeHost);
+    }
+    else
+#endif
+    {
+      ptr = new V[domain_.nrows() * domain_.ncols()];
+      data_ = boost::shared_ptr<V>(ptr, array_free<V>);
+    }
+
     buffer_ = data_.get();
   }
+
 
   template <typename V>
   host_image2d<V>::host_image2d(const host_image2d<V>& img)

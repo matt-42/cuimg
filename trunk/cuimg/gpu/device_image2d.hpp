@@ -6,16 +6,11 @@
 # include <cuimg/gpu/device_image2d.h>
 # include <cuimg/gpu/kernel_image2d.h>
 # include <cuimg/error.h>
+# include <cuimg/free.h>
 # include <cuimg/gpu/kernel_util.h>
 
 namespace cuimg
 {
-
-
-  template <typename T>
-  void dummy_free(T* p)
-  {
-  }
 
   template <typename V>
   device_image2d<V>::device_image2d()
