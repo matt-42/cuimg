@@ -270,10 +270,6 @@ extern "C" {
 
     i_short2 mvt(0, 0);
 
-   // ImageView("frame test") <<= dg::dl() - pyramid_[4] - pyramid_[3] - pyramid_[2] - pyramid_[1] - pyramid_[0] +
-   //                                         pyramid_tmp1_[4] - pyramid_tmp1_[3] - pyramid_tmp1_[2] - pyramid_tmp1_[1] - pyramid_tmp1_[0] +
-   //                                         pyramid_tmp2_[4] - pyramid_tmp2_[3] - pyramid_tmp2_[2] - pyramid_tmp2_[1] - pyramid_tmp2_[0];
-
     for (int l = pyramid_.size() - 2; l >= 0; l--)
     {
       mvt *= 2;

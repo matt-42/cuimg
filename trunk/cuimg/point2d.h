@@ -1,7 +1,7 @@
 #ifndef CUIMG_POINT2D_H_
 # define CUIMG_POINT2D_H_
 
-# include <cuda_runtime.h>
+# include <cuimg/gpu/cuda.h>
 # include <cuimg/improved_builtin.h>
 
 namespace cuimg

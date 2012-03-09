@@ -1,7 +1,7 @@
 #ifndef CUIMG_KERNEL_IMAGE2D_H_
 # define CUIMG_KERNEL_IMAGE2D_H_
 
-# include <cuda_runtime.h>
+# include <cuimg/gpu/cuda.h>
 # include <cuimg/point2d.h>
 # include <cuimg/concepts.h>
 # include <cuimg/gpu/device_image2d.h>

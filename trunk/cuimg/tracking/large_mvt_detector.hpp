@@ -2,13 +2,8 @@
 # define  CUIMG_LARGE_MVT_DETECTOR_HPP_
 
 #include <GL/glew.h>
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <host_defines.h>
-#include <cudaGL.h>
-#include <cuda_gl_interop.h>
 
-
+#include <cuimg/gpu/cuda.h>
 
 #include <dige/window.h>
 #include <dige/widgets/image_view.h>
@@ -70,9 +65,9 @@ namespace cuimg
   }
 
   template <typename V>
-  template <typename P>
+  template <typename A>
   i_short2
-  large_mvt_detector<V>::estimate(const thrust::host_vector<P>& particles,
+  large_mvt_detector<V>::estimate(const A& particles,
                                   unsigned n_particles)
   {
     n_particles_ = n_particles;

@@ -10,6 +10,7 @@ namespace cuimg
   device_image3d<V>::device_image3d(unsigned nslices, unsigned nrows, unsigned ncols)
     : domain_(nslices, nrows, ncols)
   {
+#ifndef NO_CUDA
     cudaExtent extent;
     extent.width  = ncols * sizeof(V);
     extent.height = nrows;
@@ -22,12 +23,14 @@ namespace cuimg
     data_ = boost::shared_ptr<V>((V*)pp.ptr, cudaFree);
     pitch_ = pp.pitch;
     data_ptr_ = data_.get();
+#endif
   }
 
   template <typename V>
   device_image3d<V>::device_image3d(const domain_type& d)
     : domain_(d)
   {
+#ifndef NO_CUDA
     cudaExtent extent;
     extent.width  = domain_.ncols() * sizeof(V);
     extent.height = domain_.nrows();
@@ -40,6 +43,7 @@ namespace cuimg
     data_ = boost::shared_ptr<V>((V*)pp.ptr, cudaFree);
     pitch_ = pp.pitch;
     data_ptr_ = data_.get();
+#endif
   }
 
   template <typename V>

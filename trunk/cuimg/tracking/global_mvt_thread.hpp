@@ -78,6 +78,7 @@ namespace cuimg
 
     if (!thread_end())
     {
+#ifndef NO_CUDA
       cudaMemcpy(thrust::raw_pointer_cast(&particles_[0]),
                  thrust::raw_pointer_cast(&matcher_->compact_particles()[0]),
                  matcher_->n_particles() * sizeof(typename M::particle),
@@ -88,6 +89,7 @@ namespace cuimg
       //while (cudaStreamQuery(cuda_stream_) != cudaSuccess);
       mvt_ = mvt_detector_.estimate(particles_, matcher_->n_particles());
       //mvt_ = i_short2(0, 0);
+#endif
     }
 
     matcher_ = 0;

@@ -146,11 +146,14 @@ namespace cuimg
     // <typename I::value_type::cuda_bt, typename O::value_type, G, KERNEL_HALF_SIZE>
     //   <<<dimgrid, dimblock, 0, stream>>>(mki(out));
 
+#ifndef NO_CUDA
     if (I::target == GPU)
     {
       cudaUnbindTexture(meta_convolve_internal::UNIT_STATIC(g_input_tex)<typename I::value_type::cuda_bt>::tex());
       check_cuda_error();
     }
+#endif
+
   }
 
   template <typename I, typename O, typename G, int KERNEL_HALF_SIZE>
@@ -172,11 +175,13 @@ namespace cuimg
     // <typename I::value_type::cuda_bt, typename O::value_type, G, KERNEL_HALF_SIZE>
     //   <<<dimgrid, dimblock, 0, stream>>>(mki(out));
 
+#ifndef NO_CUDA
     if (I::target == GPU)
     {
       cudaUnbindTexture(meta_convolve_internal::UNIT_STATIC(g_input_tex)<typename I::value_type::cuda_bt>::tex());
       check_cuda_error();
     }
+#endif
   }
 
 }

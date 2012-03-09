@@ -1,8 +1,7 @@
 #ifndef CUIMG_IMAGE2D_HPP_
 # define CUIMG_IMAGE2D_HPP_
 
-# include <cuda.h>
-# include <cuda_runtime.h>
+# include <cuimg/gpu/cuda.h>
 # include <cuimg/gpu/device_image2d.h>
 # include <cuimg/gpu/kernel_image2d.h>
 # include <cuimg/error.h>
@@ -21,11 +20,13 @@ namespace cuimg
   device_image2d<V>::device_image2d(unsigned nrows, unsigned ncols)
     : domain_(nrows, ncols)
   {
-    V* b;
+    V* b = 0;
 
+#ifndef NO_CUDA
     cudaMallocPitch((void**)&b, &pitch_, domain_.ncols() * sizeof(V), domain_.nrows());
     check_cuda_error();
     data_ = PT(b, cudaFree);
+#endif
 
     assert(b);
 
@@ -45,12 +46,16 @@ namespace cuimg
   device_image2d<V>::device_image2d(const domain_type& d)
     : domain_(d)
   {
-    V* b;
+    V* b = 0;
+
+#ifndef NO_CUDA
 
     cudaMallocPitch((void**)&b, &pitch_, domain_.ncols() * sizeof(V), domain_.nrows());
     check_cuda_error();
-    assert(b);
     data_ = PT(b, cudaFree);
+#endif
+
+    assert(b);
 
     data_ptr_ = data_.get();
   }
@@ -77,6 +82,7 @@ namespace cuimg
 
   namespace internal
   {
+#ifdef NVCC
     template <typename I, typename E>
     __global__ void assign_kernel(kernel_image2d<I> out, E e)
     {
@@ -96,6 +102,7 @@ namespace cuimg
 //        out(p) = ((E*)(&e))->eval(p);
         out(p) = out(p) + s;//i_float4(0.5f, 0.5f, 0.5f, 0.f);
     }
+#endif
   }
 
   template <typename A, typename E>
@@ -105,9 +112,9 @@ namespace cuimg
     dim3 dimgrid = grid_dimension(out.domain(), dimblock);
 #ifdef NVCC
     internal::assign_kernel<<<dimgrid, dimblock>>>(mki(out), *(E*)&e);
-#endif
    // internal::assign_kernel<<<dimgrid, dimblock>>>(mki(out));
     check_cuda_error();
+#endif
   }
 
 
@@ -185,8 +192,10 @@ namespace cuimg
   device_image2d<V>::read_back_pixel(const point& p) const
   {
     V res;
+# ifndef NO_CUDA
     cudaMemcpy(&res, ((char*)data_ptr_) + p.row() * pitch_ + p.col() * sizeof(V),
                sizeof(V), cudaMemcpyDeviceToHost);
+# endif
     return res;
   }
 
@@ -194,8 +203,10 @@ namespace cuimg
   void
   device_image2d<V>::set_pixel(const point& p, const V& v)
   {
+# ifndef NO_CUDA
     cudaMemcpy(((char*)data_ptr_) + p.row() * pitch_ + p.col() * sizeof(V), &v,
                sizeof(V), cudaMemcpyHostToDevice);
+# endif
   }
 
 }

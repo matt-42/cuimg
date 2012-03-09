@@ -3,6 +3,7 @@
 #ifndef CUIMG_IMAGE2D_H_
 # define CUIMG_IMAGE2D_H_
 
+# include <cuimg/gpu/cuda.h>
 # include <boost/shared_ptr.hpp>
 # include <cuimg/target.h>
 # include <cuimg/concepts.h>

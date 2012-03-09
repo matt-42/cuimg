@@ -1,9 +1,11 @@
 #ifndef CUIMG_OFAST_LOCAL_MATCHER_H_
 # define  CUIMG_OFAST_LOCAL_MATCHER_H_
 
-# include <thrust/host_vector.h>
 
-# ifdef NVCC
+# include <vector>
+
+# ifndef NO_CUDA
+# include <thrust/host_vector.h>
 # include <thrust/device_vector.h>
 # endif
 
@@ -18,7 +20,7 @@ namespace cuimg
 {
 
 
-#ifdef NVCC
+#ifndef NO_CUDA
   template <unsigned T, typename V>
   struct thrust_vector
   {
@@ -34,14 +36,14 @@ namespace cuimg
   template <unsigned T, typename V>
   struct thrust_vector
   {
-    typedef thrust::host_vector<V> ret;
+    typedef std::vector<V> ret;
   };
 #endif
 
   template <typename V>
   struct thrust_vector<CPU, V>
   {
-    typedef thrust::host_vector<V> ret;
+    typedef std::vector<V> ret;
   };
 
   template <typename F>

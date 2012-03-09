@@ -1,7 +1,7 @@
 #ifndef CUIMG_META_H_
 # define CUIMG_META_H_
 
-# include <cuda_runtime.h>
+# include <cuimg/gpu/cuda.h>
 
 # define BOOST_TYPEOF_COMPLIANT
 # include <boost/typeof/typeof.hpp>

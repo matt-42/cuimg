@@ -4,7 +4,6 @@
 # include <boost/shared_ptr.hpp>
 # include <omp.h>
 
-# include <cuda_runtime_api.h>
 # include <cuimg/target.h>
 # include <cuimg/concepts.h>
 # include <cuimg/dsl/expr.h>
@@ -31,22 +30,22 @@ namespace cuimg
     host_image2d<V>& operator=(const host_image2d<V>& d);
 
     const domain_type& domain() const;
-    __host__ __device__ unsigned nrows() const;
-    __host__ __device__ unsigned ncols() const;
-    __host__ __device__ bool has(const point& p) const;
+    unsigned nrows() const;
+    unsigned ncols() const;
+    bool has(const point& p) const;
 
-    __host__ __device__ size_t pitch() const;
+    size_t pitch() const;
 
-    __host__ __device__ V& operator()(const point& p);
-    __host__ __device__ const V& operator()(const point& p) const;
+    V& operator()(const point& p);
+    const V& operator()(const point& p) const;
 
-    __host__ __device__ V& operator()(int r, int c);
-    __host__ __device__ const V& operator()(int r, int c) const;
+    V& operator()(int r, int c);
+    const V& operator()(int r, int c) const;
 
     V* data();
     const V* data() const;
 
-    __host__ __device__ size_t buffer_size() const;
+    size_t buffer_size() const;
 
     template <typename E>
     host_image2d<V>& operator=(const expr<E>& e)

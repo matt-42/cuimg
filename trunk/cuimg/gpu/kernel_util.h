@@ -1,7 +1,7 @@
 #ifndef CUIMG_GPU_KERNEL_UTIL_H_
 # define CUIMG_GPU_KERNEL_UTIL_H_
 
-# include <cuda.h>
+# include <cuimg/gpu/cuda.h>
 # include <cuimg/obox2d.h>
 # include <cuimg/obox3d.h>
 # include <cuimg/util.h>

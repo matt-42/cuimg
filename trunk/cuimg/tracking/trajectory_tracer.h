@@ -2,7 +2,11 @@
 # define TRAJECTORY_TRACER_H_
 
 # include <string>
-# include <curand.h>
+
+# ifndef NO_CUDA
+#  include <curand.h>
+# endif
+
 # include <cuimg/gpu/device_image2d.h>
 
 using namespace cuimg;
@@ -70,7 +74,10 @@ class trajectory_tracer
 
  private:
 
+#ifndef NO_CUDA
   curandGenerator_t gen;
+#endif
+
   image2d_f4 rand_colors_;
   image2d_f4 display_image_;
   image2d_f4 traj_;

@@ -1,7 +1,7 @@
 #ifndef CUIMG_NEIGHB2D_DATA_H_
 # define CUIMG_NEIGHB2D_DATA_H_
 
-# include <cuda_runtime.h>
+# include <cuimg/gpu/cuda.h>
 
 //namespace cuimg
 //{

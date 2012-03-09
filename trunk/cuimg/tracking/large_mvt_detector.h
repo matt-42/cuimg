@@ -3,7 +3,11 @@
 
 # include <vector>
 
+# include <vector>
+
+# ifndef NO_CUDA
 # include <thrust/host_vector.h>
+# endif
 
 # include <cuimg/gpu/device_image2d.h>
 # include <cuimg/cpu/host_image2d.h>
@@ -21,8 +25,8 @@ namespace cuimg
 
     large_mvt_detector();
 
-    template <typename P>
-    i_short2 estimate(const thrust::host_vector<P>& particles,
+    template <typename A>
+    i_short2 estimate(const A& particles,
                       unsigned n_particles);
 
     void display();

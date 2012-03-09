@@ -1,10 +1,7 @@
 #ifndef CUIMG_TEXTURE_H_
 # define CUIMG_TEXTURE_H_
 
-# include <cuda.h>
-# include <cuda_runtime_api.h>
-# include <cuda_runtime.h>
-# include <cuda_texture_types.h>
+# include <cuimg/gpu/cuda.h>
 # include <cuimg/gpu/device_image2d.h>
 # include <cuimg/error.h>
 
@@ -39,6 +36,7 @@ namespace cuimg
     assert(0);
   }
 
+#ifdef NVCC
   template<typename U, typename T,
            enum cudaTextureReadMode READMODE>
   void bindTexture2d(const device_image2d<U>& img, ::texture<T, 2, READMODE>& texref)
@@ -69,6 +67,8 @@ namespace cuimg
   {
     return tex2D(texref, c, r);
   }
+
+#endif
 
   // CPU fallbacks.
 

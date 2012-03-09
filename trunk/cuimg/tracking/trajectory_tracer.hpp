@@ -1,6 +1,5 @@
 
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include <cuimg/gpu/cuda.h>
 
 
 # include <cuimg/dige.h>
@@ -48,6 +47,7 @@ trajectory_tracer<TG>::trajectory_tracer(const domain_t& d)
   // cudaMemset2D(traces2_.data(), traces2_.pitch(), 0,
   //              traces2_.pitch(), traces2_.nrows());
 
+#ifndef NO_CUDA
   if (TG == GPU)
   {
     curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
@@ -55,6 +55,7 @@ trajectory_tracer<TG>::trajectory_tracer(const domain_t& d)
     curandGenerateUniform(gen, (float*)rand_colors_.data(),
                           rand_colors_.pitch() * rand_colors_.nrows() / sizeof(float));
   }
+#endif
 
   traces_ = &traces1_;
   new_traces_ = &traces2_;
@@ -397,11 +398,13 @@ trajectory_tracer<TG>::update(const image2d_s2& matches,
                           const device_image2d<P>& particles)
 {
   std::swap(traces_, new_traces_);
+#ifndef NO_CUDA
   if (TG == GPU)
   {
     curandGenerateUniform(gen, (float*)rand_colors_.data(),
                           rand_colors_.pitch() * rand_colors_.nrows() / sizeof(float));
   }
+#endif
 
   dim3 dimblock(16, 16);
   dim3 dimgrid = grid_dimension(rand_colors_.domain(), dimblock);

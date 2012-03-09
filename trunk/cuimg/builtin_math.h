@@ -1,7 +1,7 @@
 #ifndef CUIMG_BUILTIN_MATH_H_
 # define CUIMG_BUILTIN_MATH_H_
 
-# include <cuda.h>
+# include <cuimg/gpu/cuda.h>
 # include <cuimg/improved_builtin.h>
 # include <cuimg/meta.h>
 

@@ -9,6 +9,7 @@
 
 namespace cuimg
 {
+#ifndef NO_CUDA
   template <typename T>
   void copy(const device_image2d<T>& in, host_image2d<T>& out)
   {
@@ -16,7 +17,9 @@ namespace cuimg
     cudaMemcpy2D(out.data(), out.pitch(), in.data(), in.pitch(), in.ncols() * sizeof(T), in.nrows(),
                cudaMemcpyDeviceToHost);
     check_cuda_error();
+
   }
+#endif
 
   template <typename T>
   void copy(const host_image2d<T>& in, host_image2d<T>& out)
@@ -24,6 +27,8 @@ namespace cuimg
     assert(in.domain() == out.domain());
     memcpy(out.data(), in.data(), in.nrows() * in.pitch());
   }
+
+#ifndef NO_CUDA
 
   template <typename T>
   void copy(const host_image2d<T>& in, device_image2d<T>& out)
@@ -111,12 +116,16 @@ namespace cuimg
     check_cuda_error();
   }
 
+#endif
+
   template <typename T>
   void copy_async(const host_image2d<T>& in, host_image2d<T>& out, cudaStream_t stream = 0)
   {
     assert(in.domain() == out.domain());
     memcpy(out.data(), in.data(), in.nrows() * in.pitch());
   }
+
+#ifndef NO_CUDA
 
   template <typename T>
   void copy_async(const host_image2d<T>& in, device_image2d<T>& out, cudaStream_t stream = 0)
@@ -194,6 +203,8 @@ namespace cuimg
                  cudaMemcpyDeviceToDevice, stream);
     check_cuda_error();
   }
+
+#endif
 
 }
 

@@ -1,7 +1,7 @@
 #ifndef CUIMG_IMAGE_TRAITS_H_
 # define CUIMG_IMAGE_TRAITS_H_
 
-# include <cuda_runtime.h>
+# include <cuimg/gpu/cuda.h>
 
 # define BOOST_TYPEOF_COMPLIANT
 # include <boost/typeof/typeof.hpp>

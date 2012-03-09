@@ -10,7 +10,7 @@
    longlong2, ulonglong2, float1, float2, float3, float4, double1,
    double2 */
 
-#include <cuda_runtime.h>
+#include <cuimg/gpu/cuda.h>
 
 #include <cuimg/literals.h>
 #include "meta.h"

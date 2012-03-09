@@ -1,7 +1,7 @@
 #ifndef CUIMG_OBOX3D_H_
 # define CUIMG_OBOX3D_H_
 
-# include <cuda_runtime.h>
+# include <cuimg/gpu/cuda.h>
 # include <cuimg/point3d.h>
 # include <cuimg/obox3d.h>
 

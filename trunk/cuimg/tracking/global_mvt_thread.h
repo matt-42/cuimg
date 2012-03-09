@@ -2,7 +2,13 @@
 # define CUIMG_GLOBAL_MVT_THREAD_H_
 
 # include <boost/thread.hpp>
+
+# include <vector>
+
+# ifndef NO_CUDA
 # include <thrust/host_vector.h>
+# include <thrust/device_vector.h>
+# endif
 
 # include <cuimg/tracking/large_mvt_detector.h>
 
@@ -47,7 +53,11 @@ namespace cuimg
     ::boost::mutex mutex_;
     ::boost::thread producer_thread_;
 
+# ifndef NO_CUDA
     thrust::host_vector<typename M::particle> particles_;
+# else
+    std::vector<typename M::particle> particles_;
+# endif
 
     large_mvt_detector<i_float1> mvt_detector_;
 

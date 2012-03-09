@@ -2,14 +2,11 @@
 # define  CUIMG_OFAST_LOCAL_MATCHER_HPP_
 
 #include <GL/glew.h>
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <host_defines.h>
-#include <cudaGL.h>
-#include <cuda_gl_interop.h>
+#include <cuimg/gpu/cuda.h>
 
-# include <thrust/remove.h>
-
+# ifndef NO_CUDA
+#  include <thrust/remove.h>
+# endif
 
 
 #include <dige/window.h>
@@ -410,6 +407,7 @@ namespace cuimg
     update(flag<F::target>(), f, t_mvt, ls_matches);
   }
 
+#ifndef NO_CUDA
   template <typename F>
   void
   ofast_local_matcher<F>::update(const flag<GPU>&, F& f, global_mvt_thread<ofast_local_matcher<F> >& t_mvt,
@@ -517,6 +515,8 @@ namespace cuimg
 
   }
 
+#endif // ! NO_CUDA
+
   template <typename F>
   void
   ofast_local_matcher<F>::update(const flag<CPU>&, F& f, global_mvt_thread<ofast_local_matcher<F> >& t_mvt,
@@ -563,19 +563,19 @@ namespace cuimg
       pw_call<naive_matching_kernel2_sig(CPU, typename F::kernel_type, particle)>
         (flag<CPU>(), reduced_dimgrid, dimblock,
          //naive_matching_kernel2<typename F::kernel_type, particle><<<dimgrid, dimblock>>>
-         thrust::raw_pointer_cast( &particles_vec1_[0]),
+         &particles_vec1_[0],
          n_particles_, f, *particles_, *new_particles_, matches_,
-         ls_matches, mvt, thrust::raw_pointer_cast( &compact_particles_[0])
+         ls_matches, mvt, &compact_particles_[0]
          ,distance_, dg::widgets::Slider("age_filter").value());
 
       // check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test_);
       pw_call<filter_robbers_sig(CPU, particle)>(flag<CPU>(), reduced_dimgrid, dimblock,
-                                                 thrust::raw_pointer_cast( &particles_vec1_[0]),
+                                                 &particles_vec1_[0],
                                                  n_particles_,
                                                  *particles_, *new_particles_, matches_);
 
       pw_call<filter_robbers_sig(CPU, particle)>(flag<CPU>(), reduced_dimgrid, dimblock,
-                                                 thrust::raw_pointer_cast( &particles_vec1_[0]),
+                                                 &particles_vec1_[0],
                                                  n_particles_,
                                                  *particles_, *new_particles_, matches_);
       check_cuda_error();
@@ -592,15 +592,15 @@ namespace cuimg
 #endif
 
       pw_call<filter_false_matching_sig(CPU, particle)>(flag<CPU>(), reduced_dimgrid, dimblock,
-                                                        thrust::raw_pointer_cast( &particles_vec1_[0]),
+                                                        &particles_vec1_[0],
                                                         n_particles_,
                                                         *particles_, *new_particles_,
                                                         matches_, errors_, fm_disp_);
 
 
     }
-    check_cuda_error();
 
+    check_cuda_error();
     check_cuda_error();
 
 

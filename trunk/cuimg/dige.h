@@ -3,10 +3,12 @@
 
 # include <map>
 # include <stack>
-# include <GL/glew.h>
-# include <cudaGL.h>
-# include <cuda_gl_interop.h>
 
+# ifndef NO_CUDA
+#  include <GL/glew.h>
+#  include <cudaGL.h>
+#  include <cuda_gl_interop.h>
+# endif
 
 # include <dige/image.h>
 
@@ -61,6 +63,8 @@ namespace dg
     return image<trait::format::luminance, int>
       (i.ncols(), i.nrows(), (int*)i.data());
   }
+
+# ifndef NO_CUDA
 
   namespace internal
   {
@@ -223,6 +227,8 @@ namespace dg
     set_alpha_channel(*const_cast<cuimg::device_image2d<cuimg::improved_builtin<V, 4> >*>(&i));
     return cuda_opengl_texture<V, 4>(i);
   }
+
+# endif // ! NO_CUDA
 
 }
 

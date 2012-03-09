@@ -1,7 +1,7 @@
 #ifndef CUIMG_ERROR_H_
 # define CUIMG_ERROR_H_
 
-# include <cuda_runtime.h>
+# include <cuimg/gpu/cuda.h>
 # include <iostream>
 # include <cassert>
 
@@ -11,6 +11,7 @@ namespace cuimg
 
   inline void check_cuda_error()
   {
+# ifndef NO_CUDA
     cudaError_t error = cudaGetLastError();
     if(error != cudaSuccess)
     {
@@ -18,6 +19,7 @@ namespace cuimg
       exit(1);
       assert(error == cudaSuccess);
     }
+# endif
   }
 
 }

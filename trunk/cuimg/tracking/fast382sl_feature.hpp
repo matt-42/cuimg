@@ -1,11 +1,7 @@
 #ifndef CUIMG_FAST382SL_FEATURE_HPP_
 # define CUIMG_FAST382SL_FEATURE_HPP_
 
-# include <cuda.h>
-# include <cuda_runtime.h>
-# include <host_defines.h>
-# include <cudaGL.h>
-# include <cuda_gl_interop.h>
+# include <cuimg/gpu/cuda.h>
 
 # include <cmath>
 
@@ -591,7 +587,10 @@ kernel_image2d<dfast382sl> in,                  \
   {
     f_prev_ = &f1_;
     f_ = &f2_;
+#ifndef NO_CUDA
     cudaStreamCreate(&cuda_stream_);
+#endif
+
   }
 
   template <unsigned T>
