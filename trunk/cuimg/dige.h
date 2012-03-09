@@ -4,8 +4,9 @@
 # include <map>
 # include <stack>
 
-# ifndef NO_CUDA
 #  include <GL/glew.h>
+
+# ifndef NO_CUDA
 #  include <cudaGL.h>
 #  include <cuda_gl_interop.h>
 # endif

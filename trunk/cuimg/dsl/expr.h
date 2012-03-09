@@ -1,6 +1,8 @@
 #ifndef CUIMG_GPU_EXPR_H_
 # define CUIMG_GPU_EXPR_H_
 
+# include <cuimg/gpu/cuda.h>
+
 namespace cuimg
 {
 
