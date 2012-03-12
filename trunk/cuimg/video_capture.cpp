@@ -116,7 +116,7 @@ namespace cuimg
     //   memcpy(img.data(), m.ptr(i), m.cols * sizeof(i_uchar3));
     // }
 
-    get_frame((char*) img.data(), img.pitch(), sizeof(i_uchar4));
+    get_frame((char*) img.data(), img.pitch(), sizeof(i_uchar3));
     return *this;
   }
 
