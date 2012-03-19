@@ -198,7 +198,7 @@ namespace cuimg
     {
       particles(p).age = 1;
       particles(p).fault = 0;
-      particles(p).state = f.current_frame()(p);
+      particles(p).state = f.new_state(p);
       particles(p).speed = i_float2(0.f, 0.f);
       particles(p).acceleration = i_float2(0.f, 0.f);
       test_(p) = i_float4(0.f, 1.f, 0.f, 1.f);

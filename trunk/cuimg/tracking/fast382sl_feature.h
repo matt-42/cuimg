@@ -99,6 +99,8 @@ namespace cuimg
     inline image2d_D& previous_frame();
     inline image2d_D& current_frame();
     inline image2d_f1& pertinence();
+    inline image2d_f1& s1();
+    inline image2d_f1& s2();
 
     const image2d_f4& feature_color() const;
 
@@ -129,6 +131,7 @@ namespace cuimg
     float grad_thresh;
 
     cudaStream_t cuda_stream_;
+    int frame_cpt_;
   };
 
   class kernel_fast382sl_feature
@@ -150,11 +153,11 @@ namespace cuimg
 
     inline
     __host__ __device__ float distance_linear(const dfast382sl& a,
-                                     const point2d<int>& n);
+					      const point2d<int>& n);
 
-    inline
-    __host__ __device__ float distance_linear(const point2d<int>& a,
-                                     const point2d<int>& b);
+    /* inline */
+    /* __host__ __device__ float distance_linear(const point2d<int>& a, */
+    /*                                  const point2d<int>& b); */
 
     inline
     __host__ __device__ float distance_linear_s2(const dfast382sl& a, const dfast382sl& b);
@@ -169,17 +172,24 @@ namespace cuimg
     inline  __host__ __device__ dfast382sl
     new_state(const point2d<int>& n);
 
+    inline __host__ __device__
+    kernel_image2d<i_float1>& s1();
+    inline __host__ __device__
+    kernel_image2d<i_float1>& s2();
+
     /* __host__ __device__ inline */
     /* kernel_image2d<dfast382sl>& previous_frame(); */
-    __host__ __device__ inline
-    kernel_image2d<dfast382sl>& current_frame();
+    /* __host__ __device__ inline */
+    /* kernel_image2d<dfast382sl>& current_frame(); */
     __host__ __device__ inline
     kernel_image2d<i_float1>& pertinence();
 
   private:
     kernel_image2d<i_float1> pertinence_;
     kernel_image2d<dfast382sl> f_prev_;
-    kernel_image2d<dfast382sl> f_;
+    /* kernel_image2d<dfast382sl> f_; */
+    kernel_image2d<i_float1> s1_;
+    kernel_image2d<i_float1> s2_;
   };
 
 }

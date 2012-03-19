@@ -2,6 +2,7 @@
 # define CUIMG_PW_CALL_H_
 
 # include <omp.h>
+# include <boost/type_traits/function_traits.hpp>
 # include <cuimg/target.h>
 
 namespace cuimg

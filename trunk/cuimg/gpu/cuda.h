@@ -12,4 +12,10 @@
 #  include <cuimg/gpu/nocuda_defines.h>
 # endif
 
+# define BOOST_TYPEOF_COMPLIANT
+# include <boost/typeof/typeof.hpp>
+# include BOOST_TYPEOF_INCREMENT_REGISTRATION_GROUP()
+
+BOOST_TYPEOF_REGISTER_TYPE(dim3)
+
 #endif // ! CUIMG_NOCUDA_DEFINES_H_

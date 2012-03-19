@@ -7,6 +7,10 @@
 # include <cuimg/gpu/device_image2d.h>
 # include <cuimg/cpu/host_image2d.h>
 
+# define BOOST_TYPEOF_COMPLIANT
+# include <boost/typeof/typeof.hpp>
+# include BOOST_TYPEOF_INCREMENT_REGISTRATION_GROUP()
+
 namespace cuimg
 {
   template <typename V>
@@ -62,6 +66,8 @@ namespace cuimg
   }
 
 }
+
+BOOST_TYPEOF_REGISTER_TEMPLATE(cuimg::kernel_image2d, (typename))
 
 # include <cuimg/gpu/kernel_image2d.hpp>
 

@@ -158,7 +158,7 @@ namespace cuimg
         else
           prediction = i_int2(p) + mvt;
 
-        if (!f.current_frame().has(prediction)
+        if (!f.s1().has(prediction)
             ||
             prediction.row() < 7 || prediction.row() >= particles.domain().nrows() - 7 ||
             prediction.col() < 7 || prediction.col() >= particles.domain().ncols() - 7
@@ -188,7 +188,7 @@ namespace cuimg
 
       prediction = i_int2(i_int2(p) + particles(p).speed + mvt);
 
-      if (!f.current_frame().has(prediction)
+      if (!f.s1().has(prediction)
           ||
           prediction.row() < 7 || prediction.row() >= particles.domain().nrows() - 7 ||
           prediction.col() < 7 || prediction.col() >= particles.domain().ncols() - 7
@@ -266,13 +266,13 @@ namespace cuimg
 #endif
 
     char fault = particles(p).fault;
-    if (f.pertinence()(match) < 0.15f// ||
-        //::abs(f.pertinence()(match) -
-        //      particles(p).pertinence) > 0.2f
-        )
-      fault++;
-    else
-      fault = 0;
+    // if (f.pertinence()(match) < 0.15f// ||
+    //     //::abs(f.pertinence()(match) -
+    //     //      particles(p).pertinence) > 0.2f
+    //     )
+    //   fault++;
+    // else
+    //   fault = 0;
 
     // if (f.pertinence()(match) < 0.001f) fault += 2;
 
@@ -437,7 +437,7 @@ namespace cuimg
     n_particles_ = end - particles_vec1_.begin();
 
 
-    //unsigned n_particles = matches_.nrows() * matches_.ncols();
+    // n_particles_ = matches_.nrows() * matches_.ncols();
     //std::cout << "particles_vec_.size after " << particles_vec_.size() << std::endl;
 
 
@@ -506,7 +506,7 @@ namespace cuimg
 
     // check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test2_);
 
-    //if (!(frame_cpt % 5))
+    if (!(frame_cpt % 5))
     pw_call<create_particles_kernel_sig(GPU, typename F::kernel_type, particle)>(flag<GPU>(), dimgrid, dimblock, f, *new_particles_, f.pertinence(), test_);
 
     check_cuda_error();
@@ -568,7 +568,6 @@ namespace cuimg
          ls_matches, mvt, &compact_particles_[0]
          ,distance_, dg::widgets::Slider("age_filter").value());
 
-      // check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test_);
       pw_call<filter_robbers_sig(CPU, particle)>(flag<CPU>(), reduced_dimgrid, dimblock,
                                                  &particles_vec1_[0],
                                                  n_particles_,
@@ -591,6 +590,7 @@ namespace cuimg
 # endif
 #endif
 
+      if (!(frame_cpt % 30))
       pw_call<filter_false_matching_sig(CPU, particle)>(flag<CPU>(), reduced_dimgrid, dimblock,
                                                         &particles_vec1_[0],
                                                         n_particles_,
@@ -637,8 +637,6 @@ namespace cuimg
   {
     return *new_particles_;
   }
-
-
 
   template <typename F>
   const typename ofast_local_matcher<F>::particle_vector&
