@@ -57,6 +57,7 @@ namespace cuimg
     typedef image2d_target(target, i_short2) image2d_s2;
     typedef image2d_target(target, i_float4) image2d_f4;
     typedef image2d_target(target, char) image2d_c;
+    typedef image2d_target(target, feature_t) image2d_F;
 
 
     struct particle
@@ -64,9 +65,10 @@ namespace cuimg
       __host__ __device__
       particle() : age(0), fault(0), speed(0.f, 0.f) {}
       __host__ __device__
-      particle(int a, feature_t s, i_float2 speed) : age(a), fault(0), state(s), speed(speed) {}
+      particle(int a, feature_t s, i_float2 speed) : age(a), fault(0), // state(s), 
+                                                     speed(speed) {}
 
-      feature_t state;
+      // feature_t state;
 
       i_float2 speed;
       //i_float2 acceleration;
@@ -122,6 +124,8 @@ namespace cuimg
     image2d_f4 fm_disp_;
 
     image2d_s2 matches_;
+
+    image2d_F states_;
 
     i_short2_vector particles_vec1_;
     i_short2_vector particles_vec2_;

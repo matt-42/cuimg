@@ -75,7 +75,7 @@ A$j#slurp
 #end for
 #end def
 
-#for $i in range(0, 15)
+#for $i in range(0, 20)
 $template_headers($i, "CPU")
   void pw_call(const flag<CPU>&, dim3 dimgrid, dim3 dimblock$arg_decl($i))
   {

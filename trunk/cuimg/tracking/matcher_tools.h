@@ -181,6 +181,7 @@ namespace cuimg
     kernel_image2d<T>,                          \
     kernel_image2d<i_float1>,                   \
     kernel_image2d<i_float4>,                   \
+    kernel_image2d<typename F::feature_t> ,     \
     &create_particles_kernel_<TG, F, T>         \
 
   template <unsigned target, typename F, typename T>
@@ -188,6 +189,7 @@ namespace cuimg
                                            F f,
                                            kernel_image2d<T> particles,
                                            kernel_image2d<i_float1> pertinence,
+                                           kernel_image2d<typename F::feature_t> states,
                                            kernel_image2d<i_float4> test_)
   {
     point2d<int> p = thread_pos2d(ti);
@@ -198,9 +200,9 @@ namespace cuimg
     {
       particles(p).age = 1;
       particles(p).fault = 0;
-      particles(p).state = f.new_state(p);
       particles(p).speed = i_float2(0.f, 0.f);
       particles(p).acceleration = i_float2(0.f, 0.f);
+      states(p) = f.new_state(p);
       test_(p) = i_float4(0.f, 1.f, 0.f, 1.f);
     }
     else
@@ -213,7 +215,7 @@ namespace cuimg
   F,                                                \
     kernel_image2d<T> ,                             \
     kernel_image2d<i_float1> ,                      \
-    kernel_image2d<i_float4> ,                      \
+    kernel_image2d<F::feature_t> ,                  \
     &create_particles_kernel<TG, F, T>
 
   template <unsigned target, typename F, typename T>
@@ -221,7 +223,7 @@ namespace cuimg
                                                    F f,
                                                    kernel_image2d<T> particles,
                                                    kernel_image2d<i_float1> pertinence,
-                                                   kernel_image2d<i_float4> test_)
+                                                   kernel_image2d<typename F::feature_t> states)
   {
     point2d<int> p = thread_pos2d(ti);
     if (!particles.has(p) || p.row() < 12 || p.row() > particles.domain().nrows() - 12 ||
@@ -256,9 +258,10 @@ namespace cuimg
         T np;
         np.ipos = i_int2(p);
         np.age = 1;
-        np.state = f.new_state(p);
+        // np.state = f.new_state(p);
         np.speed = i_float2(0.f, 0.f);
 
+        states(p) = f.new_state(p);
         particles(p) = np;
       }
       else
