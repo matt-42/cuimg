@@ -186,6 +186,7 @@ namespace cuimg
 			       cudaStream_t stream, dim3 dimblock)
   {
     typedef typename I::value_type V;
+    typedef typename change_coord_type<float, V>::ret VI;
     assert(in.domain() == out.domain());
 
     float kernel[KERNEL_HALF_SIZE*2];
@@ -196,7 +197,7 @@ namespace cuimg
     for (unsigned r = KERNEL_HALF_SIZE; r < in.nrows() - KERNEL_HALF_SIZE; r++)
       for (unsigned c = KERNEL_HALF_SIZE; c < in.ncols() - KERNEL_HALF_SIZE; c++)
       {
-	V res = zero();
+	VI res = zero();
 	for (unsigned k = 0; k < KERNEL_HALF_SIZE * 2; k++)
 	  res += in(r, c + k - KERNEL_HALF_SIZE) * kernel[k];
 	out(r, c) = res;
@@ -294,6 +295,7 @@ namespace cuimg
 			   cudaStream_t stream, dim3 dimblock)
   {
     typedef typename I::value_type V;
+    typedef typename change_coord_type<float, V>::ret VI;
     assert(in.domain() == out.domain());
 
     float kernel[KERNEL_HALF_SIZE*2+1];
@@ -304,7 +306,7 @@ namespace cuimg
     for (unsigned r = KERNEL_HALF_SIZE; r < in.nrows() - KERNEL_HALF_SIZE; r++)
       for (unsigned c = KERNEL_HALF_SIZE; c < in.ncols() - KERNEL_HALF_SIZE; c++)
       {
-	V res = zero();
+	VI res = zero();
 	for (unsigned k = 0; k < KERNEL_HALF_SIZE * 2 + 1; k++)
 	  res += in(r + k - KERNEL_HALF_SIZE, c) * kernel[k];
 	out(r, c) = res;

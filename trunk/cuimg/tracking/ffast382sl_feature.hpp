@@ -7,6 +7,7 @@
 
 # include <cuimg/copy.h>
 # include <cuimg/pw_call.h>
+# include <cuimg/gl.h>
 # include <cuimg/neighb2d_data.h>
 # include <cuimg/gpu/local_jet_static.h>
 # include <cuimg/dsl/binary_div.h>
@@ -22,6 +23,8 @@
 # include <cuimg/gpu/texture.h>
 
 # include <cuimg/dige.h>
+
+# include <emmintrin.h>
 
 #include <dige/widgets/image_view.h>
 
@@ -284,13 +287,13 @@ namespace cuimg
       for(int i = 0; i < 8; i++)
       {
 
-        float v1 = tex2D(flag<GPU>(), s1_tex, frame_s1,
-                                 p.col() + circle_r3[i][1],
-                                 p.row() + circle_r3[i][0]).x;
+        gl01f v1 = tex2D(flag<GPU>(), s1_tex, frame_s1,
+			   p.col() + circle_r3[i][1],
+			   p.row() + circle_r3[i][0]).x;
 
-        float v2 = tex2D(flag<GPU>(), s1_tex, frame_s1,
-                                 p.col() + circle_r3[(i+8)][1],
-                                 p.row() + circle_r3[(i+8)][0]).x;
+        gl01f v2 = tex2D(flag<GPU>(), s1_tex, frame_s1,
+			   p.col() + circle_r3[(i+8)][1],
+			   p.row() + circle_r3[(i+8)][0]).x;
 
         {
           float diff = pv -
@@ -320,13 +323,13 @@ namespace cuimg
       for(int i = 0; i < 8; i++)
       {
 
-        float v1 = tex2D(flag<GPU>(), s2_tex, frame_s2,
-                         p.col()/2 + circle_r3[i][1],
-                         p.row()/2 + circle_r3[i][0]).x;
+        gl01f v1 = tex2D(flag<GPU>(), s2_tex, frame_s2,
+			   p.col()/2 + circle_r3[i][1],
+			   p.row()/2 + circle_r3[i][0]);
 
-        float v2 = tex2D(flag<GPU>(), s2_tex, frame_s2,
-                         p.col()/2 + circle_r3[(i+8)][1],
-                         p.row()/2 + circle_r3[(i+8)][0]).x;
+        gl01f v2 = tex2D(flag<GPU>(), s2_tex, frame_s2,
+			   p.col()/2 + circle_r3[(i+8)][1],
+			   p.row()/2 + circle_r3[(i+8)][0]);
 
         {
           float diff = pv - (v1 + v2) / 2.f;
@@ -392,24 +395,23 @@ namespace cuimg
 
     // dffast382sl distances;
 
-    float pv;
+    gl01f pv;
 
     {
       float min_diff = 9999999.f;
       float max_single_diff = 0.f;
-      pv = tex2D(flag<CPU>(), s1_tex, frame_s1, p).x;
+      pv = V(tex2D(flag<CPU>(), s1_tex, frame_s1, p));
       int sign = 0;
       for(int i = 0; i < 8; i++)
       {
 
-        float v1 = tex2D(flag<CPU>(), s1_tex, frame_s1,
-                                 p.col() + circle_r3_h[i][1],
-                                 p.row() + circle_r3_h[i][0]).x;
+        gl01f v1 = V(tex2D(flag<CPU>(), s1_tex, frame_s1,
+			   p.col() + circle_r3_h[i][1],
+			   p.row() + circle_r3_h[i][0]));
 
-        float v2 = tex2D(flag<CPU>(), s1_tex, frame_s1,
-                                 p.col() + circle_r3_h[(i+8)][1],
-                                 p.row() + circle_r3_h[(i+8)][0]).x;
-
+        gl01f v2 = V(tex2D(flag<CPU>(), s1_tex, frame_s1,
+			   p.col() + circle_r3_h[(i+8)][1],
+			   p.row() + circle_r3_h[(i+8)][0]));
 
         // if (!(i % 2))
         // {
@@ -434,20 +436,20 @@ namespace cuimg
         }
       }
 
-      pv = tex2D(flag<CPU>(), s2_tex, frame_s2, p.col()/2, p.row()/2).x;
+      pv = V(tex2D(flag<CPU>(), s2_tex, frame_s2, p.col()/2, p.row()/2));
       float min_diff_large = 9999999.f;
       float max_single_diff_large = 0.f;
       //int min_orientation_large;
       for(int i = 0; i < 8; i++)
       {
 
-        float v1 = tex2D(flag<CPU>(), s2_tex, frame_s2,
+        gl01f v1 = V(tex2D(flag<CPU>(), s2_tex, frame_s2,
                          p.col()/2 + circle_r3_h[i][1],
-                         p.row()/2 + circle_r3_h[i][0]).x;
+			   p.row()/2 + circle_r3_h[i][0]));
 
-        float v2 = tex2D(flag<CPU>(), s2_tex, frame_s2,
+        gl01f v2 = V(tex2D(flag<CPU>(), s2_tex, frame_s2,
                          p.col()/2 + circle_r3_h[(i+8)][1],
-                         p.row()/2 + circle_r3_h[(i+8)][0]).x;
+                         p.row()/2 + circle_r3_h[(i+8)][0]));
 
         {
           float diff = pv - (v1 + v2) / 2.f;
@@ -479,7 +481,9 @@ namespace cuimg
       else
         min_diff = 0;
 
-      pertinence(p) = min_diff;
+       pertinence(p) = min_diff;
+      // pertinence(p) = p.col() / float(frame_s1.ncols());
+      // pertinence(p) = float(frame_s1(p)) / 255.f;
       // out(p) = distances;
 
     }
@@ -508,9 +512,9 @@ kernel_image2d<dffast382sl> in,                  \
     out(p) = res;
   }
 
-  template <unsigned T>
+  template <typename V, unsigned T>
   inline
-  ffast382sl_feature<T>::ffast382sl_feature(const domain_t& d)
+  ffast382sl_feature<V, T>::ffast382sl_feature(const domain_t& d)
     : gl_frame_(d),
       blurred_s1_(d),
       blurred_s2_(d),
@@ -522,7 +526,7 @@ kernel_image2d<dffast382sl> in,                  \
       ffast382sl_color_(d),
       color_blurred_(d),
       color_tmp_(d),
-      grad_thresh_(0.06f),
+      grad_thresh_(0.03f),
       frame_cpt_(0)
   {
     f_prev_ = &f1_;
@@ -533,10 +537,10 @@ kernel_image2d<dffast382sl> in,                  \
 
   }
 
-  template <unsigned T>
+  template <typename V, unsigned T>
   inline
   void
-  ffast382sl_feature<T>::update(const image2d_f1& in, const image2d_f1& in_s2)
+  ffast382sl_feature<V, T>::update(const image2d_V& in, const image2d_V& in_s2)
   {
     frame_cpt_++;
     swap_buffers();
@@ -559,7 +563,7 @@ kernel_image2d<dffast382sl> in,                  \
       bindTexture2d(blurred_s2_, s2_tex);
     }
 
-    pw_call<FFAST382SL_sig(target, i_float1)>(flag<target>(), dimgrid, dimblock,
+    pw_call<FFAST382SL_sig(target, V)>(flag<target>(), dimgrid, dimblock,
                                              color_blurred_, blurred_s1_, blurred_s2_,
                                              //*f_,
 					      pertinence_, grad_thresh_);
@@ -577,88 +581,88 @@ kernel_image2d<dffast382sl> in,                  \
     }
   }
 
-  template <unsigned T>
+  template <typename V, unsigned T>
   inline
-  const typename ffast382sl_feature<T>::image2d_f4&
-  ffast382sl_feature<T>::feature_color() const
+  const typename ffast382sl_feature<V, T>::image2d_f4&
+  ffast382sl_feature<V, T>::feature_color() const
   {
     return ffast382sl_color_;
   }
 
-  template <unsigned T>
+  template <typename V, unsigned T>
   inline
   void
-  ffast382sl_feature<T>::swap_buffers()
+  ffast382sl_feature<V, T>::swap_buffers()
   {
     std::swap(f_prev_, f_);
   }
 
-  template <unsigned T>
+  template <typename V, unsigned T>
   inline
   void
-  ffast382sl_feature<T>::set_detector_thresh(float t)
+  ffast382sl_feature<V, T>::set_detector_thresh(float t)
   {
     grad_thresh_ = t;
   }
 
-  template <unsigned T>
+  template <typename V, unsigned T>
   inline
-  const typename ffast382sl_feature<T>::domain_t&
-  ffast382sl_feature<T>::domain() const
+  const typename ffast382sl_feature<V, T>::domain_t&
+  ffast382sl_feature<V, T>::domain() const
   {
     return f1_.domain();
   }
 
-  template <unsigned T>
+  template <typename V, unsigned T>
   inline
-  typename ffast382sl_feature<T>::image2d_D&
-  ffast382sl_feature<T>::previous_frame()
+  typename ffast382sl_feature<V, T>::image2d_D&
+  ffast382sl_feature<V, T>::previous_frame()
   {
     return *f_prev_;
   }
 
 
-  template <unsigned T>
+  template <typename V, unsigned T>
   inline
-  typename ffast382sl_feature<T>::image2d_D&
-  ffast382sl_feature<T>::current_frame()
+  typename ffast382sl_feature<V, T>::image2d_D&
+  ffast382sl_feature<V, T>::current_frame()
   {
     return *f_;
   }
 
-  template <unsigned T>
+  template <typename V, unsigned T>
   inline
-  typename ffast382sl_feature<T>::image2d_f1&
-  ffast382sl_feature<T>::s1()
+  typename ffast382sl_feature<V, T>::image2d_V&
+  ffast382sl_feature<V, T>::s1()
   {
     return blurred_s1_;
   }
 
-  template <unsigned T>
+  template <typename V, unsigned T>
   inline
-  typename ffast382sl_feature<T>::image2d_f1&
-  ffast382sl_feature<T>::s2()
+  typename ffast382sl_feature<V, T>::image2d_V&
+  ffast382sl_feature<V, T>::s2()
   {
     return blurred_s2_;
   }
 
-  template <unsigned T>
+  template <typename V, unsigned T>
   inline
-  typename ffast382sl_feature<T>::image2d_f1&
-  ffast382sl_feature<T>::pertinence()
+  typename ffast382sl_feature<V, T>::image2d_f1&
+  ffast382sl_feature<V, T>::pertinence()
   {
     return pertinence_;
   }
 
 
-    template <unsigned target>
-    __host__ __device__
-    inline
-    kernel_ffast382sl_feature::kernel_ffast382sl_feature(ffast382sl_feature<target>& f)
+  template <typename V>
+  template <unsigned target>
+  __host__ __device__
+  inline
+  kernel_ffast382sl_feature<V>::kernel_ffast382sl_feature(ffast382sl_feature<V, target>& f)
     : pertinence_(f.pertinence()),
-      f_prev_(f.previous_frame()),
-      s1_(f.s1()),
-      s2_(f.s2())
+    s1_(f.s1()),
+    s2_(f.s2())
   {
   }
 
@@ -680,9 +684,10 @@ kernel_image2d<dffast382sl> in,                  \
   // }
 
 
+  template <typename V>
   inline
   __host__ __device__ float
-  kernel_ffast382sl_feature::distance_linear_s2(const dffast382sl& a,
+  kernel_ffast382sl_feature<V>::distance_linear_s2(const dffast382sl& a,
                                 const dffast382sl& b)
   {
     return cuimg::distance_mean_linear_s2(a, b);
@@ -691,47 +696,92 @@ kernel_image2d<dffast382sl> in,                  \
 
   // inline
   // __host__ __device__ float
-  // kernel_ffast382sl_feature::distance_linear(const point2d<int>& p_prev,
+  // kernel_ffast382sl_feature<V>::distance_linear(const point2d<int>& p_prev,
   //                                           const point2d<int>& p_cur)
   // {
   //   return cuimg::distance_mean_linear(f_(p_prev), f_(p_cur));
   // }
 
+  template <typename V>
   inline
   __host__ __device__ float
-  kernel_ffast382sl_feature::distance_linear(const dffast382sl& a,
+  kernel_ffast382sl_feature<V>::distance_linear(const dffast382sl& a,
                                 const dffast382sl& b)
   {
     return cuimg::distance_mean_linear(a, b);
   }
 
 
+  template <typename V>
   inline
   __host__ __device__ dffast382sl
-  kernel_ffast382sl_feature::weighted_mean(const dffast382sl& a, float aw,
+  kernel_ffast382sl_feature<V>::weighted_mean(const dffast382sl& a, float aw,
                                           const point2d<int>& n, float bw)
   {
     return new_state(n);
   }
 
-  inline
-  __host__ __device__ float kernel_ffast382sl_feature::distance_linear(const dffast382sl& a,
-								      const point2d<int>& n)
+
+
+  union vector4f
   {
-    float d = 0;
+    __m128i vi;
+    unsigned char uc[16];
+    unsigned short us[8];
+  };
+
+  // template <typename V>
+  // inline
+  // __host__ __device__ float
+  // kernel_ffast382sl_feature<V>::distance_linear(const dffast382sl& a,
+  // 						const point2d<int>& n)
+  // {
+  //   // float d = 0;
+
+  //   vector4f b;
+
+  //   for(int i = 0; i < 8; i ++)
+  //   {
+  //     gl8u v = s1_(n.row() + circle_r3[i*2][0],
+  // 		    n.col() + circle_r3[i*2][1]);
+  //     b.uc[i] = v;
+  //   }
+
+  //   for(int i = 0; i < 8; i ++)
+  //   {
+  //     gl8u v = s2_(n.row() / 2 + circle_r3[i*2][0],
+  //   		   n.col() / 2 + circle_r3[i*2][1]);
+  //     b.uc[i+8] = v;
+  //   }
+
+  //   vector4f av;
+  //   for(int i = 0; i < 8; i++)
+  //     av.uc[i] = a[i];
+  //   vector4f sum;
+  //   sum.vi = _mm_sad_epu8(av.vi, b.vi);
+  //   return (float(sum.us[0]) + float(sum.us[4])) / (255.f * 16.f);
+  // }
+
+  template <typename V>
+  inline
+  __host__ __device__ float
+  kernel_ffast382sl_feature<V>::distance_linear(const dffast382sl& a,
+  						const point2d<int>& n)
+  {
+    unsigned short d = 0;
 
     for(int i = 0; i < 8; i ++)
     {
-      float v = s1_(n.row() + circle_r3[i*2][0],
-    		   n.col() + circle_r3[i*2][1]).x * 255.f;
-      d += fabs(v - a[i]);
+      gl8u v = s1_(n.row() + circle_r3[i*2][0],
+  		   n.col() + circle_r3[i*2][1]);
+      d += ::abs(v - a[i]);
     }
 
     for(int i = 0; i < 8; i ++)
     {
-      float v = s2_(n.row() / 2 + circle_r3[i*2][0],
-    		    n.col() / 2 + circle_r3[i*2][1]).x * 255.f;
-      d += fabs(v - a[8+i]);
+      gl8u v = s2_(n.row() / 2 + circle_r3[i*2][0],
+  		   n.col() / 2 + circle_r3[i*2][1]);
+      d += ::abs(v - a[8+i]);
     }
     return d / (255.f * 16.f);
 
@@ -752,9 +802,10 @@ kernel_image2d<dffast382sl> in,                  \
     // return cuimg::distance_mean_linear(a, new_state(n));
   }
 
+  template <typename V>
   inline
   __host__ __device__ float
-  kernel_ffast382sl_feature::distance_s2(const dffast382sl& a,
+  kernel_ffast382sl_feature<V>::distance_s2(const dffast382sl& a,
 					const dffast382sl& b)
   {
     return cuimg::distance_mean_s2(a, b);
@@ -762,59 +813,63 @@ kernel_image2d<dffast382sl> in,                  \
 
   // inline __host__ __device__
   // kernel_image2d<dffast382sl>&
-  // kernel_ffast382sl_feature::previous_frame()
+  // kernel_ffast382sl_feature<V>::previous_frame()
   // {
   //   return f_prev_;
   // }
 
   // inline __host__ __device__
   // kernel_image2d<dffast382sl>&
-  // kernel_ffast382sl_feature::current_frame()
+  // kernel_ffast382sl_feature<V>::current_frame()
   // {
   //   return f_;
   // }
 
 
+  template <typename V>
   inline __host__ __device__
-  kernel_image2d<i_float1>&
-  kernel_ffast382sl_feature::s1()
+  kernel_image2d<V>&
+  kernel_ffast382sl_feature<V>::s1()
   {
     return s1_;
   }
 
+  template <typename V>
   inline __host__ __device__
-  kernel_image2d<i_float1>&
-  kernel_ffast382sl_feature::s2()
+  kernel_image2d<V>&
+  kernel_ffast382sl_feature<V>::s2()
   {
     return s2_;
   }
 
+  template <typename V>
   inline __host__ __device__
   kernel_image2d<i_float1>&
-  kernel_ffast382sl_feature::pertinence()
+  kernel_ffast382sl_feature<V>::pertinence()
   {
     return pertinence_;
   }
 
+  template <typename V>
   inline
   __host__ __device__ dffast382sl
-  kernel_ffast382sl_feature::new_state(const point2d<int>& n)
+  kernel_ffast382sl_feature<V>::new_state(const point2d<int>& n)
   {
     dffast382sl b;
     for(int i = 0; i < 16; i += 2)
       b[i/2] = s1_(n.row() + circle_r3[i][0],
-    		   n.col() + circle_r3[i][1]).x * 255.f;
+    		   n.col() + circle_r3[i][1]);
     for(int i = 0; i < 16; i += 2)
       b[i/2+8] = s2_(n.row() / 2 + circle_r3[i][0],
-    		     n.col() / 2 + circle_r3[i][1]).x * 255.f;
+    		     n.col() / 2 + circle_r3[i][1]);
     return b;
     //return f_(n);
   }
 
-  template <unsigned T>
+  template <typename V, unsigned T>
   inline
   void
-  ffast382sl_feature<T>::display() const
+  ffast382sl_feature<V, T>::display() const
   {
 #ifdef WITH_DISPLAY
     dim3 dimblock(16, 16, 1);

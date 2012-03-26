@@ -13,6 +13,8 @@
 #include <cuimg/gpu/cuda.h>
 
 #include <cuimg/literals.h>
+#include <cuimg/value_traits.h>
+
 #include "meta.h"
 
 namespace cuimg
@@ -80,6 +82,12 @@ class improved_builtin : public make_cuda_bt<T, N>::ret
   __host__ __device__ inline self& operator*=(const S& s);
   template <typename S>
   __host__ __device__ inline self& operator/=(const S& s);
+};
+
+template <typename NC, typename T, unsigned N>
+struct change_coord_type<NC, improved_builtin<T, N> >
+{
+  typedef improved_builtin<NC, N> ret;
 };
 
 template <unsigned S>

@@ -105,7 +105,7 @@ namespace cuimg
     domain_ = img.domain();
     pitch_ = img.pitch();
     data_ = img.data_;
-    buffer_ = data_.get();
+    buffer_ = img.buffer_;
     return *this;
   }
 
@@ -125,7 +125,7 @@ namespace cuimg
   {
     pitch_ = imgIpl->depth;
     data_ = PT((V*) imgIpl->imageData, dummy_free<V>);
-    buffer_ = data_.get();
+    buffer_ = (V*) imgIpl->imageData;
     return *this;
   }
 #endif

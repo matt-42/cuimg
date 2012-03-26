@@ -4,6 +4,7 @@
 # include <cuimg/improved_builtin.h>
 # include <cuimg/tracking/multi_scale_tracker.h>
 # include <cuimg/gpu/mipmap.h>
+# include <cuimg/dsl/dsl_cast.h>
 # include <cuimg/pw_call.h>
 # include <dige/recorder.h>
 
@@ -19,9 +20,9 @@ namespace cuimg
       dummy_matches_(d),
       mvt_detector_thread_(d)
   {
-    pyramid_ = allocate_mipmap(i_float1(), frame_, PS);
-    pyramid_tmp1_ = allocate_mipmap(i_float1(), frame_, PS);
-    pyramid_tmp2_ = allocate_mipmap(i_float1(), frame_, PS);
+    pyramid_ = allocate_mipmap(V(), frame_, PS);
+    pyramid_tmp1_ = allocate_mipmap(V(), frame_, PS);
+    pyramid_tmp2_ = allocate_mipmap(V(), frame_, PS);
 
     pyramid_display1_ = allocate_mipmap(i_float4(), frame_, PS);
     pyramid_display2_ = allocate_mipmap(i_float4(), frame_, PS);
@@ -57,7 +58,6 @@ namespace cuimg
   {
     return frame_.domain();
   }
-
 
   template <typename V>
   __host__ __device__ void plot_c4(kernel_image2d<V>& out, point2d<int>& p, const V& value)
@@ -245,18 +245,34 @@ extern "C" {
       }
   }
 
-
-  template <typename I, typename J>
-  void prepare_input_frame(const flag<GPU>&, const host_image2d<i_uchar3>& in, I& frame, J& tmp_uc3)
+  template <typename I, typename O>
+  void to_graylevel(const Image2d<I>& in_, Image2d<O>& out_, gl01f)
   {
-      copy(in, tmp_uc3);
-      frame = (get_x(tmp_uc3) + get_y(tmp_uc3) + get_z(tmp_uc3)) / (3.f * 255.f);
+    const I& in = exact(in_);
+    O& out = exact(out_);
+    out = (get_x(in) + get_y(in) + get_z(in)) / (3.f * 255.f);
+  }
+
+  template <typename I, typename O>
+  void to_graylevel(const Image2d<I>& in_, Image2d<O>& out_, gl8u)
+  {
+    const I& in = exact(in_);
+    O& out = exact(out_);
+    out = dsl_cast<unsigned char>::run(((get_x(in)) + get_y(in) + get_z(in)) / (3));
   }
 
   template <typename I, typename J>
   void prepare_input_frame(const flag<CPU>&, const host_image2d<i_uchar3>& in, I& frame, J&)
   {
-      to_graylevelf(in, frame);
+    to_graylevel(in, frame, typename I::value_type());
+    // ImageView("video", 400, 400) << frame << dg::widgets::show;
+  }
+
+  template <typename I, typename J>
+  void prepare_input_frame(const flag<GPU>&, const host_image2d<i_uchar3>& in, I& frame, J& tmp_uc3)
+  {
+    copy(in, tmp_uc3);
+    to_graylevel(tmp_uc3, frame, typename I::value_type());
   }
 
   template <typename F, template <class>  class SA_>
@@ -348,6 +364,36 @@ extern "C" {
     // dg::record("views.avi") <<= ImageView("video") <<= dg::dl() - pyramid_display1_[TD] - feature_[TD]->pertinence() +
     //   traj_tracer_.straj() - of;
 #endif
+  }
+
+  template <typename F, template <class>  class SA_>
+  inline
+  const typename multi_scale_tracker<F, SA_>::particle_vector&
+  multi_scale_tracker<F, SA_>::particles(unsigned scale) const
+  {
+    if (scale < PS)
+      return matcher_[scale]->compact_particles();
+    else
+      return matcher_[PS - 1]->compact_particles();
+  }
+
+  template <typename F, template <class>  class SA_>
+  inline
+  unsigned
+  multi_scale_tracker<F, SA_>::nparticles(unsigned scale) const
+  {
+    if (scale < PS)
+      return matcher_[scale]->n_particles();
+    else
+      return matcher_[PS - 1]->n_particles();
+  }
+
+  template <typename F, template <class>  class SA_>
+  inline
+  const typename multi_scale_tracker<F, SA_>::image2d_c&
+  multi_scale_tracker<F, SA_>::errors() const
+  {
+    return matcher_[0]->errors();
   }
 
 }

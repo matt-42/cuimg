@@ -20,9 +20,11 @@ namespace cuimg
 
     enum { target = F::target };
 
+    typedef typename F::vtype V;
     typedef image2d_target(target, i_uchar3) image2d_uc3;
     typedef image2d_target(target, i_short2) image2d_s2;
     typedef image2d_target(target, i_float1) image2d_f1;
+    typedef image2d_target(target, V) image2d_V;
     typedef image2d_target(target, i_float4) image2d_f4;
     typedef image2d_target(target, char) image2d_c;
 
@@ -39,51 +41,19 @@ namespace cuimg
 
     const D& domain() const;
 
-    void update(const host_image2d<i_uchar3>& in);
-
-    const image2d_P& particles() const
-    {
-      return matcher_[0]->particles();
-    }
-
-    const particle_vector& particles(unsigned scale) const
-    {
-      if (scale < PS)
-	return matcher_[scale]->compact_particles();
-      else
-	return matcher_[PS - 1]->compact_particles();
-    }
-
-    unsigned nparticles(unsigned scale) const
-    {
-      if (scale < PS)
-	return matcher_[scale]->n_particles();
-      else
-	return matcher_[PS - 1]->n_particles();
-    }
-
-    const i_short2_vector& particle_positions(unsigned scale) const
-    {
-      if (scale < PS)
-	return matcher_[scale]->particle_positions();
-      else
-	return matcher_[PS - 1]->particle_positions();
-    }
-
-    const image2d_c& errors() const
-    {
-      return matcher_[0]->errors();
-    }
-
+    void                   update(const host_image2d<i_uchar3>& in);
+    const particle_vector& particles(unsigned scale) const;
+    unsigned               nparticles(unsigned scale) const;
+    const image2d_c&       errors() const;
 
   private:
     void display();
 
     image2d_uc3 frame_uc3_;
-    image2d_f1 frame_;
-    std::vector<image2d_f1 > pyramid_;
-    std::vector<image2d_f1 > pyramid_tmp1_;
-    std::vector<image2d_f1 > pyramid_tmp2_;
+    image2d_V frame_;
+    std::vector<image2d_V > pyramid_;
+    std::vector<image2d_V > pyramid_tmp1_;
+    std::vector<image2d_V > pyramid_tmp2_;
 
     std::vector<F*> feature_;
     std::vector<SA*> matcher_;

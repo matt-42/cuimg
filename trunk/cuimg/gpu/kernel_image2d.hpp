@@ -26,7 +26,7 @@ namespace cuimg
   kernel_image2d<V>::kernel_image2d(const Image2d<I>& img)
     : domain_(exact(img).domain()),
       pitch_(exact(img).pitch()),
-      data_(const_cast<V*>(exact(img).data()))
+      data_((V*)(exact(img).data()))
   {
   }
 

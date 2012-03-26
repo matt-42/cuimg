@@ -13,6 +13,7 @@
 
 # include <dige/image.h>
 
+# include <cuimg/gl.h>
 # include <cuimg/cpu/host_image2d.h>
 # include <cuimg/gpu/device_image2d.h>
 # include <cuimg/gpu/device_image2d_math.h>
@@ -26,16 +27,29 @@ namespace dg
 
   template <typename T>
   image<trait::format::bgr, T>
-    adapt(const cuimg::host_image2d<cuimg::improved_builtin<T, 3> >& i)
+  adapt(const cuimg::host_image2d<cuimg::improved_builtin<T, 3> >& i)
   {
     return image<trait::format::bgr, T>
       (i.ncols(), i.nrows(), (T*)i.data());
   }
 
+  inline image<trait::format::luminance, unsigned char>
+  adapt(const cuimg::host_image2d<cuimg::gl8u>& i)
+  {
+    return image<trait::format::luminance, unsigned char>
+      (i.ncols(), i.nrows(), (unsigned char*)i.data());
+  }
+
+  inline image<trait::format::luminance, float>
+  adapt(const cuimg::host_image2d<cuimg::gl01f>& i)
+  {
+    return image<trait::format::luminance, float>
+      (i.ncols(), i.nrows(), (float*)i.data());
+  }
 
   template <typename T>
   image<trait::format::rgba, T>
-    adapt(const cuimg::host_image2d<cuimg::improved_builtin<T, 4> >& i)
+  adapt(const cuimg::host_image2d<cuimg::improved_builtin<T, 4> >& i)
   {
     return image<trait::format::rgba, T>
       (i.ncols(), i.nrows(), (T*)i.data());
@@ -43,15 +57,15 @@ namespace dg
 
   template <typename T>
   image<trait::format::luminance, T>
-    adapt(const cuimg::host_image2d<cuimg::improved_builtin<T, 1> >& i)
+  adapt(const cuimg::host_image2d<cuimg::improved_builtin<T, 1> >& i)
   {
     return image<trait::format::luminance, T>
       (i.ncols(), i.nrows(), (T*)i.data());
 
-}
+  }
   inline
   image<trait::format::luminance, unsigned short>
-    adapt(const cuimg::host_image2d<unsigned short>& i)
+  adapt(const cuimg::host_image2d<unsigned short>& i)
   {
     return image<trait::format::luminance, unsigned short>
       (i.ncols(), i.nrows(), (unsigned short*)i.data());
@@ -59,7 +73,7 @@ namespace dg
 
   inline
   image<trait::format::luminance, int>
-    adapt(const cuimg::host_image2d<int>& i)
+  adapt(const cuimg::host_image2d<int>& i)
   {
     return image<trait::format::luminance, int>
       (i.ncols(), i.nrows(), (int*)i.data());
@@ -72,11 +86,11 @@ namespace dg
     struct cuda_texture_cat
     {
       cuda_texture_cat()
-      : width(0), height(0), valuetype(0)
+	: width(0), height(0), valuetype(0)
       {}
 
       cuda_texture_cat(unsigned w, unsigned h, GLuint vt)
-      : width(w), height(h), valuetype(vt)
+	: width(w), height(h), valuetype(vt)
       {}
 
       unsigned width;
@@ -87,7 +101,7 @@ namespace dg
     struct tex_comp
     {
       bool operator()(const cuda_texture_cat& a,
-        const cuda_texture_cat& b)
+		      const cuda_texture_cat& b)
       {
         return (a.width < b.width) ||
           (a.height < b.height) ||
@@ -127,7 +141,7 @@ namespace dg
     void load()
     {
       internal::cuda_texture_cat texcat(img_.ncols(), img_.nrows(),
-                            ib_to_opengl_internal_type<cuimg::improved_builtin<V, N> >::val);
+					ib_to_opengl_internal_type<cuimg::improved_builtin<V, N> >::val);
       std::stack<internal::cuda_texture>& stack = internal::textures[texcat];
 
       if (stack.size() == 0)
@@ -148,7 +162,7 @@ namespace dg
         glBindTexture(GL_TEXTURE_2D, 0);
 
         cudaGraphicsGLRegisterImage(&cuda_tex_.resource, cuda_tex_.gl_id,
-          GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard);
+				    GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard);
         check_gl_error();
         cuimg::check_cuda_error();
       }

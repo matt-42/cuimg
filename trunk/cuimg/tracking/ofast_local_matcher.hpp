@@ -540,7 +540,9 @@ namespace cuimg
 
     if (n_particles_ > 0)
     {
-      dim3 reduced_dimgrid(1 + n_particles_ / (dimblock.x * dimblock.y), dimblock.y, 1);
+      // dim3 r_dimblock(n_particles_ / 8, 1, 1);
+      dim3 reduced_dimgrid(1 + n_particles_ / (dimblock.x * dimblock.y), 1, 1);
+      // dim3 reduced_dimgrid(9, 1, 1);
 
 #ifdef WITH_DISPLAY
       distance_ = aggregate<float>::run(1.f, 0.f, 0.f, 1.f);
