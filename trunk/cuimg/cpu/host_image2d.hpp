@@ -16,8 +16,7 @@ namespace cuimg
 
   template <typename V>
   host_image2d<V>::host_image2d(unsigned nrows, unsigned ncols, bool pinned)
-    : domain_(nrows, ncols),
-      pitch_(ncols * sizeof(V))
+    : domain_(nrows, ncols)
   {
     allocate(domain_, pinned);
   }
@@ -40,16 +39,27 @@ namespace cuimg
     if (pinned)
     {
       cudaMallocHost(&ptr, domain_.nrows() * domain_.ncols() * sizeof(V));
+      pitch_ = domain_.ncols() * sizeof(V);
       data_ = boost::shared_ptr<V>(ptr, cudaFreeHost);
+      buffer_ = data_.get();
     }
     else
 #endif
     {
-      ptr = new V[domain_.nrows() * domain_.ncols()];
+      pitch_ = d.ncols() * sizeof(V);
+      if (pitch_ % 4)
+      	pitch_ = pitch_ + 4 - (pitch_ & 3);
+      ptr = (V*) new char[domain_.nrows() * pitch_ + 64];
       data_ = boost::shared_ptr<V>(ptr, array_free<V>);
+
+      buffer_ = data_.get();
+      if (size_t(buffer_) % 4)
+      	buffer_ = (V*)((size_t(buffer_) + 4 - (size_t(buffer_) & 3)   ));
+
+      // assert(!(size_t(buffer_) % 64));
+      // assert(!(size_t(pitch_) % 64));
     }
 
-    buffer_ = data_.get();
   }
 
 
@@ -59,7 +69,7 @@ namespace cuimg
       pitch_(img.pitch()),
       data_(img.data_)
   {
-    buffer_ = data_.get();
+    buffer_ = img.buffer_;
   }
 
   template <typename V>
@@ -69,7 +79,7 @@ namespace cuimg
     domain_ = img.domain();
     pitch_ = img.pitch();
     data_ = img.data_;
-    buffer_ = data_.get();
+    buffer_ = img.buffer_;
     return *this;
   }
 
@@ -105,31 +115,44 @@ namespace cuimg
   template <typename V>
   inline V* host_image2d<V>::data()
   {
-    return data_.get();
+    return buffer_;
   }
 
   template <typename V>
   inline const V* host_image2d<V>::data() const
   {
-    return data_.get();
+    return buffer_;
   }
 
   template <typename V>
   inline size_t host_image2d<V>::buffer_size() const
   {
-    return sizeof(V) * nrows() * ncols();
+    return nrows() * pitch_;
   }
 
   template <typename V>
   inline V& host_image2d<V>::operator()(const point& p)
   {
-    return buffer_[p.row() * domain_.ncols() + p.col()];
+    return row(p.row())[p.col()];
   }
 
   template <typename V>
   inline const V& host_image2d<V>::operator()(const point& p) const
   {
-    return buffer_[p.row() * domain_.ncols() + p.col()];
+    return row(p.row())[p.col()];
+  }
+
+
+  template <typename V>
+  inline V* host_image2d<V>::row(unsigned i)
+  {
+    return (V*)(((char*)buffer_) + i * pitch_);
+  }
+
+  template <typename V>
+  inline const V* host_image2d<V>::row(unsigned i) const
+  {
+    return (V*)(((char*)buffer_) + i * pitch_);
   }
 
   template <typename V>

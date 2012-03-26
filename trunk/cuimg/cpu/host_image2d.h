@@ -42,6 +42,9 @@ namespace cuimg
     V& operator()(int r, int c);
     const V& operator()(int r, int c) const;
 
+    V* row(unsigned i);
+    const V* row(unsigned i) const;
+
     V* data();
     const V* data() const;
 

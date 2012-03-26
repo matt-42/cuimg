@@ -137,7 +137,7 @@ namespace dg
         check_gl_error();
         assert(cuda_tex_.gl_id);
         glBindTexture(GL_TEXTURE_2D, cuda_tex_.gl_id);
-        glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+        /* glPixelStorei(GL_UNPACK_ALIGNMENT,1); */
         glTexImage2D(GL_TEXTURE_2D,
                      0, ib_to_opengl_internal_type<cuimg::improved_builtin<V, N> >::val,
                      img_.ncols(), img_.nrows(),

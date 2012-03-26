@@ -65,7 +65,7 @@ namespace cuimg
       __host__ __device__
       particle() : age(0), fault(0), speed(0.f, 0.f) {}
       __host__ __device__
-      particle(int a, feature_t s, i_float2 speed) : age(a), fault(0), // state(s), 
+      particle(int a, feature_t s, i_float2 speed) : age(a), fault(0), // state(s),
                                                      speed(speed) {}
 
       // feature_t state;
@@ -75,10 +75,11 @@ namespace cuimg
       i_float2 brut_acceleration;
 
       i_short2 ipos;
+      i_short2 pos;
       unsigned short age;
       unsigned short fault;
       float pertinence;
-      i_int2 __padding__;
+      i_short2 __padding__;
     };
 
     typedef typename thrust_vector<target, particle>::ret particle_vector;

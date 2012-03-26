@@ -165,20 +165,20 @@ namespace cuimg
       dim3 dimgrid = grid_dimension(out.domain(), dimblock);
 
 #ifndef NO_CUDA
-      if (I::target == GPU)
+      if (I::target == unsigned(GPU))
         bindTexture2d(gaussian, mipmap_internals::UNIT_STATIC(mipmap_input_tex)<V>::tex());
 #endif
 
       pw_call<mipmap_kernel_sig(I::target, U)>(flag<I::target>(), dimgrid, dimblock, gaussian, out);
 
 #ifndef NO_CUDA
-      if (I::target == GPU)
+      if (I::target == unsigned(GPU))
         cudaUnbindTexture(mipmap_internals::UNIT_STATIC(mipmap_input_tex)<V>::tex());
 #endif
 
       c = out;
 
-      if (I::target == GPU)
+      if (I::target == unsigned(GPU))
         check_cuda_error();
     }
 

@@ -6,6 +6,8 @@
 # include <cuimg/point2d.h>
 # include <cuimg/obox2d.h>
 # include <cuimg/improved_builtin.h>
+# include <cuimg/target.h>
+# include <cuimg/image2d_target.h>
 
 namespace cuimg
 {
@@ -70,17 +72,28 @@ namespace cuimg
 
   class kernel_ffast382sl_feature;
 
+  template <unsigned T>
   class ffast382sl_feature
   {
   public:
+    enum { target = T };
+
+
+    typedef image2d_target(target, i_uchar3) image2d_uc3;
+    typedef image2d_target(target, i_float1) image2d_f1;
+    typedef image2d_target(target, i_float4) image2d_f4;
+    typedef image2d_target(target, char) image2d_c;
+
+
     typedef dffast382sl feature_t;
+    typedef image2d_target(target, feature_t) image2d_D;
+
     typedef obox2d<point2d<int> > domain_t;
 
-    typedef kernel_ffast382sl_feature kernel_type;
+    typedef kernel_ffast382sl_feature kernel_type; // client side GPU type.
 
     inline ffast382sl_feature(const domain_t& d);
 
-    inline void update(const image2d_f4& in);
     inline void update(const image2d_f1& in, const image2d_f1& in_s2);
 
     inline const domain_t& domain() const;
@@ -88,14 +101,17 @@ namespace cuimg
     inline image2d_D& previous_frame();
     inline image2d_D& current_frame();
     inline image2d_f1& pertinence();
+    inline image2d_f1& s1();
+    inline image2d_f1& s2();
 
     const image2d_f4& feature_color() const;
 
     void display() const;
 
+    void set_detector_thresh(float thr);
+
   private:
     inline void swap_buffers();
-
 
     image2d_f1 gl_frame_;
     image2d_f1 blurred_s1_;
@@ -116,9 +132,10 @@ namespace cuimg
     image2d_f4 color_blurred_;
     image2d_f4 color_tmp_;
 
-    float grad_thresh;
+    float grad_thresh_;
 
     cudaStream_t cuda_stream_;
+    int frame_cpt_;
   };
 
   class kernel_ffast382sl_feature
@@ -126,48 +143,57 @@ namespace cuimg
   public:
     typedef dffast382sl feature_t;
 
-    inline kernel_ffast382sl_feature(ffast382sl_feature& f);
+    template <unsigned target>
+    __host__ __device__
+    inline kernel_ffast382sl_feature(ffast382sl_feature<target>& f);
 
 
     inline
-    __device__ float distance(const point2d<int>& p_prev,
+    __host__ __device__ float distance(const point2d<int>& p_prev,
                               const point2d<int>& p_cur);
 
     inline
-    __device__ float distance_linear(const dffast382sl& a, const dffast382sl& b);
+    __host__ __device__ float distance_linear(const dffast382sl& a, const dffast382sl& b);
 
     inline
-    __device__ float distance_linear(const dffast382sl& a,
-                                     const point2d<int>& n);
+    __host__ __device__ float distance_linear(const dffast382sl& a,
+					      const point2d<int>& n);
+
+    /* inline */
+    /* __host__ __device__ float distance_linear(const point2d<int>& a, */
+    /*                                  const point2d<int>& b); */
 
     inline
-    __device__ float distance_linear(const point2d<int>& a,
-                                     const point2d<int>& b);
+    __host__ __device__ float distance_linear_s2(const dffast382sl& a, const dffast382sl& b);
+    inline
+    __host__ __device__ float distance(const dffast382sl& a, const dffast382sl& b);
+    inline
+    __host__ __device__ float distance_s2(const dffast382sl& a, const dffast382sl& b);
 
-    inline
-    __device__ float distance_linear_s2(const dffast382sl& a, const dffast382sl& b);
-    inline
-    __device__ float distance(const dffast382sl& a, const dffast382sl& b);
-    inline
-    __device__ float distance_s2(const dffast382sl& a, const dffast382sl& b);
-
-    __device__ inline
+    __host__ __device__ inline
     dffast382sl weighted_mean(const dffast382sl& a, float aw, const point2d<int>& b, float bw);
 
-    inline  __device__ dffast382sl
+    inline  __host__ __device__ dffast382sl
     new_state(const point2d<int>& n);
 
-    /* __device__ inline */
+    inline __host__ __device__
+    kernel_image2d<i_float1>& s1();
+    inline __host__ __device__
+    kernel_image2d<i_float1>& s2();
+
+    /* __host__ __device__ inline */
     /* kernel_image2d<dffast382sl>& previous_frame(); */
-    __device__ inline
-    kernel_image2d<dffast382sl>& current_frame();
-    __device__ inline
+    /* __host__ __device__ inline */
+    /* kernel_image2d<dffast382sl>& current_frame(); */
+    __host__ __device__ inline
     kernel_image2d<i_float1>& pertinence();
 
   private:
     kernel_image2d<i_float1> pertinence_;
     kernel_image2d<dffast382sl> f_prev_;
-    kernel_image2d<dffast382sl> f_;
+    /* kernel_image2d<dffast382sl> f_; */
+    kernel_image2d<i_float1> s1_;
+    kernel_image2d<i_float1> s2_;
   };
 
 }

@@ -65,7 +65,7 @@ void make_sigma_specific_file(const std::string& path, int sigma)
   float x = -7.6946e-022f;
   std::stringstream filename_ss; filename_ss << path << "/meta_gaussian_coefs_" << sigma << ".h";
 
-  std::ofstream of(filename_ss.str());
+  std::ofstream of(filename_ss.str().c_str());
   of << "// This file is generated." << std::endl;
   of << "#ifndef CUIMG_META_GAUSSIAN_" << sigma << "_H_" << std::endl;
   of << "# define CUIMG_META_GAUSSIAN_" << sigma << "_H_" << std::endl;
@@ -74,7 +74,7 @@ void make_sigma_specific_file(const std::string& path, int sigma)
   of << "#include \"meta_gaussian.h\""<<  std::endl;
   of << std::endl;
   of << std::endl;
-  
+
   of << "namespace cuimg" << std::endl;
   of << "{" << std::endl;
   of << "// sigma = " << sigma << "." << std::endl;
@@ -93,22 +93,22 @@ void make_sigma_specific_file(const std::string& path, int sigma)
           ss << ".f";
 
         of << "template <> struct meta_kernel<meta_gaussian<" << n << ", " << sigma << ">, " << x
-          << "> { static __host__ __device__ float coef() { return "
+          << "> { enum { n = " << n << "}; enum { s = " << sigma << "}; enum { x = " << x << "};  static __host__ __device__ float coef() { return "
           << ss.str() << "; } }; " << std::endl;
       of << std::endl;
       }
     }
   }
-  
+
   of << "}" << std::endl;
   of << "#endif //! CUIMG_META_GAUSSIAN_" << sigma << "_H_" << std::endl;
 }
 
 void make_all_sigma_file(const std::string& path)
 {
-  
+
   std::stringstream filename_ss; filename_ss << path << "/meta_gaussian_coefs.h";
-  std::ofstream of(filename_ss.str());
+  std::ofstream of(filename_ss.str().c_str());
 
   of << "// This file is generated." << std::endl;
   of << "#ifndef CUIMG_META_GAUSSIAN_H_" << std::endl;
@@ -140,7 +140,7 @@ void make_all_sigma_file(const std::string& path)
             ss << ".f";
 
           of << "template <> struct meta_kernel<meta_gaussian<" << n << ", " << s << ">, " << x
-             << "> { static __host__ __device__ float coef() { return "
+             << "> { enum { n = " << n << "}; enum { s = " << s << "}; enum { x = " << x << "}; static __host__ __device__ float coef() { return "
              << res << "; } }; " << std::endl;
         }
  }

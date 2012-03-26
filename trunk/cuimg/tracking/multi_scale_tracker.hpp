@@ -265,8 +265,10 @@ extern "C" {
   {
     prepare_input_frame(flag<target>(), in, frame_, frame_uc3_);
 
-    update_mipmap(frame_, pyramid_, pyramid_tmp1_, pyramid_tmp2_, PS);
-
+    if (target == unsigned(CPU))
+      update_mipmap(frame_, pyramid_, pyramid_tmp1_, pyramid_tmp2_, PS, 0, dim3(in.ncols(), 1));
+    else
+      update_mipmap(frame_, pyramid_, pyramid_tmp1_, pyramid_tmp2_, PS, 0, dim3(16, 16));
 
     i_short2 mvt(0, 0);
 

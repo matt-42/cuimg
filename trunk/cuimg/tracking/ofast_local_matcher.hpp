@@ -315,6 +315,7 @@ namespace cuimg
       new_particles(match).age = p_age + 1;
       new_particles(match).pertinence = f.pertinence()(match);
       new_particles(match).fault = fault;
+      new_particles(match).pos = i_int2(match);
 
       particles(p) = new_particles(match);
       states(p) = states(match);
@@ -520,22 +521,21 @@ namespace cuimg
                                  const image2d_s2& ls_matches)
   {
     frame_cpt++;
-    dim3 dimblock(128, 1, 1);
+    dim3 dimblock(f.domain().ncols(), 1, 1);
+
     dim3 dimgrid = grid_dimension(f.domain(), dimblock);
 
     swap_buffers();
 
-    particles_vec1_.resize(matches_.nrows() * matches_.ncols());
-    particles_vec2_.resize(matches_.nrows() * matches_.ncols());
-
-    particles_vec1_.clear();
+    // particles_vec1_.resize(matches_.nrows() * matches_.ncols());
+    // particles_vec1_.clear();
     n_particles_ = 0;
     for (unsigned r = 0; r < particles_->nrows(); r++)
       for (unsigned c = 0; c < particles_->ncols(); c++)
         if ((*particles_)(r, c).age != 0)
         {
+          particles_vec1_[n_particles_] = i_short2(r, c);
           n_particles_++;
-          particles_vec1_.push_back(i_short2(r, c));
         }
 
     if (n_particles_ > 0)

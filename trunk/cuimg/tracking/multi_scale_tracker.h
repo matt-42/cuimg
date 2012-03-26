@@ -31,6 +31,8 @@ namespace cuimg
     typedef typename SA::particle P;
 
     typedef image2d_target(target, P) image2d_P;
+    typedef typename SA::particle_vector particle_vector;
+    typedef typename SA::i_short2_vector i_short2_vector;
 
     multi_scale_tracker(const D& d);
     ~multi_scale_tracker();
@@ -42,6 +44,30 @@ namespace cuimg
     const image2d_P& particles() const
     {
       return matcher_[0]->particles();
+    }
+
+    const particle_vector& particles(unsigned scale) const
+    {
+      if (scale < PS)
+	return matcher_[scale]->compact_particles();
+      else
+	return matcher_[PS - 1]->compact_particles();
+    }
+
+    unsigned nparticles(unsigned scale) const
+    {
+      if (scale < PS)
+	return matcher_[scale]->n_particles();
+      else
+	return matcher_[PS - 1]->n_particles();
+    }
+
+    const i_short2_vector& particle_positions(unsigned scale) const
+    {
+      if (scale < PS)
+	return matcher_[scale]->particle_positions();
+      else
+	return matcher_[PS - 1]->particle_positions();
     }
 
     const image2d_c& errors() const

@@ -6,6 +6,7 @@
 # include <cuimg/gpu/texture.h>
 # include <cuimg/gpu/kernel_image2d.h>
 # include <cuimg/gpu/device_image2d.h>
+# include <cuimg/gaussian_kernel.h>
 # include <cuimg/meta_gaussian/meta_gaussian.h>
 
 namespace cuimg
@@ -129,9 +130,12 @@ namespace cuimg
 
   template <typename I, typename O, typename G, int KERNEL_HALF_SIZE>
   void meta_convolve_row2d(const I& in, O& out,
-                           cudaStream_t stream = 0, dim3 dimblock = dim3(128, 1))
+                           cudaStream_t stream = 0, dim3 dimblock = dim3(16, 16))
   {
     assert(in.domain() == out.domain());
+
+    /* if (I::target == CPU) */
+    /*   return meta_convolve_row2d_cpu<I::value_type, O::value_type, (in, out); */
 
     if (I::target == GPU)
       bindTexture2d(in, meta_convolve_internal::UNIT_STATIC(g_input_tex)<typename I::value_type::cuda_bt>::tex());
@@ -156,9 +160,108 @@ namespace cuimg
 
   }
 
+//   template <typename I, typename O, typename G, int KERNEL_HALF_SIZE>
+//   void meta_convolve_row2d(const host_image2d<typename I::value_type>& in,
+// 			       host_image2d<typename O::value_type>& out,
+// 			       cudaStream_t stream, dim3 dimblock)
+//   {
+//     typedef typename I::value_type V;
+//     assert(in.domain() == out.domain());
+
+// #pragma omp parallel for schedule(static, 8)
+//     for (unsigned r = KERNEL_HALF_SIZE; r < in.nrows() - KERNEL_HALF_SIZE; r++)
+//       for (unsigned c = KERNEL_HALF_SIZE; c < in.ncols() - KERNEL_HALF_SIZE; c++)
+//       {
+// 	i_int2 p(r, c);
+// 	out(p) = meta_convolve_internal::meta_convolve2d_row_loop
+// 	  <typename I::value_type::cuda_bt, -KERNEL_HALF_SIZE, KERNEL_HALF_SIZE, G>
+// 	  ::template iter<CPU, typename I::value_type>(mki(in), p);
+//       }
+
+//   }
+
+  template <typename I, typename O, typename G, int KERNEL_HALF_SIZE>
+  void meta_convolve_row2d(const host_image2d<typename I::value_type>& in,
+			       host_image2d<typename O::value_type>& out,
+			       cudaStream_t stream, dim3 dimblock)
+  {
+    typedef typename I::value_type V;
+    assert(in.domain() == out.domain());
+
+    float kernel[KERNEL_HALF_SIZE*2];
+    for (unsigned i = 0; i < KERNEL_HALF_SIZE * 2; i++)
+      kernel[i] = gaussian_derivative<0>(G::s, i - KERNEL_HALF_SIZE);
+
+#pragma omp parallel for schedule(static, 2)
+    for (unsigned r = KERNEL_HALF_SIZE; r < in.nrows() - KERNEL_HALF_SIZE; r++)
+      for (unsigned c = KERNEL_HALF_SIZE; c < in.ncols() - KERNEL_HALF_SIZE; c++)
+      {
+	V res = zero();
+	for (unsigned k = 0; k < KERNEL_HALF_SIZE * 2; k++)
+	  res += in(r, c + k - KERNEL_HALF_SIZE) * kernel[k];
+	out(r, c) = res;
+      }
+
+  }
+
+
+// #define WS 8
+
+//   template <typename I, typename O, typename G, int KERNEL_HALF_SIZE>
+//   void meta_convolve_row2d(const host_image2d<typename I::value_type>& in,
+// 			       host_image2d<typename O::value_type>& out,
+// 			       cudaStream_t stream, dim3 dimblock)
+//   {
+//     typedef typename I::value_type V;
+//     assert(in.domain() == out.domain());
+
+//     float kernel[KERNEL_HALF_SIZE*2+1];
+//     for (unsigned i = 0; i < KERNEL_HALF_SIZE * 2 + 1; i++)
+//       kernel[i] = gaussian_derivative<0>(G::s, i - KERNEL_HALF_SIZE);
+
+//     const int ks = KERNEL_HALF_SIZE * 2 + 1;
+//     const int hks = KERNEL_HALF_SIZE;
+//     const int hks2 = KERNEL_HALF_SIZE * 2;
+// #pragma omp parallel for schedule(static, 4)
+//     for (unsigned r = 0; r < in.nrows(); r++)
+//     {
+//       V sums[WS];
+//       V vs[hks2+WS];
+
+//       const V* inrow = in.row(r);
+//       V* outrow = out.row(r);
+
+//       for (unsigned k = hks2; k < hks2+WS; k++)
+//         vs[k] = inrow[k-hks2];
+
+//       for (unsigned c = hks; c < in.ncols()-hks-WS; c+=WS)
+//       {
+//         unsigned off = c;
+//         for (unsigned l = 0; l < WS; l++)
+//           sums[l] = 0.f;
+
+//         for (unsigned k = 0; k < hks2; k++)
+//           vs[k] = vs[WS+k];
+//         for (unsigned k = hks2; k < hks2+WS; k++)
+//           vs[k] = inrow[off+k-hks];
+
+//         for (unsigned k = 0; k < ks; k++)
+//           for (unsigned l = 0; l < WS; l++)
+//           {
+//             sums[l] += vs[k+l] * kernel[k];
+//           }
+
+//         for (unsigned l = 0; l < WS; l++)
+//           outrow[off+l] = sums[l];
+//       }
+
+//     }
+
+//   }
+
   template <typename I, typename O, typename G, int KERNEL_HALF_SIZE>
   void meta_convolve_col2d(const I& in, O& out,
-                           cudaStream_t stream = 0, dim3 dimblock = dim3(128, 1))
+                           cudaStream_t stream = 0, dim3 dimblock = dim3(16, 16))
   {
     assert(in.domain() == out.domain());
 
@@ -182,6 +285,31 @@ namespace cuimg
       check_cuda_error();
     }
 #endif
+  }
+
+
+  template <typename I, typename O, typename G, int KERNEL_HALF_SIZE>
+  void meta_convolve_col2d(const host_image2d<typename I::value_type>& in,
+			   host_image2d<typename O::value_type>& out,
+			   cudaStream_t stream, dim3 dimblock)
+  {
+    typedef typename I::value_type V;
+    assert(in.domain() == out.domain());
+
+    float kernel[KERNEL_HALF_SIZE*2+1];
+    for (unsigned i = 0; i < KERNEL_HALF_SIZE * 2 + 1; i++)
+      kernel[i] = gaussian_derivative<0>(G::s, i - KERNEL_HALF_SIZE);
+
+#pragma omp parallel for schedule(static, 2)
+    for (unsigned r = KERNEL_HALF_SIZE; r < in.nrows() - KERNEL_HALF_SIZE; r++)
+      for (unsigned c = KERNEL_HALF_SIZE; c < in.ncols() - KERNEL_HALF_SIZE; c++)
+      {
+	V res = zero();
+	for (unsigned k = 0; k < KERNEL_HALF_SIZE * 2 + 1; k++)
+	  res += in(r + k - KERNEL_HALF_SIZE, c) * kernel[k];
+	out(r, c) = res;
+      }
+
   }
 
 }

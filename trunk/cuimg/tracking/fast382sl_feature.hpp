@@ -133,51 +133,6 @@ namespace cuimg
     return ::sqrt(float(d)) / ::sqrt(255.f * 8.f);
   }
 
-
-  // inline
-  // __host__ __device__
-  // float distance_min(const dfast382sl& a, const dfast382sl& b)
-  // {
-  //   if (::abs(a.pertinence - b.pertinence) > 0.1f ||
-  //       b.pertinence < 0.15f ||
-  //       a.pertinence < 0.15f)
-  //     return 99999.f;
-  //   else
-  //   {
-  //     int d = 9999999;
-  //     for (unsigned i = 0; i < 16; i++)
-  //     {
-  //       int tmp = ::abs(int(a.distances[i]) - int(b.distances[i]));
-  //       if (tmp < d)
-  //         d = tmp;
-  //     }
-
-  //     return d;
-  //   }
-  // }
-
-  // inline
-  // __host__ __device__
-  // float distance_max(const dfast382sl& a, const dfast382sl& b)
-  // {
-  //   if (::abs(a.pertinence - b.pertinence) > 0.1f ||
-  //       b.pertinence < 0.15f ||
-  //       a.pertinence < 0.15f)
-  //     return 99999.f;
-  //   else
-  //   {
-  //     int d = 0;
-  //     for (unsigned i = 0; i < 16; i++)
-  //     {
-  //       int tmp = ::abs(int(a.distances[i]) - int(b.distances[i]));
-  //       if (tmp > d)
-  //         d = tmp;
-  //     }
-
-  //     return d;
-  //   }
-  // }
-
   __host__ __device__ inline
   dfast382sl operator+(const dfast382sl& a, const dfast382sl& b)
   {
@@ -304,7 +259,6 @@ namespace cuimg
                             kernel_image2d<i_float4> frame_color,
                             kernel_image2d<V> frame_s1,
                             kernel_image2d<V> frame_s2,
-                            // kernel_image2d<dfast382sl> out,
                             kernel_image2d<i_float1> pertinence,
                             float grad_thresh)
   {
@@ -319,8 +273,6 @@ namespace cuimg
       pertinence(p).x = 0.f;
       return;
     }
-
-    // dfast382sl distances;
 
     float pv;
 
@@ -340,13 +292,6 @@ namespace cuimg
                                  p.col() + circle_r3[(i+8)][1],
                                  p.row() + circle_r3[(i+8)][0]).x;
 
-
-        // if (!(i % 2))
-        // {
-        //     distances[i/2] = (v1 * 255);
-        //     distances[i/2 + 4] = (v2 * 255);
-        // }
-
         {
           float diff = pv -
             (v1 + v2) / 2.f;
@@ -355,12 +300,16 @@ namespace cuimg
           float adiff = fabs(diff);
 
           if (adiff < min_diff)
+	  {
             min_diff = adiff;
 
-
-
+	    if (min_diff < 0.01)
+	    {
+	      min_diff = 0;
+	      break;
+	    }
+	  }
           if (max_single_diff < adiff) max_single_diff = adiff;
-
         }
       }
 
@@ -379,12 +328,6 @@ namespace cuimg
                          p.col() + 2 * circle_r3[(i+8)][1],
                          p.row() + 2 * circle_r3[(i+8)][0]).x;
 
-        // if (!(i % 2))
-        // {
-        //     distances[8 + i/2] = (v1 * 255);
-        //     distances[8 + i/2 + 4] = (v2 * 255);
-        // }
-
         {
           float diff = pv - (v1 + v2) / 2.f;
           float adiff = fabs(diff);
@@ -392,7 +335,11 @@ namespace cuimg
           if (adiff < min_diff_large)
           {
             min_diff_large = adiff;
-            //if (min_diff_large < 0.01) break;
+	    if (min_diff_large < 0.01)
+	    {
+	      min_diff_large = 0;
+	      break;
+	    }
           }
 
           if (max_single_diff_large < adiff) max_single_diff_large = adiff;
@@ -416,7 +363,6 @@ namespace cuimg
         min_diff = 0;
 
       pertinence(p) = min_diff;
-      // out(p) = distances;
 
     }
 
@@ -601,10 +547,13 @@ kernel_image2d<dfast382sl> in,                  \
     frame_cpt_++;
     swap_buffers();
     dim3 dimblock(16, 16, 1);
+    if (T == CPU)
+      dimblock = dim3(in.ncols(), 1, 1);
+
     dim3 dimgrid = grid_dimension(in.domain(), dimblock);
 
-    local_jet_static_<0, 0, 1, 1>::run(in, blurred_s1_, tmp_);
-    local_jet_static_<0, 0, 2, 2>::run(in, blurred_s2_, tmp_);
+    local_jet_static_<0, 0, 1, 1>::run(in, blurred_s1_, tmp_, 0, dimblock);
+    local_jet_static_<0, 0, 2, 2>::run(in, blurred_s2_, tmp_, 0, dimblock);
 
     //local_jet_static2_<0,0,1, 0,0,2, 6>::run(in, blurred_s1_, blurred_s2_, tmp_, pertinence2_);
 
