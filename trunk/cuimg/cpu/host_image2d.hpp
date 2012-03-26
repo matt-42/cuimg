@@ -12,10 +12,10 @@ namespace cuimg
 {
 
 
-    template <typename V>
-            host_image2d<V>::host_image2d()
-    {
-    }
+  template <typename V>
+  host_image2d<V>::host_image2d()
+  {
+  }
 
   template <typename V>
   host_image2d<V>::host_image2d(unsigned nrows, unsigned ncols, bool pinned)
@@ -24,58 +24,90 @@ namespace cuimg
     allocate(domain_, pinned);
   }
 
-    template <typename V>
-            host_image2d<V>::host_image2d(const domain_type& d, bool pinned)
-                : domain_(d),
-                pitch_(ncols() * sizeof(V))
-    {
-        allocate(domain_, pinned);
-    }
+  template <typename V>
+  host_image2d<V>::host_image2d(const domain_type& d, bool pinned)
+    : domain_(d),
+      pitch_(ncols() * sizeof(V))
+  {
+    allocate(domain_, pinned);
+  }
 
-    template <typename V>
-            void
-            host_image2d<V>::allocate(const domain_type& d, bool pinned)
-    {
-        V* ptr;
+  template <typename V>
+  void
+  host_image2d<V>::allocate(const domain_type& d, bool pinned)
+  {
+    V* ptr;
 
 #ifndef NO_CUDA
-        if (pinned)
-        {
-            cudaMallocHost(&ptr, domain_.nrows() * domain_.ncols() * sizeof(V));
-            data_ = boost::shared_ptr<V>(ptr, cudaFreeHost);
-        }
-        else
-#endif
-        {
-            ptr = new V[domain_.nrows() * domain_.ncols()];
-            data_ = boost::shared_ptr<V>(ptr, array_free<V>);
-        }
-
-        buffer_ = data_.get();
-
+    if (pinned)
+    {
+      cudaMallocHost(&ptr, domain_.nrows() * domain_.ncols() * sizeof(V));
+      pitch_ = domain_.ncols() * sizeof(V);
+      data_ = boost::shared_ptr<V>(ptr, cudaFreeHost);
       buffer_ = data_.get();
     }
+    else
+#endif
+    {
+      pitch_ = d.ncols() * sizeof(V);
+      if (pitch_ % 4)
+      	pitch_ = pitch_ + 4 - (pitch_ & 3);
+      ptr = (V*) new char[domain_.nrows() * pitch_ + 64];
+      data_ = boost::shared_ptr<V>(ptr, array_free<V>);
+
+      buffer_ = data_.get();
+      if (size_t(buffer_) % 4)
+      	buffer_ = (V*)((size_t(buffer_) + 4 - (size_t(buffer_) & 3)   ));
+
+      // assert(!(size_t(buffer_) % 64));
+      // assert(!(size_t(pitch_) % 64));
+    }
+
+  }
+//   template <typename V>
+//   void
+//   host_image2d<V>::allocate(const domain_type& d, bool pinned)
+//   {
+//     V* ptr;
+
+// #ifndef NO_CUDA
+//     if (pinned)
+//     {
+//       cudaMallocHost(&ptr, domain_.nrows() * domain_.ncols() * sizeof(V));
+//       data_ = boost::shared_ptr<V>(ptr, cudaFreeHost);
+//     }
+//     else
+// #endif
+//     {
+//       ptr = new V[domain_.nrows() * domain_.ncols()];
+//       data_ = boost::shared_ptr<V>(ptr, array_free<V>);
+//     }
+
+//     buffer_ = data_.get();
+
+//     buffer_ = data_.get();
+//   }
 
 
 
 #ifdef WITH_OPENCV
-    template <typename V>
-            host_image2d<V>::host_image2d(IplImage* imgIpl)
-    {
+  template <typename V>
+  host_image2d<V>::host_image2d(IplImage* imgIpl)
+  {
     *this = imgIpl;
-    }
+  }
 #endif
 
-    template <typename V>
-            host_image2d<V>&
-            host_image2d<V>::operator=(const host_image2d<V>& img)
-                                      {
-        domain_ = img.domain();
-        pitch_ = img.pitch();
-        data_ = img.data_;
-        buffer_ = data_.get();
-        return *this;
-    }
+  template <typename V>
+  host_image2d<V>&
+  host_image2d<V>::operator=(const host_image2d<V>& img)
+  {
+    domain_ = img.domain();
+    pitch_ = img.pitch();
+    data_ = img.data_;
+    buffer_ = data_.get();
+    return *this;
+  }
 
   template <typename V>
   host_image2d<V>::host_image2d(const host_image2d<V>& img)
@@ -87,57 +119,57 @@ namespace cuimg
   }
 
 #ifdef WITH_OPENCV
-    template <typename V>
-            host_image2d<V>&
-            host_image2d<V>::operator=(IplImage *imgIpl)
-                                      {
-        pitch_ = imgIpl->depth;
-        data_ = PT((V*) imgIpl->imageData, dummy_free<V>);
-        buffer_ = data_.get();
-        return *this;
-    }
+  template <typename V>
+  host_image2d<V>&
+  host_image2d<V>::operator=(IplImage *imgIpl)
+  {
+    pitch_ = imgIpl->depth;
+    data_ = PT((V*) imgIpl->imageData, dummy_free<V>);
+    buffer_ = data_.get();
+    return *this;
+  }
 #endif
 
-    template <typename V>
-            const typename host_image2d<V>::domain_type& host_image2d<V>::domain() const
-    {
-        return domain_;
-    }
+  template <typename V>
+  const typename host_image2d<V>::domain_type& host_image2d<V>::domain() const
+  {
+    return domain_;
+  }
 
-    template <typename V>
-            unsigned host_image2d<V>::nrows() const
-    {
-        return domain_.nrows();
-    }
-    template <typename V>
-            unsigned host_image2d<V>::ncols() const
-    {
-        return domain_.ncols();
-    }
+  template <typename V>
+  unsigned host_image2d<V>::nrows() const
+  {
+    return domain_.nrows();
+  }
+  template <typename V>
+  unsigned host_image2d<V>::ncols() const
+  {
+    return domain_.ncols();
+  }
 
-    template <typename V>
-            bool host_image2d<V>::has(const point& p) const
-    {
-        return domain_.has(p);
-    }
+  template <typename V>
+  bool host_image2d<V>::has(const point& p) const
+  {
+    return domain_.has(p);
+  }
 
-    template <typename V>
-            inline size_t host_image2d<V>::pitch() const
-    {
-        return pitch_;
-    }
+  template <typename V>
+  inline size_t host_image2d<V>::pitch() const
+  {
+    return pitch_;
+  }
 
 
 #ifdef WITH_OPENCV
-    //  Get IplImage from host_image2d --
-    template <typename V>
-         IplImage* host_image2d<V>::getIplImage(){
-        //allocate the structure
-        IplImage* frameIPL = cvCreateImageHeader(cvSize(ncols(),nrows()),sizeof(i_uchar3::vtype)*8, i_uchar3::size);
-        //init the data structure
-        cvSetData(frameIPL,data(),pitch());
-        return frameIPL;
-    }
+  //  Get IplImage from host_image2d --
+  template <typename V>
+  IplImage* host_image2d<V>::getIplImage(){
+    //allocate the structure
+    IplImage* frameIPL = cvCreateImageHeader(cvSize(ncols(),nrows()),sizeof(i_uchar3::vtype)*8, i_uchar3::size);
+    //init the data structure
+    cvSetData(frameIPL,data(),pitch());
+    return frameIPL;
+  }
 #endif
   template <typename V>
   inline V* host_image2d<V>::data()
@@ -188,12 +220,12 @@ namespace cuimg
     return operator()(point(r, c));
   }
 
-    template <typename V>
-            inline const V&
-            host_image2d<V>::operator()(int r, int c) const
-    {
-        return operator()(point(r, c));
-    }
+  template <typename V>
+  inline const V&
+  host_image2d<V>::operator()(int r, int c) const
+  {
+    return operator()(point(r, c));
+  }
 }
 
 #endif
