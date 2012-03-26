@@ -10,6 +10,11 @@
 # include <cuimg/point2d.h>
 # include <cuimg/obox2d.h>
 
+#ifdef WITH_OPENCV
+# include <opencv/cxcore.h>
+#endif
+
+
 namespace cuimg
 {
   template <typename V>
@@ -21,12 +26,16 @@ namespace cuimg
     typedef V value_type;
     typedef point2d<int> point;
     typedef obox2d<point> domain_type;
+    typedef boost::shared_ptr<V> PT;
 
     host_image2d();
     host_image2d(unsigned nrows, unsigned ncols, bool pinned = 0);
     host_image2d(const domain_type& d, bool pinned = 0);
 
     host_image2d(const host_image2d<V>& d);
+#ifdef WITH_OPENCV
+    host_image2d(IplImage * imgIpl);
+#endif
     host_image2d<V>& operator=(const host_image2d<V>& d);
 
     const domain_type& domain() const;
@@ -41,6 +50,11 @@ namespace cuimg
 
     V& operator()(int r, int c);
     const V& operator()(int r, int c) const;
+
+#ifdef WITH_OPENCV
+    IplImage* getIplImage();
+    host_image2d<V>& operator=(IplImage * imgIpl);
+#endif
 
     V* row(unsigned i);
     const V* row(unsigned i) const;
@@ -71,7 +85,6 @@ namespace cuimg
   };
 
 }
-
 # include <cuimg/cpu/host_image2d.hpp>
 
 #endif
