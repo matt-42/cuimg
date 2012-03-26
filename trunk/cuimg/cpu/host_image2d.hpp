@@ -57,25 +57,6 @@ namespace cuimg
     }
 
 
-    template <typename V>
-            host_image2d<V>::host_image2d(const host_image2d<V>& img)
-                : domain_(img.domain()),
-                pitch_(img.pitch()),
-                data_(img.data_)
-    {
-      pitch_ = d.ncols() * sizeof(V);
-      if (pitch_ % 4)
-      	pitch_ = pitch_ + 4 - (pitch_ & 3);
-      ptr = (V*) new char[domain_.nrows() * pitch_ + 64];
-      data_ = boost::shared_ptr<V>(ptr, array_free<V>);
-
-      buffer_ = data_.get();
-      if (size_t(buffer_) % 4)
-      	buffer_ = (V*)((size_t(buffer_) + 4 - (size_t(buffer_) & 3)   ));
-
-      // assert(!(size_t(buffer_) % 64));
-      // assert(!(size_t(pitch_) % 64));
-    }
 
 #ifdef WITH_OPENCV
     template <typename V>
