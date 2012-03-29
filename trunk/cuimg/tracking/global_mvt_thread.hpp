@@ -21,8 +21,9 @@ namespace cuimg
     particles_(d.nrows() * d.ncols())
 
   {
-    // cudaStreamCreate(&cuda_stream_);
-    // start_producer_thread();
+    //cudaStreamCreate(&cuda_stream_);
+
+    start_producer_thread();
   }
 
 
@@ -68,6 +69,39 @@ namespace cuimg
 
   template <class M>
   void
+  global_mvt_thread<M>::reset_mvt()
+  {
+    ::boost::unique_lock<boost::mutex> lock(mutex_);
+    mvt_ = i_short2(0, 0);
+  }
+
+#ifndef NO_CUDA
+  template <class M>
+  void
+  global_mvt_thread<M>::read_back_particles(thrust::host_vector<typename M::particle>& particles_,
+					    const thrust::device_vector<typename M::particle>& d_particles_,
+					    unsigned nparticles)
+  {
+    cudaMemcpy(thrust::raw_pointer_cast(&particles_[0]),
+	       thrust::raw_pointer_cast(&d_particles_[0]),
+	       nparticles * sizeof(typename M::particle),
+	       cudaMemcpyDeviceToHost);
+  }
+#endif
+
+  template <class M>
+  void
+  global_mvt_thread<M>::read_back_particles(std::vector<typename M::particle>& particles_,
+					    const std::vector<typename M::particle>& d_particles_,
+					    unsigned nparticles)
+  {
+    memcpy(&particles_[0],
+	   &d_particles_[0],
+           nparticles * sizeof(typename M::particle));
+  }
+
+  template <class M>
+  void
   global_mvt_thread<M>::prepare_next_frame()
   {
     boost::unique_lock<boost::mutex> lock(mutex_);
@@ -78,23 +112,18 @@ namespace cuimg
 
     if (!thread_end())
     {
-#ifndef NO_CUDA
-      cudaMemcpy(thrust::raw_pointer_cast(&particles_[0]),
-                 thrust::raw_pointer_cast(&matcher_->compact_particles()[0]),
-                 matcher_->n_particles() * sizeof(typename M::particle),
-                 cudaMemcpyDeviceToHost);
+      read_back_particles(particles_, matcher_->compact_particles(), matcher_->n_particles());
       // copy_async(matcher_->matches(), matches_[level_], 0);
       // copy_async(matcher_->particles(), particles_[level_], 0);
       // cudaStreamSynchronize(cuda_stream_);
       //while (cudaStreamQuery(cuda_stream_) != cudaSuccess);
       mvt_ = mvt_detector_.estimate(particles_, matcher_->n_particles());
-      //mvt_ = i_short2(0, 0);
-#endif
     }
 
     matcher_ = 0;
     is_empty_cond_.notify_one();
   }
+
 
   template <class M>
   large_mvt_detector<i_float1>

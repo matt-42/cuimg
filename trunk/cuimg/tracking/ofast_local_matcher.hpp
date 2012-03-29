@@ -205,7 +205,7 @@ namespace cuimg
     {
 
       unsigned match_i = 8;
-      for (int search = 0; search < 2; search++)
+      for (int search = 0; search < 7; search++)
       {
         int i = c8_it[match_i][0];
 
@@ -266,15 +266,15 @@ namespace cuimg
 #endif
 
     char fault = particles(p).fault;
-    // if (f.pertinence()(match) < 0.15f// ||
-    //     //::abs(f.pertinence()(match) -
-    //     //      particles(p).pertinence) > 0.2f
-    //     )
-    //   fault++;
-    // else
-    //   fault = 0;
+    if (f.pertinence()(match) < 0.15f// ||
+        //::abs(f.pertinence()(match) -
+        //      particles(p).pertinence) > 0.2f
+        )
+      fault++;
+    else
+      fault = 0;
 
-    // if (f.pertinence()(match) < 0.001f) fault += 2;
+    if (f.pertinence()(match) < 0.001f) fault += 5;
 
     if (match_distance < (0.2f) && fault < 20)
     {
@@ -310,7 +310,6 @@ namespace cuimg
       //   f.weighted_mean(p_state, 1.f,
       //                   match, 4.f);
 
-      // new_particles(match).state = (p_state*1.f + f.current_frame()(match)*3.f) / 4.f;
       new_particles(match).age = p_age + 1;
       new_particles(match).pertinence = f.pertinence()(match);
       new_particles(match).fault = fault;
@@ -456,9 +455,8 @@ namespace cuimg
 #ifdef WITH_DISPLAY
       distance_ = aggregate<float>::run(1.f, 0.f, 0.f, 1.f);
 #endif
-      i_short2 mvt = t_mvt.mvt();
+      i_short2 mvt = t_mvt.mvt() * 2;
 
-      mvt = i_short2(0, 0);
       pw_call<naive_matching_kernel2_sig(GPU, typename F::kernel_type, particle)>
         (flag<GPU>(), reduced_dimgrid, dimblock,
          thrust::raw_pointer_cast( &particles_vec1_[0]),
@@ -546,8 +544,7 @@ namespace cuimg
 #ifdef WITH_DISPLAY
       distance_ = aggregate<float>::run(1.f, 0.f, 0.f, 1.f);
 #endif
-      i_short2 mvt = t_mvt.mvt();
-      mvt = i_short2(0,0);
+      i_short2 mvt = t_mvt.mvt() * 2;
       pw_call<naive_matching_kernel2_sig(CPU, typename F::kernel_type, particle)>
         (flag<CPU>(), reduced_dimgrid, dimblock,
          &particles_vec1_[0],
@@ -593,7 +590,7 @@ namespace cuimg
 
     // check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test2_);
 
-    if (!(frame_cpt % 5))
+    //if (!(frame_cpt % 5))
       pw_call<create_particles_kernel_sig(CPU, typename F::kernel_type, particle)>(flag<CPU>(), dimgrid, dimblock, typename F::kernel_type(f), *new_particles_, f.pertinence(), states_);
 
     check_cuda_error();
@@ -614,7 +611,7 @@ namespace cuimg
 
     // extract_age<particle><<<dimgrid, dimblock>>>
     //   (*new_particles_, age);
-    dg::widgets::ImageView("distances") <<= dg::dl() - distance_ - test_ - test2_ + age - fm_disp_;
+    // dg::widgets::ImageView("distances") <<= dg::dl() - distance_ - test_ - test2_ + age - fm_disp_;
 #endif
   }
 

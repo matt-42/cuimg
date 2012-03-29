@@ -32,6 +32,7 @@ namespace cuimg
     void synchronize();
 
     i_short2 mvt();
+    void reset_mvt();
 
     bool thread_end() const;
 
@@ -42,6 +43,14 @@ namespace cuimg
   protected:
     void start_producer_thread();
 
+#ifndef NO_CUDA
+    void read_back_particles(thrust::host_vector<typename M::particle>& particles_,
+			     const thrust::device_vector<typename M::particle>& d_particles_,
+			     unsigned nparticles);
+#endif
+    void read_back_particles(std::vector<typename M::particle>& particles_,
+			     const std::vector<typename M::particle>& d_particles_,
+			     unsigned nparticles);
 
     const M* matcher_;
     unsigned level_;

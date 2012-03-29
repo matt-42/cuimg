@@ -24,7 +24,9 @@
 
 # include <cuimg/dige.h>
 
+# ifndef NVCC
 # include <emmintrin.h>
+# endif
 
 #include <dige/widgets/image_view.h>
 
@@ -36,6 +38,7 @@ namespace cuimg
 
   #define s1_tex UNIT_STATIC(hawzxb)
   #define s2_tex UNIT_STATIC(xyhgtk)
+
 
 #ifdef NVCC
   texture<float1, cudaTextureType2D, cudaReadModeElementType> s1_tex;
@@ -277,28 +280,28 @@ namespace cuimg
       return;
     }
 
-    float pv;
+    gl01f pv;
 
     {
       float min_diff = 9999999.f;
       float max_single_diff = 0.f;
-      pv = tex2D(flag<GPU>(), s1_tex, frame_s1, p).x;
+      pv = V(tex2D(flag<GPU>(), s1_tex, frame_s1, p));
       int sign = 0;
       for(int i = 0; i < 8; i++)
       {
 
-        gl01f v1 = tex2D(flag<GPU>(), s1_tex, frame_s1,
-			   p.col() + circle_r3[i][1],
-			   p.row() + circle_r3[i][0]).x;
+        gl01f v1 = V(tex2D(flag<GPU>(), s1_tex, frame_s1,
+			  p.col() + circle_r3[i][1],
+			  p.row() + circle_r3[i][0]));
 
-        gl01f v2 = tex2D(flag<GPU>(), s1_tex, frame_s1,
-			   p.col() + circle_r3[(i+8)][1],
-			   p.row() + circle_r3[(i+8)][0]).x;
+        gl01f v2 = V(tex2D(flag<GPU>(), s1_tex, frame_s1,
+			  p.col() + circle_r3[(i+8)][1],
+			  p.row() + circle_r3[(i+8)][0]));
 
         {
-          float diff = pv -
-            (v1 + v2) / 2.f;
-
+          float diff = (pv - (v1 + v2) / 2.f);
+          // int diff = pv -
+          //   (v1 + v2) / 2;
 
           float adiff = fabs(diff);
 
@@ -306,43 +309,43 @@ namespace cuimg
 	  {
             min_diff = adiff;
 
-	    if (min_diff < 0.01)
-	    {
-	      min_diff = 0;
-	      break;
-	    }
+	    // if (min_diff < 0.01)
+	    // {
+	    //   min_diff = 0;
+	    //   break;
+	    // }
 	  }
           if (max_single_diff < adiff) max_single_diff = adiff;
         }
       }
 
-      pv = tex2D(flag<GPU>(), s2_tex, frame_s2, p.col()/2, p.row()/2).x;
+      pv = V(tex2D(flag<GPU>(), s2_tex, frame_s2, p.col()/2, p.row()/2));
       float min_diff_large = 9999999.f;
       float max_single_diff_large = 0.f;
       //int min_orientation_large;
       for(int i = 0; i < 8; i++)
       {
 
-        gl01f v1 = tex2D(flag<GPU>(), s2_tex, frame_s2,
+        gl01f v1 = V(tex2D(flag<GPU>(), s2_tex, frame_s2,
 			   p.col()/2 + circle_r3[i][1],
-			   p.row()/2 + circle_r3[i][0]);
+			  p.row()/2 + circle_r3[i][0]));
 
-        gl01f v2 = tex2D(flag<GPU>(), s2_tex, frame_s2,
-			   p.col()/2 + circle_r3[(i+8)][1],
-			   p.row()/2 + circle_r3[(i+8)][0]);
+        gl01f v2 = V(tex2D(flag<GPU>(), s2_tex, frame_s2,
+			p.col()/2 + circle_r3[(i+8)][1],
+			p.row()/2 + circle_r3[(i+8)][0]));
 
         {
-          float diff = pv - (v1 + v2) / 2.f;
+          float diff = (pv - (v1 + v2) / 2.f);
           float adiff = fabs(diff);
 
           if (adiff < min_diff_large)
           {
             min_diff_large = adiff;
-	    if (min_diff_large < 0.01)
-	    {
-	      min_diff_large = 0;
-	      break;
-	    }
+	    // if (min_diff_large < 0.01)
+	    // {
+	    //   min_diff_large = 0;
+	    //   break;
+	    // }
           }
 
           if (max_single_diff_large < adiff) max_single_diff_large = adiff;
@@ -395,7 +398,7 @@ namespace cuimg
 
     // dffast382sl distances;
 
-    gl01f pv;
+    gl8u pv;
 
     {
       float min_diff = 9999999.f;
@@ -405,11 +408,11 @@ namespace cuimg
       for(int i = 0; i < 8; i++)
       {
 
-        gl01f v1 = V(tex2D(flag<CPU>(), s1_tex, frame_s1,
+        gl8u v1 = V(tex2D(flag<CPU>(), s1_tex, frame_s1,
 			   p.col() + circle_r3_h[i][1],
 			   p.row() + circle_r3_h[i][0]));
 
-        gl01f v2 = V(tex2D(flag<CPU>(), s1_tex, frame_s1,
+        gl8u v2 = V(tex2D(flag<CPU>(), s1_tex, frame_s1,
 			   p.col() + circle_r3_h[(i+8)][1],
 			   p.row() + circle_r3_h[(i+8)][0]));
 
@@ -419,9 +422,10 @@ namespace cuimg
         //     distances[i/2 + 4] = (v2 * 255);
         // }
 
-        {
-          float diff = pv -
-            (v1 + v2) / 2.f;
+	{
+          float diff = (pv - (v1 + v2) / 2) / 255.f;
+          // float diff = pv -
+          //   (v1 + v2) / 2.f;
 
 
           float adiff = fabs(diff);
@@ -443,16 +447,17 @@ namespace cuimg
       for(int i = 0; i < 8; i++)
       {
 
-        gl01f v1 = V(tex2D(flag<CPU>(), s2_tex, frame_s2,
+        gl8u v1 = V(tex2D(flag<CPU>(), s2_tex, frame_s2,
                          p.col()/2 + circle_r3_h[i][1],
 			   p.row()/2 + circle_r3_h[i][0]));
 
-        gl01f v2 = V(tex2D(flag<CPU>(), s2_tex, frame_s2,
+        gl8u v2 = V(tex2D(flag<CPU>(), s2_tex, frame_s2,
                          p.col()/2 + circle_r3_h[(i+8)][1],
                          p.row()/2 + circle_r3_h[(i+8)][0]));
 
         {
-          float diff = pv - (v1 + v2) / 2.f;
+          float diff = (pv - (v1 + v2) / 2) / 255.f;
+          // float diff = pv - (v1 + v2) / 2.f;
           float adiff = fabs(diff);
 
           if (adiff < min_diff_large)
@@ -555,7 +560,7 @@ kernel_image2d<dffast382sl> in,                  \
 
     //local_jet_static2_<0,0,1, 0,0,2, 6>::run(in, blurred_s1_, blurred_s2_, tmp_, pertinence2_);
 
-    if (!(frame_cpt_ % 5))
+    // if (!(frame_cpt_ % 5))
     {
       if (target == unsigned(GPU))
     {
@@ -723,12 +728,12 @@ kernel_image2d<dffast382sl> in,                  \
 
 
 
-  union vector4f
-  {
-    __m128i vi;
-    unsigned char uc[16];
-    unsigned short us[8];
-  };
+  // union vector4f
+  // {
+  //   __m128i vi;
+  //   unsigned char uc[16];
+  //   unsigned short us[8];
+  // };
 
   // template <typename V>
   // inline

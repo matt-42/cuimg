@@ -126,6 +126,9 @@ namespace dg
   template <>
   struct ib_to_opengl_internal_type<cuimg::i_float1>
   { enum { val = GL_R32F }; };
+  template <>
+  struct ib_to_opengl_internal_type<cuimg::i_uchar1>
+  { enum { val = GL_LUMINANCE8 }; };
 
   template<typename V, unsigned N>
   class cuda_opengl_texture
@@ -243,12 +246,13 @@ namespace dg
     return cuda_opengl_texture<V, 4>(i);
   }
 
-  // inline
-  // cuda_opengl_texture<unsigned char, 4>
-  // adapt(const cuimg::device_image2d<cuimg::gl8u>& i)
-  // {
-  //   return adapt(*(cuimg::device_image2d<cuimg::improved_builtin<unsigned char, 1> >*)&i);
-  // }
+  inline
+  cuda_opengl_texture<unsigned char, 1>
+  adapt(const cuimg::device_image2d<cuimg::gl8u>& i)
+  {
+    return cuda_opengl_texture<unsigned char, 1>(*(cuimg::device_image2d<cuimg::improved_builtin<unsigned char, 1> >*)&i);
+    /* return adapt(*(cuimg::device_image2d<cuimg::improved_builtin<unsigned char, 1> >*)&i); */
+  }
 
   inline
   cuda_opengl_texture<float, 4>

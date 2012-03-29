@@ -148,9 +148,9 @@ namespace cuimg
     typedef typename I::value_type U;
     typedef typename U::cuda_bt V;
 
-    /* copy(exact(in), pyramid_out[0]); */
-    local_jet_static<I, I, I, 0, 0, 1, 1>
-      (exact(in), pyramid_out[0], pyramid_tmp1[0], stream, dimblock);
+    copy(exact(in), pyramid_out[0]);
+    /* local_jet_static<I, I, I, 0, 0, 1, 1> */
+    /*   (exact(in), pyramid_out[0], pyramid_tmp1[0], stream, dimblock); */
 
     I c = pyramid_out[0];
 

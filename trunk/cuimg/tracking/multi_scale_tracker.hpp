@@ -286,31 +286,36 @@ extern "C" {
     else
       update_mipmap(frame_, pyramid_, pyramid_tmp1_, pyramid_tmp2_, PS, 0, dim3(16, 16));
 
-    i_short2 mvt(0, 0);
-
+    mvt_detector_thread_.reset_mvt();
     for (int l = pyramid_.size() - 2; l >= 0; l--)
     {
-      mvt *= 2;
-
       feature_[l]->update(pyramid_[l], pyramid_[l + 1]);
       if (l != pyramid_.size() - 1)
         matcher_[l]->update(*(feature_[l]), mvt_detector_thread_, matcher_[l+1]->matches());
       else
         matcher_[l]->update(*(feature_[l]), mvt_detector_thread_, dummy_matches_);
 
-      // if (l >= 0)
-      // {
-      //   mvt_detector_thread_.update(*(matcher_[l]), l);
-      // }
+      if (l >= 0)
+      {
+        mvt_detector_thread_.update(*(matcher_[l]), l);
+      }
 
-      // dim3 dimblock(128, 1);
-      // dim3 reduced_dimgrid(1 + matcher_[l]->n_particles() / (dimblock.x * dimblock.y), dimblock.y, 1);
+      dim3 dimblock(128, 1);
+      dim3 reduced_dimgrid(1 + matcher_[l]->n_particles() / (dimblock.x * dimblock.y), dimblock.y, 1);
 
-      // pw_call<sub_global_mvt_sig(target, P)>(flag<target>(), reduced_dimgrid, dimblock,
-      //                                thrust::raw_pointer_cast(&matcher_[l]->particle_positions()[0]),
-      //                                matcher_[l]->n_particles(), matcher_[l]->particles(), mvt);
+#ifndef NO_CUDA
+      pw_call<sub_global_mvt_sig(target, P)>(flag<target>(), reduced_dimgrid, dimblock,
+					     thrust::raw_pointer_cast(&matcher_[l]->particle_positions()[0]),
+					     matcher_[l]->n_particles(), matcher_[l]->particles(),
+					     mvt_detector_thread_.mvt());
+#else
+      pw_call<sub_global_mvt_sig(target, P)>(flag<target>(), reduced_dimgrid, dimblock,
+					     &(matcher_[l]->particle_positions()[0]),
+					     matcher_[l]->n_particles(), matcher_[l]->particles(),
+					     mvt_detector_thread_.mvt());
+#endif
 
-      //if (l == pyramid_.size() - 3) mvt_detector.display();
+      // if (l == pyramid_.size() - 3) mvt_detector_thread_.display();
     }
 
 #ifdef WITH_DISPLAY
@@ -339,7 +344,7 @@ extern "C" {
 
     feature_[TD]->display();
     matcher_[TD]->display();
-    // mvt_detector_thread_.mvt_detector().display();
+    mvt_detector_thread_.mvt_detector().display();
     //traj_tracer_.display("trajectories", pyramid_[TD]);
 
     pyramid_display1_[TD] = aggregate<float>::run(get_x(pyramid_[TD]), get_x(pyramid_[TD]), get_x(pyramid_[TD]), 1.f);
