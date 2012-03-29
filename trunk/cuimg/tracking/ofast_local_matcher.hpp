@@ -205,7 +205,7 @@ namespace cuimg
     {
 
       unsigned match_i = 8;
-      for (int search = 0; search < 7; search++)
+      for (int search = 0; search < 2; search++)
       {
         int i = c8_it[match_i][0];
 
@@ -239,7 +239,6 @@ namespace cuimg
             }
           }
         }
-
 
         if (i_int2(prediction) == i_int2(match) ||
             match.row() < 7 || match.row() >= (particles.domain().nrows() - 7) ||
@@ -277,7 +276,7 @@ namespace cuimg
 
     // if (f.pertinence()(match) < 0.001f) fault += 2;
 
-    if (match_distance < (0.2) && fault < 20)
+    if (match_distance < (0.2f) && fault < 20)
     {
 
       i_float2 new_speed = i_int2(match) - i_int2(p);

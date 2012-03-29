@@ -1,6 +1,8 @@
 #ifndef CUIMG_ADAPT_STRUCT_H_
 # define CUIMG_ADAPT_STRUCT_H_
 
+# include <cuimg/dsl/get_comp.h>
+
 namespace cuimg
 {
 

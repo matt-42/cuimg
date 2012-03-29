@@ -19,6 +19,7 @@ namespace cuimg
   public:
     enum { target = GPU };
 
+    typedef int is_expr;
     typedef boost::shared_ptr<V> PT;
     typedef V value_type;
     typedef point2d<int> point;

@@ -2,7 +2,6 @@
 # define CUIMG_GPU_ASSIGN_H_
 
 
-# include <cuda.h>
 # include <cuimg/gpu/device_image2d.h>
 # include <cuimg/gpu/kernel_image2d.h>
 # include <cuimg/util.h>

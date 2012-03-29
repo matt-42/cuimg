@@ -31,33 +31,27 @@ namespace cuimg
                                     typename return_type<A2>::ret>::ret ret;
   };
 
-  template <typename A, typename B>
+  template <typename E, typename F>
   inline
-  typename binary_op_<binary_sub, device_image2d<A>, device_image2d<B> >::ret
-  operator-(const device_image2d<A>& a, const device_image2d<B>& b)
+  typename first<typename binary_op_<binary_sub, E, F>::ret,
+                 typename E::is_expr,
+		 typename meta::equal<typename is_expr_default_void<F>::ret, void>::checktype >::ret
+  operator-(const E& a, const F& b)
   {
-    typedef typename binary_op_<binary_sub, device_image2d<A>, device_image2d<B> >::ret return_type;
+    typedef typename binary_op_<binary_sub, E, F>::ret return_type;
     return return_type(a, b);
   }
 
-  template <typename A, typename S>
+  template <typename E, typename F>
   inline
-  typename binary_op_<binary_sub, device_image2d<A>, S>::ret
-  operator-(const device_image2d<A>& a, const S s)
+  typename first<typename binary_op_<binary_sub, E, F>::ret,
+                 typename F::is_expr,
+		 typename meta::equal<typename is_expr_default_void<E>::ret, void>::checktype >::ret
+  operator-(const E& a, const F& b)
   {
-    typedef typename binary_op_<binary_sub, device_image2d<A>, S>::ret return_type;
-    return return_type(a, s);
+    typedef typename binary_op_<binary_sub, E, F>::ret return_type;
+    return return_type(a, b);
   }
-
-  template <typename E, typename S>
-  inline
-  typename first<typename binary_op_<binary_sub, E, S>::ret, typename E::is_expr>::ret
-  operator-(E& a, const S s)
-  {
-    typedef typename binary_op_<binary_sub, E, S>::ret return_type;
-    return return_type(a, s);
-  }
-
 
   template <typename E, typename F>
   inline

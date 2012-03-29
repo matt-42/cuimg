@@ -3,6 +3,7 @@
 
 # include <cuimg/dsl/expr.h>
 # include <cuimg/gpu/device_image2d.h>
+# include <cuimg/cpu/host_image2d.h>
 # include <cuimg/improved_builtin.h>
 # include <cuimg/dsl/tuple.h>
 
@@ -11,61 +12,23 @@ namespace cuimg
 
 
   template <typename E>
-  struct arith_trait
+  struct is_expr_trait
   {
     typedef char one;
-    typedef struct { char a[2]; } two;
     typedef struct { char a[3]; } three;
 
     template <typename T>
-    static one sfinae(T* e, typename T::is_expr* v = (typename T::is_expr*)0);
-
-    template <typename T>
-    static two sfinae(T* img, typename T::value_type* v = (typename T::value_type*)0);
+    static one sfinae(T* e, typename T::is_expr = 0);
 
     static three sfinae(...);
 
     enum { value = sizeof(sfinae((E*)0)) };
   };
 
-
   template <typename A, typename B, typename C = void, typename D = void>
   struct first
   {
     typedef A ret;
-  };
-
-  template <typename T, int is_expr>
-  struct return_type_selector;
-
-  /* template <typename T> */
-  /* struct return_type_selector<T, 1> */
-  /* { */
-  /*   typedef typename T::return_type ret; */
-  /* }; */
-
-  template <typename T>
-  struct return_type_selector<T, 2>
-  {
-    typedef const typename T::value_type& ret;
-  };
-
-  template <typename T>
-  struct return_type_selector<T, 3>
-  {
-    typedef T ret;
-  };
-
-  template <typename T>
-  struct return_type
-  {
-    typedef typename return_type_selector<T, arith_trait<T>::value>::ret ret;
-  };
-
-  template <typename T>
-  struct return_type<const T>
-  {
-    typedef typename return_type<T>::ret ret;
   };
 
   template <typename T, unsigned PADDING>
@@ -114,17 +77,10 @@ namespace cuimg
     typedef T ret;
   };
 
-  template <typename I>
-  struct kernel_type<device_image2d<I> >
-  {
-    typedef kernel_image2d<I> ret;
-  };
-
-  template <typename I>
-  struct kernel_type<const device_image2d<I> >
-  {
-    typedef kernel_image2d<I> ret;
-  };
+  template <typename I>  struct kernel_type<device_image2d<I> >       { typedef kernel_image2d<I> ret; };
+  template <typename I>  struct kernel_type<const device_image2d<I> > { typedef kernel_image2d<I> ret; };
+  template <typename I>  struct kernel_type<host_image2d<I> >         { typedef kernel_image2d<I> ret; };
+  template <typename I>  struct kernel_type<const host_image2d<I> >   { typedef kernel_image2d<I> ret; };
 
   template <typename A1, typename A2, typename A3,
             typename A4, typename A5, typename A6>
@@ -137,6 +93,25 @@ namespace cuimg
                   typename kernel_type<A5>::ret,
                   typename kernel_type<A6>::ret> ret;
   };
+
+  template <unsigned X>
+  struct is_expr_default_void_
+  {
+    typedef int ret;
+  };
+
+  template <>
+  struct is_expr_default_void_<3>
+  {
+    typedef void ret;
+  };
+
+  template <typename T>
+  struct is_expr_default_void
+  {
+    typedef typename is_expr_default_void_<is_expr_trait<T>::value>::ret ret;
+  };
+
 
 }
 

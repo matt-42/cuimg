@@ -17,6 +17,7 @@ namespace cuimg
   class kernel_image2d : public Image2d<kernel_image2d<V> >
   {
   public:
+    typedef int is_expr;
     typedef V value_type;
     typedef point2d<int> point;
     typedef obox2d<point> domain_type;
@@ -41,6 +42,9 @@ namespace cuimg
     __host__ __device__ inline V& operator()(const point& p);
     __host__ __device__ inline const V& operator()(const point& p) const;
 
+    __host__ __device__ inline V& eval(const point& p)             { return (*this)(p); };
+    __host__ __device__ inline const V& eval(const point& p) const { return (*this)(p); };
+
     __host__ __device__ inline V& operator()(unsigned i, unsigned j);
     __host__ __device__ inline const V& operator()(unsigned i, unsigned j) const;
 
@@ -56,6 +60,16 @@ namespace cuimg
     domain_type domain_;
     unsigned pitch_;
     V* data_;
+  };
+
+
+  template <typename T>
+  struct return_type;
+
+  template <typename V>
+  struct return_type<kernel_image2d<V> >
+  {
+    typedef typename kernel_image2d<V>::value_type ret;
   };
 
   template <typename I>

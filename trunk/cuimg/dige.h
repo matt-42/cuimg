@@ -243,6 +243,20 @@ namespace dg
     return cuda_opengl_texture<V, 4>(i);
   }
 
+  // inline
+  // cuda_opengl_texture<unsigned char, 4>
+  // adapt(const cuimg::device_image2d<cuimg::gl8u>& i)
+  // {
+  //   return adapt(*(cuimg::device_image2d<cuimg::improved_builtin<unsigned char, 1> >*)&i);
+  // }
+
+  inline
+  cuda_opengl_texture<float, 4>
+  adapt(const cuimg::device_image2d<cuimg::gl01f>& i)
+  {
+    return adapt(*(cuimg::device_image2d<cuimg::improved_builtin<float, 1> >*)&i);
+  }
+
 # endif // ! NO_CUDA
 
 }

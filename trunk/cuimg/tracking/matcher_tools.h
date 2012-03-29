@@ -231,10 +231,15 @@ namespace cuimg
     return;
 
     float pp = pertinence(p).x;
-    if (pp < 0.6f)
-      return;
 
     if (particles(p).age != 0)
+    {
+      if (pp < 0.1f)
+	particles(p).age = 0;
+      return;
+    }
+
+    if (pp < 0.6f)
       return;
 
     {

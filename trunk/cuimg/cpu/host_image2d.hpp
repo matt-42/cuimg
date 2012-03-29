@@ -163,11 +163,14 @@ namespace cuimg
 #ifdef WITH_OPENCV
   //  Get IplImage from host_image2d --
   template <typename V>
-  IplImage* host_image2d<V>::getIplImage(){
+  IplImage* host_image2d<V>::getIplImage() const
+  {
     //allocate the structure
-    IplImage* frameIPL = cvCreateImageHeader(cvSize(ncols(),nrows()),sizeof(i_uchar3::vtype)*8, i_uchar3::size);
+    IplImage* frameIPL = cvCreateImageHeader(cvSize(ncols(),nrows()),
+					     sizeof(typename V::vtype)*8,
+					     V::size);
     //init the data structure
-    cvSetData(frameIPL,data(),pitch());
+    cvSetData(frameIPL, (void*)data(), pitch());
     return frameIPL;
   }
 #endif

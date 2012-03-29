@@ -8,24 +8,6 @@ namespace cuimg
 {
 
 
-  template <typename E>
-  struct return_type_trait
-  {
-    typedef char one;
-    typedef struct { char a[2]; } two;
-    typedef struct { char a[3]; } three;
-
-    template <typename T>
-    static one sfinae(expr<T>* e);
-
-    template <typename T>
-    static two sfinae(T* img, typename T::value_type* v = (typename T::value_type*)0);
-
-    static three sfinae(...);
-
-    enum { value = sizeof(sfinae((E*)0)) };
-  };
-
   template <typename T, int is_expr>
   struct return_type_selector;
 
@@ -41,12 +23,18 @@ namespace cuimg
     typedef typename boost::remove_reference<T>::type ret;
   };
 
+
   template <typename T>
   struct return_type
   {
-    typedef typename return_type_selector<T, return_type_trait<T>::value>::ret ret;
+    typedef typename return_type_selector<T, is_expr_trait<T>::value>::ret ret;
   };
 
+  template <typename T>
+  struct return_type<const T>
+  {
+    typedef typename return_type<T>::ret ret;
+  };
 }
 
 #endif

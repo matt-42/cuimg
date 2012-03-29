@@ -3,6 +3,8 @@
 
 # include <cuimg/meta.h>
 # include <cuimg/dsl/binary_op.h>
+# include <cuimg/dsl/traits.h>
+# include <cuimg/dsl/return_type.h>
 
 namespace cuimg
 {
@@ -28,22 +30,37 @@ namespace cuimg
                                      typename return_type<A2>::ret>::ret ret;
   };
 
-  template <typename A, typename S>
+  template <typename E, typename F>
   inline
-  typename binary_op_<binary_mul, device_image2d<A>, S>::ret
-  operator*(const device_image2d<A>& a, const S s)
+  typename first<typename binary_op_<binary_mul, E, F>::ret,
+                 typename E::is_expr,
+		 typename meta::equal<typename is_expr_default_void<F>::ret, void>::checktype >::ret
+  operator*(const E& a, const F& b)
   {
-    typedef typename binary_op_<binary_mul, device_image2d<A>, S>::ret return_type;
-    return return_type(a, s);
+    typedef typename binary_op_<binary_mul, E, F>::ret return_type;
+    return return_type(a, b);
   }
 
-  template <typename E, typename S>
+  template <typename E, typename F>
   inline
-  typename first<typename binary_op_<binary_mul, E, S, 0>::ret, typename E::is_expr>::ret
-  operator*(const E& a, const S s)
+  typename first<typename binary_op_<binary_mul, E, F>::ret,
+                 typename F::is_expr,
+		 typename meta::equal<typename is_expr_default_void<E>::ret, void>::checktype >::ret
+  operator*(const E& a, const F& b)
   {
-    typedef typename binary_op_<binary_mul, E, S>::ret return_type;
-    return return_type(a, s);
+    typedef typename binary_op_<binary_mul, E, F>::ret return_type;
+    return return_type(a, b);
+  }
+
+  template <typename E, typename F>
+  inline
+  typename first<typename binary_op_<binary_mul, E, F>::ret,
+                 typename E::is_expr,
+                 typename F::is_expr>::ret
+  operator*(const E& a, const F& b)
+  {
+    typedef typename binary_op_<binary_mul, E, F>::ret return_type;
+    return return_type(a, b);
   }
 
 }

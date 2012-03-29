@@ -3,7 +3,7 @@
 
 # include <cuimg/meta.h>
 # include <cuimg/dsl/binary_op.h>
-
+# include <cuimg/dsl/traits.h>
 
 namespace cuimg
 {
@@ -30,37 +30,34 @@ namespace cuimg
                                     typename return_type<A2>::ret>::ret ret;
   };
 
-  template <typename A, typename B>
+  template <typename E, typename F>
   inline
-  typename binary_op_<binary_add, device_image2d<A>, device_image2d<B> >::ret
-  operator+(const device_image2d<A>& a, const device_image2d<B>& b)
+  typename first<typename binary_op_<binary_add, E, F>::ret,
+                 typename E::is_expr,
+		 typename meta::equal<typename is_expr_default_void<F>::ret, void>::checktype >::ret
+  operator+(const E& a, const F& b)
   {
-    typedef typename binary_op_<binary_add, device_image2d<A>, device_image2d<B> >::ret return_type;
+    typedef typename binary_op_<binary_add, E, F>::ret return_type;
     return return_type(a, b);
   }
 
-  template <typename A, typename S>
-  inline
-  typename binary_op_<binary_add, device_image2d<A>, S>::ret
-  operator+(const device_image2d<A>& a, const S s)
-  {
-    typedef typename binary_op_<binary_add, device_image2d<A>, S>::ret return_type;
-    return return_type(a, s);
-  }
-
-  // template <typename E, typename S>
-  // inline
-  // typename first<typename binary_op_<binary_add, E, S>::ret, typename E::is_expr>::ret
-  // operator+(const E& a, const S s)
-  // {
-  //   typedef typename binary_op_<binary_add, E, S>::ret return_type;
-  //   return return_type(a, s);
-  // }
 
   template <typename E, typename F>
   inline
   typename first<typename binary_op_<binary_add, E, F>::ret,
-                 typename E::is_expr>::ret
+                 typename F::is_expr,
+		 typename meta::equal<typename is_expr_default_void<E>::ret, void>::checktype >::ret
+  operator+(const E& a, const F& b)
+  {
+    typedef typename binary_op_<binary_add, E, F>::ret return_type;
+    return return_type(a, b);
+  }
+
+  template <typename E, typename F>
+  inline
+  typename first<typename binary_op_<binary_add, E, F>::ret,
+                 typename E::is_expr,
+                 typename F::is_expr>::ret
   operator+(const E& a, const F& b)
   {
     typedef typename binary_op_<binary_add, E, F>::ret return_type;

@@ -205,6 +205,31 @@ namespace cuimg
 
   }
 
+  template <typename I, typename O, typename G, int KERNEL_HALF_SIZE>
+  void meta_convolve_col2d(const host_image2d<typename I::value_type>& in,
+			   host_image2d<typename O::value_type>& out,
+			   cudaStream_t stream, dim3 dimblock)
+  {
+    typedef typename I::value_type V;
+    typedef typename change_coord_type<float, V>::ret VI;
+    assert(in.domain() == out.domain());
+
+    float kernel[KERNEL_HALF_SIZE*2+1];
+    for (unsigned i = 0; i < KERNEL_HALF_SIZE * 2 + 1; i++)
+      kernel[i] = gaussian_derivative<0>(G::s, i - KERNEL_HALF_SIZE);
+
+#pragma omp parallel for schedule(static, 2)
+    for (unsigned r = KERNEL_HALF_SIZE; r < in.nrows() - KERNEL_HALF_SIZE; r++)
+      for (unsigned c = KERNEL_HALF_SIZE; c < in.ncols() - KERNEL_HALF_SIZE; c++)
+      {
+	VI res = zero();
+	for (unsigned k = 0; k < KERNEL_HALF_SIZE * 2 + 1; k++)
+	  res += in(r + k - KERNEL_HALF_SIZE, c) * kernel[k];
+	out(r, c) = res;
+      }
+
+  }
+
 
 // #define WS 8
 
@@ -286,32 +311,6 @@ namespace cuimg
       check_cuda_error();
     }
 #endif
-  }
-
-
-  template <typename I, typename O, typename G, int KERNEL_HALF_SIZE>
-  void meta_convolve_col2d(const host_image2d<typename I::value_type>& in,
-			   host_image2d<typename O::value_type>& out,
-			   cudaStream_t stream, dim3 dimblock)
-  {
-    typedef typename I::value_type V;
-    typedef typename change_coord_type<float, V>::ret VI;
-    assert(in.domain() == out.domain());
-
-    float kernel[KERNEL_HALF_SIZE*2+1];
-    for (unsigned i = 0; i < KERNEL_HALF_SIZE * 2 + 1; i++)
-      kernel[i] = gaussian_derivative<0>(G::s, i - KERNEL_HALF_SIZE);
-
-#pragma omp parallel for schedule(static, 2)
-    for (unsigned r = KERNEL_HALF_SIZE; r < in.nrows() - KERNEL_HALF_SIZE; r++)
-      for (unsigned c = KERNEL_HALF_SIZE; c < in.ncols() - KERNEL_HALF_SIZE; c++)
-      {
-	VI res = zero();
-	for (unsigned k = 0; k < KERNEL_HALF_SIZE * 2 + 1; k++)
-	  res += in(r + k - KERNEL_HALF_SIZE, c) * kernel[k];
-	out(r, c) = res;
-      }
-
   }
 
 }

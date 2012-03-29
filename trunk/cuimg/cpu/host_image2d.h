@@ -23,6 +23,7 @@ namespace cuimg
   public:
     enum { target = CPU };
 
+    typedef int is_expr;
     typedef V value_type;
     typedef point2d<int> point;
     typedef obox2d<point> domain_type;
@@ -51,8 +52,11 @@ namespace cuimg
     V& operator()(int r, int c);
     const V& operator()(int r, int c) const;
 
+    inline V& eval(const point& p) { return (*this)(p); };
+    inline const V& eval(const point& p) const { return (*this)(p); };
+
 #ifdef WITH_OPENCV
-    IplImage* getIplImage();
+    IplImage* getIplImage() const;
     host_image2d<V>& operator=(IplImage * imgIpl);
 #endif
 
@@ -82,6 +86,15 @@ namespace cuimg
     size_t pitch_;
     boost::shared_ptr<V> data_;
     V* buffer_;
+  };
+
+  template <typename T>
+  struct return_type;
+
+  template <typename V>
+  struct return_type<host_image2d<V> >
+  {
+    typedef typename host_image2d<V>::value_type ret;
   };
 
 }

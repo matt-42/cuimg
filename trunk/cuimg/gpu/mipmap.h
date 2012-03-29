@@ -133,6 +133,7 @@ namespace cuimg
     return res;
   }
   */
+
   template <typename I>
   void update_mipmap(const Image2d<I>& in,
                      std::vector<I>& pyramid_out,
@@ -147,7 +148,7 @@ namespace cuimg
     typedef typename I::value_type U;
     typedef typename U::cuda_bt V;
 
-    /* copy(in, pyramid_out[0]); */
+    /* copy(exact(in), pyramid_out[0]); */
     local_jet_static<I, I, I, 0, 0, 1, 1>
       (exact(in), pyramid_out[0], pyramid_tmp1[0], stream, dimblock);
 
@@ -159,8 +160,9 @@ namespace cuimg
       I& tmp = pyramid_tmp2[l-1];
       I& out = pyramid_out[l];
 
-      local_jet_static<I, I, I, 0, 0, 1, 1>
-        (c, gaussian, tmp, stream, dimblock);
+      /* local_jet_static<I, I, I, 0, 0, 1, 1> */
+      /*   (c, gaussian, tmp, stream, dimblock); */
+      copy(c, gaussian);
 
       dim3 dimgrid = grid_dimension(out.domain(), dimblock);
 
