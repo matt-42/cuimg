@@ -60,6 +60,16 @@ namespace cuimg
     V* data_ptr_;
   };
 
+
+  template <typename T>
+  struct return_type;
+
+  template <typename V>
+  struct return_type<device_image2d<V> >
+  {
+    typedef typename device_image2d<V>::value_type ret;
+  };
+
 }
 
 # include <cuimg/gpu/kernel_image2d.h>
