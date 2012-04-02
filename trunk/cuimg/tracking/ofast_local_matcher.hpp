@@ -506,7 +506,8 @@ namespace cuimg
     // check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test2_);
 
     if (!(frame_cpt % 5))
-    pw_call<create_particles_kernel_sig(GPU, typename F::kernel_type, particle)>(flag<GPU>(), dimgrid, dimblock, f, *new_particles_, f.pertinence(), states_);
+      pw_call<create_particles_kernel_sig(GPU, typename F::kernel_type, particle)>(flag<GPU>(), dimgrid, dimblock, f, *new_particles_, f.pertinence(), states_);
+
 
     check_cuda_error();
     return;
@@ -530,14 +531,6 @@ namespace cuimg
 
     // particles_vec1_.resize(matches_.nrows() * matches_.ncols());
     // particles_vec1_.clear();
-    n_particles_ = 0;
-    for (unsigned r = 0; r < particles_->nrows(); r++)
-      for (unsigned c = 0; c < particles_->ncols(); c++)
-        if ((*particles_)(r, c).age != 0)
-        {
-          particles_vec1_[n_particles_] = i_short2(r, c);
-          n_particles_++;
-        }
 
     if (n_particles_ > 0)
     {
@@ -596,6 +589,15 @@ namespace cuimg
 
     //if (!(frame_cpt % 5))
       pw_call<create_particles_kernel_sig(CPU, typename F::kernel_type, particle)>(flag<CPU>(), dimgrid, dimblock, typename F::kernel_type(f), *new_particles_, f.pertinence(), states_);
+
+    n_particles_ = 0;
+    for (unsigned r = 0; r < particles_->nrows(); r++)
+      for (unsigned c = 0; c < particles_->ncols(); c++)
+        if ((*new_particles_)(r, c).age != 0)
+        {
+          particles_vec1_[n_particles_] = i_short2(r, c);
+          n_particles_++;
+        }
 
     check_cuda_error();
     return;
