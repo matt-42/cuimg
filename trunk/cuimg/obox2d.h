@@ -35,6 +35,12 @@ namespace cuimg
     return a.nrows() == b.nrows() && a.ncols() == b.ncols();
   }
 
+  template <typename P>
+  inline obox2d<P> operator/(const obox2d<P>& a, const float x)
+  {
+    return obox2d<P>(a.nrows() / x, a.ncols() / x);
+  }
+
 }
 
 # include <cuimg/obox2d.hpp>

@@ -12,7 +12,7 @@
 namespace cuimg
 {
 
-  template <typename F, template <class> class SA_>
+  template <typename F, typename SA>
   class multi_scale_tracker
   {
   public:
@@ -28,8 +28,6 @@ namespace cuimg
     typedef image2d_target(target, i_float4) image2d_f4;
     typedef image2d_target(target, char) image2d_c;
 
-
-    typedef SA_<F> SA;
     typedef typename SA::particle P;
 
     typedef image2d_target(target, P) image2d_P;
@@ -43,6 +41,7 @@ namespace cuimg
 
     void                   update(const host_image2d<i_uchar3>& in);
     const particle_vector& particles(unsigned scale) const;
+    const image2d_P&       particles_img(unsigned scale) const;
     unsigned               nparticles(unsigned scale) const;
     const image2d_c&       errors() const;
 

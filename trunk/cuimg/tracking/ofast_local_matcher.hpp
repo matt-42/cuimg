@@ -310,6 +310,10 @@ namespace cuimg
       //   f.weighted_mean(p_state, 1.f,
       //                   match, 4.f);
 
+      for (unsigned i = 1; i < T::history_size; i++)
+	new_particles(match).pos_history[i] = particles(p).pos_history[i - 1];
+      new_particles(match).pos_history[0] = i_int2(match);
+
       new_particles(match).age = p_age + 1;
       new_particles(match).pertinence = f.pertinence()(match);
       new_particles(match).fault = fault;
@@ -355,8 +359,8 @@ namespace cuimg
 
   }
 
-  template <typename F>
-  ofast_local_matcher<F>::ofast_local_matcher(const domain_t& d)
+  template <typename F, unsigned HS>
+  ofast_local_matcher<F, HS>::ofast_local_matcher(const domain_t& d)
     : t1_(d),
       t2_(d),
       distance_(d),
@@ -383,9 +387,9 @@ namespace cuimg
     memset(errors_, 0);
   }
 
-   template <typename F>
+   template <typename F, unsigned HS>
   void
-  ofast_local_matcher<F>::swap_buffers()
+  ofast_local_matcher<F, HS>::swap_buffers()
   {
     std::swap(particles_, new_particles_);
 
@@ -401,25 +405,25 @@ namespace cuimg
   }
 
 
-  template <typename F>
+  template <typename F, unsigned HS>
   unsigned
-  ofast_local_matcher<F>::n_particles() const
+  ofast_local_matcher<F, HS>::n_particles() const
   {
     return n_particles_;
   }
 
-  template <typename F>
+  template <typename F, unsigned HS>
   void
-  ofast_local_matcher<F>::update(F& f, global_mvt_thread<ofast_local_matcher<F> >& t_mvt,
+  ofast_local_matcher<F, HS>::update(F& f, global_mvt_thread<ofast_local_matcher<F, HS> >& t_mvt,
                                  const image2d_s2& ls_matches)
   {
     update(flag<F::target>(), f, t_mvt, ls_matches);
   }
 
 #ifndef NO_CUDA
-  template <typename F>
+  template <typename F, unsigned HS>
   void
-  ofast_local_matcher<F>::update(const flag<GPU>&, F& f, global_mvt_thread<ofast_local_matcher<F> >& t_mvt,
+  ofast_local_matcher<F, HS>::update(const flag<GPU>&, F& f, global_mvt_thread<ofast_local_matcher<F, HS> >& t_mvt,
                                  const image2d_s2& ls_matches)
   {
     frame_cpt++;
@@ -512,9 +516,9 @@ namespace cuimg
 
 #endif // ! NO_CUDA
 
-  template <typename F>
+  template <typename F, unsigned HS>
   void
-  ofast_local_matcher<F>::update(const flag<CPU>&, F& f, global_mvt_thread<ofast_local_matcher<F> >& t_mvt,
+  ofast_local_matcher<F, HS>::update(const flag<CPU>&, F& f, global_mvt_thread<ofast_local_matcher<F, HS> >& t_mvt,
                                  const image2d_s2& ls_matches)
   {
     frame_cpt++;
@@ -599,9 +603,9 @@ namespace cuimg
 
   }
 
-  template <typename F>
+  template <typename F, unsigned HS>
   void
-  ofast_local_matcher<F>::display() const
+  ofast_local_matcher<F, HS>::display() const
   {
 #ifdef WITH_DISPLAY
     image2d_f4 age(distance_.domain());
@@ -615,30 +619,30 @@ namespace cuimg
 #endif
   }
 
-  template <typename F>
-  const typename ofast_local_matcher<F>::image2d_P&
-  ofast_local_matcher<F>::particles() const
+  template <typename F, unsigned HS>
+  const typename ofast_local_matcher<F, HS>::image2d_P&
+  ofast_local_matcher<F, HS>::particles() const
   {
     return *new_particles_;
   }
 
-  template <typename F>
-  const typename ofast_local_matcher<F>::particle_vector&
-  ofast_local_matcher<F>::compact_particles() const
+  template <typename F, unsigned HS>
+  const typename ofast_local_matcher<F, HS>::particle_vector&
+  ofast_local_matcher<F, HS>::compact_particles() const
   {
     return compact_particles_;
   }
 
-  template <typename F>
-  const typename ofast_local_matcher<F>::image2d_s2&
-  ofast_local_matcher<F>::matches() const
+  template <typename F, unsigned HS>
+  const typename ofast_local_matcher<F, HS>::image2d_s2&
+  ofast_local_matcher<F, HS>::matches() const
   {
     return matches_;
   }
 
-  template <typename F>
-  const typename ofast_local_matcher<F>::image2d_c&
-  ofast_local_matcher<F>::errors() const
+  template <typename F, unsigned HS>
+  const typename ofast_local_matcher<F, HS>::image2d_c&
+  ofast_local_matcher<F, HS>::errors() const
   {
     return errors_;
   }

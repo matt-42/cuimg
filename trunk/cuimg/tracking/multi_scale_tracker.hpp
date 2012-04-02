@@ -11,9 +11,9 @@
 namespace cuimg
 {
 
-  template <typename F, template <class>  class SA_>
+  template <typename F, typename SA>
   inline
-  multi_scale_tracker<F, SA_>::multi_scale_tracker(const D& d)
+  multi_scale_tracker<F, SA>::multi_scale_tracker(const D& d)
     : frame_uc3_(d),
       frame_(d),
       // traj_tracer_(d),
@@ -41,8 +41,8 @@ namespace cuimg
 
   }
 
-  template <typename F, template <class>  class SA_>
-  multi_scale_tracker<F, SA_>::~multi_scale_tracker()
+  template <typename F, typename SA>
+  multi_scale_tracker<F, SA>::~multi_scale_tracker()
   {
     for (unsigned i = 0; i < pyramid_.size(); i++)
     {
@@ -51,10 +51,10 @@ namespace cuimg
     }
   }
 
-  template <typename F, template <class>  class SA_>
+  template <typename F, typename SA>
   inline
-  const typename multi_scale_tracker<F, SA_>::D&
-  multi_scale_tracker<F, SA_>::domain() const
+  const typename multi_scale_tracker<F, SA>::D&
+  multi_scale_tracker<F, SA>::domain() const
   {
     return frame_.domain();
   }
@@ -275,9 +275,9 @@ extern "C" {
     to_graylevel(tmp_uc3, frame, typename I::value_type());
   }
 
-  template <typename F, template <class>  class SA_>
+  template <typename F, typename SA>
   inline
-  void multi_scale_tracker<F, SA_>::update(const host_image2d<i_uchar3>& in)
+  void multi_scale_tracker<F, SA>::update(const host_image2d<i_uchar3>& in)
   {
     prepare_input_frame(flag<target>(), in, frame_, frame_uc3_);
 
@@ -325,9 +325,9 @@ extern "C" {
   }
 
 
-  template <typename F, template <class>  class SA_>
+  template <typename F, typename SA>
   inline
-  void multi_scale_tracker<F, SA_>::display()
+  void multi_scale_tracker<F, SA>::display()
   {
 #ifdef WITH_DISPLAY
 
@@ -371,10 +371,10 @@ extern "C" {
 #endif
   }
 
-  template <typename F, template <class>  class SA_>
+  template <typename F, typename SA>
   inline
-  const typename multi_scale_tracker<F, SA_>::particle_vector&
-  multi_scale_tracker<F, SA_>::particles(unsigned scale) const
+  const typename multi_scale_tracker<F, SA>::particle_vector&
+  multi_scale_tracker<F, SA>::particles(unsigned scale) const
   {
     if (scale < PS)
       return matcher_[scale]->compact_particles();
@@ -382,10 +382,21 @@ extern "C" {
       return matcher_[PS - 1]->compact_particles();
   }
 
-  template <typename F, template <class>  class SA_>
+  template <typename F, typename SA>
+  inline
+  const typename multi_scale_tracker<F, SA>::image2d_P&
+  multi_scale_tracker<F, SA>::particles_img(unsigned scale) const
+  {
+    if (scale < PS)
+      return matcher_[scale]->particles();
+    else
+      return matcher_[PS - 1]->particles();
+  }
+
+  template <typename F, typename SA>
   inline
   unsigned
-  multi_scale_tracker<F, SA_>::nparticles(unsigned scale) const
+  multi_scale_tracker<F, SA>::nparticles(unsigned scale) const
   {
     if (scale < PS)
       return matcher_[scale]->n_particles();
@@ -393,10 +404,10 @@ extern "C" {
       return matcher_[PS - 1]->n_particles();
   }
 
-  template <typename F, template <class>  class SA_>
+  template <typename F, typename SA>
   inline
-  const typename multi_scale_tracker<F, SA_>::image2d_c&
-  multi_scale_tracker<F, SA_>::errors() const
+  const typename multi_scale_tracker<F, SA>::image2d_c&
+  multi_scale_tracker<F, SA>::errors() const
   {
     return matcher_[0]->errors();
   }

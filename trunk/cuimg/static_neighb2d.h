@@ -35,6 +35,4 @@ namespace cuimg
 
 # include <cuimg/static_neighb2d.hpp>
 
-# include <cuimg/neighb2d_data.h>
-
 #endif

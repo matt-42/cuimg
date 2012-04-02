@@ -46,7 +46,7 @@ namespace cuimg
     typedef std::vector<V> ret;
   };
 
-  template <typename F>
+  template <typename F, unsigned HS>
   class ofast_local_matcher
   {
   public:
@@ -62,6 +62,8 @@ namespace cuimg
 
     struct particle
     {
+      enum { history_size = HS };
+
       __host__ __device__
       particle() : age(0), fault(0), speed(0.f, 0.f) {}
       __host__ __device__
@@ -79,7 +81,7 @@ namespace cuimg
       unsigned short age;
       unsigned short fault;
       float pertinence;
-      i_short2 __padding__;
+      i_short2 pos_history[history_size];
     };
 
     typedef typename thrust_vector<target, particle>::ret particle_vector;
@@ -88,13 +90,13 @@ namespace cuimg
 
     ofast_local_matcher(const domain_t& d);
 
-    void update(F& f, global_mvt_thread<ofast_local_matcher<F> >& t_mvt,
+    void update(F& f, global_mvt_thread<ofast_local_matcher<F, HS> >& t_mvt,
                 const image2d_s2& ls_matches);
 
-    void update(const flag<CPU>&, F& f, global_mvt_thread<ofast_local_matcher<F> >& t_mvt,
+    void update(const flag<CPU>&, F& f, global_mvt_thread<ofast_local_matcher<F, HS> >& t_mvt,
                 const image2d_s2& ls_matches);
 
-    void update(const flag<GPU>&, F& f, global_mvt_thread<ofast_local_matcher<F> >& t_mvt,
+    void update(const flag<GPU>&, F& f, global_mvt_thread<ofast_local_matcher<F, HS> >& t_mvt,
                 const image2d_s2& ls_matches);
 
     void display() const;

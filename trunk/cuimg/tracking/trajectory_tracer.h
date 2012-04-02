@@ -8,6 +8,7 @@
 # endif
 
 # include <cuimg/gpu/device_image2d.h>
+# include <cuimg/image2d_target.h>
 
 using namespace cuimg;
 
