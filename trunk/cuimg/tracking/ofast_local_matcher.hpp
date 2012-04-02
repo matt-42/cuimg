@@ -373,6 +373,7 @@ namespace cuimg
       particles_vec1_(d.nrows() * d.ncols()),
       particles_vec2_(d.nrows() * d.ncols()),
       compact_particles_(d.nrows() * d.ncols()),
+      n_particles_(0),
       frame_cpt(0)
   {
     particles_ = &t1_;
