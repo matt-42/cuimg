@@ -126,6 +126,7 @@ namespace cuimg
     pitch_ = imgIpl->depth;
     data_ = PT((V*) imgIpl->imageData, dummy_free<V>);
     buffer_ = (V*) imgIpl->imageData;
+    domain_ = domain_type(imgIpl->height,imgIpl->width);
     return *this;
   }
 #endif

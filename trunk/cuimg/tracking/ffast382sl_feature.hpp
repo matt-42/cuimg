@@ -25,7 +25,7 @@
 # include <cuimg/dige.h>
 
 # ifndef NVCC
-# include <emmintrin.h>
+//# include <emmintrin.h>
 # endif
 
 #include <dige/widgets/image_view.h>

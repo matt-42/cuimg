@@ -1,6 +1,7 @@
 #ifndef CUIMG_BACKGROUND_VIDEO_CAPTURE_H_
 # define CUIMG_BACKGROUND_VIDEO_CAPTURE_H_
 
+# include <vector>
 # include <boost/thread.hpp>
 # include <cuimg/cpu/host_image2d.h>
 # include <cuimg/video_capture.h>
