@@ -123,7 +123,7 @@ namespace cuimg
   host_image2d<V>&
   host_image2d<V>::operator=(IplImage *imgIpl)
   {
-    pitch_ = imgIpl->depth;
+    pitch_ = imgIpl->widthStep;
     data_ = PT((V*) imgIpl->imageData, dummy_free<V>);
     buffer_ = (V*) imgIpl->imageData;
     domain_ = domain_type(imgIpl->height,imgIpl->width);
