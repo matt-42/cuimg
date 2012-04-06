@@ -29,6 +29,7 @@ namespace cuimg
     typedef image2d_target(target, char) image2d_c;
 
     typedef typename SA::particle P;
+    typedef typename SA::particle particle_type;
 
     typedef image2d_target(target, P) image2d_P;
     typedef typename SA::particle_vector particle_vector;
