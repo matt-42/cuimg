@@ -11,82 +11,34 @@ namespace cuimg
   }
 
   template <typename C>
+  template <typename D>
+  inline
+  point2d<C>::point2d(const improved_builtin<D, 2>& bt)
+    : super(bt)
+  {
+  }
+
+  template <typename C>
   inline
   point2d<C>::point2d(C row, C col)
+    : super(row, col)
   {
-    coords_[0] = row;
-    coords_[1] = col;
   }
 
   template <typename C>
-  inline
-  point2d<C>::point2d(const point2d<C>& d)
-  {
-    coords_[0] = d.row();
-    coords_[1] = d.col();
-  }
-
-  template <typename C>
+  template <typename D>
   inline
   point2d<C>&
-  point2d<C>::operator=(const point2d<C>& d)
+  point2d<C>::operator=(const improved_builtin<D, 2>& d)
   {
-    coords_[0] = d.row();
-    coords_[1] = d.col();
+    super::operator=(d);
     return *this;
   }
 
-  template <typename C>
-  inline C
-  point2d<C>::row() const
-  {
-    return coords_[0];
-  }
-
-  template <typename C>
-  inline C
-  point2d<C>::col() const
-  {
-    return coords_[1];
-  }
-
-
-  template <typename C>
-  inline C&
-  point2d<C>::row()
-  {
-    return coords_[0];
-  }
-
-  template <typename C>
-  inline C&
-  point2d<C>::col()
-  {
-    return coords_[1];
-  }
-
-  template <typename C>
-  template <typename T>
-  inline
-  point2d<C>::point2d(const improved_builtin<T, 2>& bt)
-  {
-    coords_[0] = bt.x;
-    coords_[1] = bt.y;
-  }
-
-  template <typename C>
-  inline
-  point2d<C>::operator typename make_bt<C, 2>::ret() const
-  {
-    return typename make_bt<C, 2>::ret(row(), col());
-  }
-
-  template <typename C, typename D>
-  inline
-  bool operator==(const point2d<C>& a, const point2d<D>& b)
-  {
-    return a.row() == b.row() && a.col() == b.col();
-  }
+  template <typename C> inline C  point2d<C>::row() const { return this->x; }
+  template <typename C> inline C  point2d<C>::col() const { return this->y; }
+  template <typename C> inline C& point2d<C>::row()       { return this->x; }
+  template <typename C> inline C& point2d<C>::col()       { return this->y; }
 
 }
 

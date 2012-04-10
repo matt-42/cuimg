@@ -333,6 +333,20 @@ namespace cuimg
     return *this;
   }
 
+  template <typename T, unsigned N>
+  T
+  improved_builtin<T, N>::r() const
+  {
+    return this->x;
+  }
+
+  template <typename T, unsigned N>
+  T
+  improved_builtin<T, N>::c() const
+  {
+    return this->y;
+  }
+
   template <typename U, typename V, unsigned US, unsigned VS>
   bool operator==(const improved_builtin<U, US>& a, const improved_builtin<V, VS>& b)
   {

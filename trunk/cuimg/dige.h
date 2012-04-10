@@ -63,20 +63,14 @@ namespace dg
       (i.ncols(), i.nrows(), (T*)i.data());
 
   }
-  inline
-  image<trait::format::luminance, unsigned short>
-  adapt(const cuimg::host_image2d<unsigned short>& i)
-  {
-    return image<trait::format::luminance, unsigned short>
-      (i.ncols(), i.nrows(), (unsigned short*)i.data());
-  }
 
+  template <typename T>
   inline
-  image<trait::format::luminance, int>
-  adapt(const cuimg::host_image2d<int>& i)
+  image<trait::format::luminance, T>
+  adapt(const cuimg::host_image2d<T>& i)
   {
-    return image<trait::format::luminance, int>
-      (i.ncols(), i.nrows(), (int*)i.data());
+    return image<trait::format::luminance, T>
+      (i.ncols(), i.nrows(), (T*)i.data());
   }
 
 # ifndef NO_CUDA

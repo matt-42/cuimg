@@ -82,7 +82,10 @@ class improved_builtin : public make_cuda_bt<T, N>::ret
   __host__ __device__ inline self& operator*=(const S& s);
   template <typename S>
   __host__ __device__ inline self& operator/=(const S& s);
-};
+
+  __host__ __device__ inline T r() const;
+  __host__ __device__ inline T c() const;
+ };
 
 template <typename NC, typename T, unsigned N>
 struct change_coord_type<NC, improved_builtin<T, N> >
