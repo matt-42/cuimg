@@ -24,7 +24,7 @@ class trajectory_tracer
   typedef image2d_target(target, i_float4) image2d_f4;
   typedef image2d_target(target, char) image2d_c;
 
-  typedef obox2d<point2d<int> > domain_t;
+  typedef obox2d domain_t;
 
   trajectory_tracer(const domain_t& d);
 

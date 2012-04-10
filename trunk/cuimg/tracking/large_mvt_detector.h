@@ -21,7 +21,7 @@ namespace cuimg
   {
   public:
 
-    typedef obox2d<point2d<int> > domain_t;
+    typedef obox2d domain_t;
 
     large_mvt_detector();
 

@@ -16,7 +16,7 @@ namespace cuimg
   class multi_scale_tracker
   {
   public:
-    typedef obox2d<point2d<int> > D;
+    typedef obox2d D;
 
     enum { target = F::target };
 

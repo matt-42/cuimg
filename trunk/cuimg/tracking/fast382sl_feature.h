@@ -86,7 +86,7 @@ namespace cuimg
     typedef dfast382sl feature_t;
     typedef image2d_target(target, feature_t) image2d_D;
 
-    typedef obox2d<point2d<int> > domain_t;
+    typedef obox2d domain_t;
 
     typedef kernel_fast382sl_feature kernel_type; // client side GPU type.
 

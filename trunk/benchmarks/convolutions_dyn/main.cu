@@ -397,7 +397,7 @@ int main()
 {
 
   srand(time(0));
-  obox2d<point2d<int> > domain(IMG_SIZE, IMG_SIZE);
+  obox2d domain(IMG_SIZE, IMG_SIZE);
   device_image2d<VTYPE> img(domain);
   device_image2d<VTYPE> img_conv(domain);
   host_image2d<VTYPE> img_conv_h(domain);

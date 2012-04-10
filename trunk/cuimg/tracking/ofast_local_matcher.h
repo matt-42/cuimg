@@ -52,7 +52,7 @@ namespace cuimg
   public:
     enum { target = F::target };
     typedef typename F::feature_t feature_t;
-    typedef obox2d<point2d<int> > domain_t;
+    typedef obox2d domain_t;
 
     typedef image2d_target(target, i_short2) image2d_s2;
     typedef image2d_target(target, i_float4) image2d_f4;

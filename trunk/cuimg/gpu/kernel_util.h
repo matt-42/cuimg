@@ -34,14 +34,12 @@ namespace cuimg
   }
 #endif
 
-  template <typename T>
-  inline dim3 grid_dimension(const obox2d<T>& domain, const dim3& dimblock)
+  inline dim3 grid_dimension(const obox2d& domain, const dim3& dimblock)
   {
     return dim3(idivup(domain.ncols(), dimblock.x), idivup(domain.nrows(), dimblock.y));
   }
 
-  template <typename T>
-  inline dim3 grid_dimension(const obox3d<T>& domain, const dim3& dimblock)
+  inline dim3 grid_dimension(const obox3d& domain, const dim3& dimblock)
   {
     return dim3(idivup(domain.ncols(),   dimblock.x),
                 idivup(domain.nrows(),   dimblock.y),

@@ -7,7 +7,7 @@ using namespace cuimg;
 
 int main()
 {
-  obox2d<point2d<int> > b(300, 200);
+  obox2d b(300, 200);
 
   assert(b.nrows() == 300);
   assert(b.ncols() == 200);

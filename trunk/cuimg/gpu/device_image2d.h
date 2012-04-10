@@ -23,7 +23,7 @@ namespace cuimg
     typedef boost::shared_ptr<V> PT;
     typedef V value_type;
     typedef point2d<int> point;
-    typedef obox2d<point> domain_type;
+    typedef obox2d domain_type;
 
     inline device_image2d();
     inline device_image2d(unsigned nrows, unsigned ncols);

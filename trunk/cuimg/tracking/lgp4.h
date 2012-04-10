@@ -51,7 +51,7 @@ namespace cuimg
   {
   public:
     typedef dlgp4 feature_t;
-    typedef obox2d<point2d<int> > domain_t;
+    typedef obox2d domain_t;
 
     typedef kernel_lgp4_feature kernel_type;
 
