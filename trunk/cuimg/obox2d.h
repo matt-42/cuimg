@@ -20,7 +20,7 @@ namespace cuimg
     __host__ __device__ inline unsigned nrows() const;
     __host__ __device__ inline unsigned ncols() const;
 
-    __host__ __device__ inline bool has(const point& p) const;
+    __host__ __device__ inline bool has(const point2d<int>& p) const;
 
   private:
     unsigned short nrows_;

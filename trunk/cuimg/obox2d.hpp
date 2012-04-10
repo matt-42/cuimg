@@ -39,10 +39,10 @@ namespace cuimg
     return ncols_;
   }
 
-  bool obox2d::has(const point& p) const
+  bool obox2d::has(const point2d<int>& p) const
   {
-    return p.row() >= 0 && p.row() < point::coord(nrows_) &&
-      p.col() >= 0 && p.col() < point::coord(ncols_);
+    return p.row() >= 0 && p.row() < point2d<int>::coord(nrows_) &&
+      p.col() >= 0 && p.col() < point2d<int>::coord(ncols_);
   }
 
 }

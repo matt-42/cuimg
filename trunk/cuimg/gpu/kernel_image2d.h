@@ -20,7 +20,7 @@ namespace cuimg
     typedef int is_expr;
     typedef V value_type;
     typedef point2d<int> point;
-    typedef obox2d<point> domain_type;
+    typedef obox2d domain_type;
 
     __host__ __device__ inline kernel_image2d();
 

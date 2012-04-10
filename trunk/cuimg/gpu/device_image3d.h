@@ -17,7 +17,7 @@ namespace cuimg
   public:
     typedef V value_type;
     typedef point3d<int> point;
-    typedef obox3d<point> domain_type;
+    typedef obox3d domain_type;
 
     inline device_image3d(unsigned nslices, unsigned nrows, unsigned ncols);
     inline device_image3d(const domain_type& d);

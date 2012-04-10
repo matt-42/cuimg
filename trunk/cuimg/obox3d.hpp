@@ -47,11 +47,11 @@ namespace cuimg
     return ncols_;
   }
 
-  bool obox3d::has(const point& p) const
+  bool obox3d::has(const point3d<int>& p) const
   {
-    return p.sli() >= 0 && p.sli() < point::coord(nslices_) &&
-           p.row() >= 0 && p.row() < point::coord(nrows_) &&
-           p.col() >= 0 && p.col() < point::coord(ncols_);
+    return p.sli() >= 0 && p.sli() < point3d<int>::coord(nslices_) &&
+           p.row() >= 0 && p.row() < point3d<int>::coord(nrows_) &&
+           p.col() >= 0 && p.col() < point3d<int>::coord(ncols_);
   }
 
 }
