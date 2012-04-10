@@ -6,56 +6,48 @@
 namespace cuimg
 {
 
-  template <typename P>
-  obox3d<P>::obox3d()
+  obox3d::obox3d()
   {
   }
 
-  template <typename P>
-  obox3d<P>::obox3d(unsigned nslices, unsigned nrows, unsigned ncols)
+  obox3d::obox3d(unsigned nslices, unsigned nrows, unsigned ncols)
     : nslices_(nslices),
       nrows_(nrows),
       ncols_(ncols)
   {
   }
 
-  template <typename P>
-  obox3d<P>::obox3d(const obox3d<P>& img)
+  obox3d::obox3d(const obox3d& img)
     : nslices_(img.nslices()),
       nrows_(img.nrows()),
       ncols_(img.ncols())
   {
   }
 
-  template <typename P>
-  obox3d<P>&
-  obox3d<P>::operator=(const obox3d<P>& d)
+  obox3d&
+  obox3d::operator=(const obox3d& d)
   {
     nrows_ = d.nrows();
     ncols_ = d.ncols();
     return *this;
   }
 
-  template <typename P>
-  unsigned obox3d<P>::nslices() const
+  unsigned obox3d::nslices() const
   {
     return nslices_;
   }
 
-  template <typename P>
-  unsigned obox3d<P>::nrows() const
+  unsigned obox3d::nrows() const
   {
     return nrows_;
   }
 
-  template <typename P>
-  unsigned obox3d<P>::ncols() const
+  unsigned obox3d::ncols() const
   {
     return ncols_;
   }
 
-  template <typename P>
-  bool obox3d<P>::has(const point& p) const
+  bool obox3d::has(const point& p) const
   {
     return p.sli() >= 0 && p.sli() < point::coord(nslices_) &&
            p.row() >= 0 && p.row() < point::coord(nrows_) &&

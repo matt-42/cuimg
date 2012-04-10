@@ -7,17 +7,15 @@
 
 namespace cuimg
 {
-  template <typename P>
   class obox2d
   {
   public:
-    typedef point2d<int> point;
 
     __host__ __device__ inline obox2d();
     __host__ __device__ inline obox2d(unsigned nrows, unsigned ncols);
-    __host__ __device__ inline obox2d(const obox2d<P>& d);
+    __host__ __device__ inline obox2d(const obox2d& d);
 
-    __host__ __device__ inline obox2d<P>& operator=(const obox2d<P>& d);
+    __host__ __device__ inline obox2d& operator=(const obox2d& d);
 
     __host__ __device__ inline unsigned nrows() const;
     __host__ __device__ inline unsigned ncols() const;
@@ -29,16 +27,14 @@ namespace cuimg
     unsigned short ncols_;
   };
 
-  template <typename P>
-  inline bool operator==(const obox2d<P>& a, const obox2d<P>& b)
+  inline bool operator==(const obox2d& a, const obox2d& b)
   {
     return a.nrows() == b.nrows() && a.ncols() == b.ncols();
   }
 
-  template <typename P>
-  inline obox2d<P> operator/(const obox2d<P>& a, const float x)
+  inline obox2d operator/(const obox2d& a, const float x)
   {
-    return obox2d<P>(a.nrows() / x, a.ncols() / x);
+    return obox2d(a.nrows() / x, a.ncols() / x);
   }
 
 }

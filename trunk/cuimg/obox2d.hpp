@@ -5,48 +5,41 @@
 
 namespace cuimg
 {
-  template <typename P>
-  obox2d<P>::obox2d()
+  obox2d::obox2d()
   {
   }
 
-  template <typename P>
-  obox2d<P>::obox2d(unsigned nrows, unsigned ncols)
+  obox2d::obox2d(unsigned nrows, unsigned ncols)
     : nrows_(nrows),
       ncols_(ncols)
   {
   }
 
-  template <typename P>
-  obox2d<P>::obox2d(const obox2d<P>& img)
+  obox2d::obox2d(const obox2d& img)
     : nrows_(img.nrows()),
       ncols_(img.ncols())
   {
   }
 
-  template <typename P>
-  obox2d<P>&
-  obox2d<P>::operator=(const obox2d<P>& d)
+  obox2d&
+  obox2d::operator=(const obox2d& d)
   {
     nrows_ = d.nrows();
     ncols_ = d.ncols();
     return *this;
   }
 
-  template <typename P>
-  unsigned obox2d<P>::nrows() const
+  unsigned obox2d::nrows() const
   {
     return nrows_;
   }
 
-  template <typename P>
-  unsigned obox2d<P>::ncols() const
+  unsigned obox2d::ncols() const
   {
     return ncols_;
   }
 
-  template <typename P>
-  bool obox2d<P>::has(const point& p) const
+  bool obox2d::has(const point& p) const
   {
     return p.row() >= 0 && p.row() < point::coord(nrows_) &&
       p.col() >= 0 && p.col() < point::coord(ncols_);

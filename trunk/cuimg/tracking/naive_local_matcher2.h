@@ -11,7 +11,7 @@ namespace cuimg
   {
   public:
     typedef typename F::feature_t feature_t;
-    typedef obox2d<point2d<int> > domain_t;
+    typedef obox2d domain_t;
 
     struct particle
     {

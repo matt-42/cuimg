@@ -7,17 +7,15 @@
 
 namespace cuimg
 {
-  template <typename P>
   class obox3d
   {
   public:
-    typedef point3d<int> point;
 
     __host__ __device__ inline obox3d();
     __host__ __device__ inline obox3d(unsigned nslices, unsigned nrows, unsigned ncols);
-    __host__ __device__ inline obox3d(const obox3d<P>& d);
+    __host__ __device__ inline obox3d(const obox3d& d);
 
-    __host__ __device__ inline obox3d<P>& operator=(const obox3d<P>& d);
+    __host__ __device__ inline obox3d& operator=(const obox3d& d);
 
     __host__ __device__ inline unsigned nslices() const;
     __host__ __device__ inline unsigned nrows() const;
@@ -31,8 +29,7 @@ namespace cuimg
     unsigned ncols_;
   };
 
-  template <typename P>
-  inline bool operator==(const obox3d<P>& a, const obox3d<P>& b)
+  inline bool operator==(const obox3d& a, const obox3d& b)
   {
     return a.nslices() == b.nslices() && a.nrows() == b.nrows() && a.ncols() == b.ncols();
   }
