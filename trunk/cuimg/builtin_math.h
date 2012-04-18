@@ -23,6 +23,19 @@ namespace cuimg
     };
 
     template <int I>
+    class dot
+    {
+    public:
+      template <typename U, typename V, unsigned VS>
+        static __device__ __host__ inline void run(float& r,
+						   const improved_builtin<U, VS>& a,
+						   const improved_builtin<V, VS>& b)
+      {
+        r += bt_getter<I>::get(a) * bt_getter<I>::get(b);
+      }
+    };
+
+    template <int I>
     class sqrt
     {
     public:
@@ -74,6 +87,17 @@ namespace cuimg
   {
     improved_builtin<T, N> r;
     meta::loop<internal::abs, 0, N - 1>::iter(r, x);
+    return r;
+  }
+
+
+  template <typename U, typename V, unsigned N>
+  __host__ __device__ inline
+  float dot(const improved_builtin<U, N>& a,
+	    const improved_builtin<V, N>& b)
+  {
+    float r = 0;
+    meta::loop<internal::dot, 0, N - 1>::iter(r, a, b);
     return r;
   }
 

@@ -239,7 +239,7 @@ namespace cuimg
     /*   return; */
     /* } */
 
-    if (pp < 0.7f)
+    if (pp < 0.5f)
       return;
 
     {

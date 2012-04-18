@@ -528,7 +528,7 @@ kernel_image2d<dfast382sl> in,                  \
       fast382sl_color_(d),
       color_blurred_(d),
       color_tmp_(d),
-      grad_thresh(0.3f),
+      grad_thresh(0.02f),
       frame_cpt_(0)
   {
     f_prev_ = &f1_;
@@ -565,7 +565,7 @@ kernel_image2d<dfast382sl> in,                  \
       bindTexture2d(blurred_s2_, s2_tex);
     }
 
-    grad_thresh = Slider("grad_thresh").value() / 100.f;
+    // grad_thresh = Slider("grad_thresh").value() / 100.f;
     pw_call<FAST382SL_sig(target, i_float1)>(flag<target>(), dimgrid, dimblock,
                                              color_blurred_, blurred_s1_, blurred_s2_,
                                              //*f_,

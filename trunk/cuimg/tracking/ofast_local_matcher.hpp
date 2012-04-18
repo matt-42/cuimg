@@ -187,7 +187,7 @@ namespace cuimg
       // else
       // prediction = i_int2(i_int2(p) + particles(p).speed + particles(p).acceleration + mvt);
 
-      prediction = i_int2(i_int2(p) + particles(p).speed + mvt);
+      //prediction = i_int2(i_int2(p) + particles(p).speed + mvt);
 
       if (!f.s1().has(prediction)
           ||
@@ -276,7 +276,7 @@ namespace cuimg
 
     if (f.pertinence()(match) < 0.001f) fault += 5;
 
-    if (match_distance < (0.2f) && fault < 20)
+    if (match_distance < (0.4f) && fault < 20)
     {
 
       i_float2 new_speed = i_int2(match) - i_int2(p);
@@ -303,8 +303,8 @@ namespace cuimg
         new_particles(match).ipos = particles(p).ipos;
 
       states(match) =
-        f.weighted_mean(p_state, 1.f,
-                        match, 4.f);
+        f.weighted_mean(p_state, 4.f,
+                        match, 1.f);
 
       // new_particles(match).state =
       //   f.weighted_mean(p_state, 1.f,
@@ -447,7 +447,7 @@ namespace cuimg
       = thrust::remove_copy(particles_vec1_.begin(), particles_vec1_.end(), particles_vec2_.begin(), i_short2(-1, -1));
     particles_vec1_.swap(particles_vec2_);
     n_particles_ = end - particles_vec1_.begin();
-
+    particles_vec1_.resize(n_particles_);
 
     // n_particles_ = matches_.nrows() * matches_.ncols();
     //std::cout << "particles_vec_.size after " << particles_vec_.size() << std::endl;
@@ -530,7 +530,6 @@ namespace cuimg
 
     swap_buffers();
 
-    // particles_vec1_.resize(matches_.nrows() * matches_.ncols());
     // particles_vec1_.clear();
 
     if (n_particles_ > 0)
@@ -591,15 +590,19 @@ namespace cuimg
     //if (!(frame_cpt % 5))
       pw_call<create_particles_kernel_sig(CPU, typename F::kernel_type, particle)>(flag<CPU>(), dimgrid, dimblock, typename F::kernel_type(f), *new_particles_, f.pertinence(), states_);
 
+    particles_vec1_.resize(matches_.nrows() * matches_.ncols());
     n_particles_ = 0;
     for (unsigned r = 0; r < particles_->nrows(); r++)
       for (unsigned c = 0; c < particles_->ncols(); c++)
         if ((*new_particles_)(r, c).age != 0)
         {
           particles_vec1_[n_particles_] = i_short2(r, c);
+	  compact_particles_[n_particles_] = (*new_particles_)(r,c);
           n_particles_++;
         }
 
+    particles_vec1_.resize(n_particles_);
+    compact_particles_.resize(n_particles_);
     check_cuda_error();
     return;
 

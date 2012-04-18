@@ -6,6 +6,8 @@
 # include <cuimg/point2d.h>
 # include <cuimg/obox2d.h>
 # include <cuimg/improved_builtin.h>
+# include <cuimg/target.h>
+# include <cuimg/image2d_target.h>
 
 namespace cuimg
 {
@@ -77,8 +79,9 @@ namespace cuimg
     enum { target = T };
 
 
+    typedef gl01f vtype;
     typedef image2d_target(target, i_uchar3) image2d_uc3;
-    typedef image2d_target(target, i_float1) image2d_f1;
+    typedef image2d_target(target, gl01f) image2d_f1;
     typedef image2d_target(target, i_float4) image2d_f4;
     typedef image2d_target(target, char) image2d_c;
 

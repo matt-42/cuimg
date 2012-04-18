@@ -31,6 +31,7 @@ namespace cuimg
     {
       feature_.push_back(new F(pyramid_[i].domain()));
       matcher_.push_back(new SA(pyramid_[i].domain()));
+      accelerations_[i] = i_short2(0, 0);
     }
 
     fill(dummy_matches_, i_short2(-1, -1));
@@ -295,6 +296,8 @@ extern "C" {
       else
         matcher_[l]->update(*(feature_[l]), mvt_detector_thread_, dummy_matches_);
 
+      accelerations_[l] = mvt_detector_thread_.mvt() * 2;
+
       if (l >= 0)
       {
         mvt_detector_thread_.update(*(matcher_[l]), l);
@@ -410,6 +413,14 @@ extern "C" {
   multi_scale_tracker<F, SA>::errors() const
   {
     return matcher_[0]->errors();
+  }
+
+  template <typename F, typename SA>
+  inline
+  i_short2
+  multi_scale_tracker<F, SA>::camera_acceleration(unsigned scale) const
+  {
+    return accelerations_[scale];
   }
 
 }

@@ -45,6 +45,7 @@ namespace cuimg
     const image2d_P&       particles_img(unsigned scale) const;
     unsigned               nparticles(unsigned scale) const;
     const image2d_c&       errors() const;
+    i_short2               camera_acceleration(unsigned scale) const;
 
   private:
     void display();
@@ -63,6 +64,8 @@ namespace cuimg
     std::vector<image2d_f4 > pyramid_display1_;
     std::vector<image2d_f4 > pyramid_display2_;
     std::vector<image2d_f4 > pyramid_speed_;
+
+    std::vector<i_short2 > accelerations_;
 
     image2d_s2 dummy_matches_;
 
