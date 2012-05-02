@@ -377,8 +377,8 @@ extern "C" {
 
   template <typename F, typename SA>
   inline
-  const typename multi_scale_tracker<F, SA>::particle_vector&
-  multi_scale_tracker<F, SA>::particles(unsigned scale) const
+  typename multi_scale_tracker<F, SA>::particle_vector&
+  multi_scale_tracker<F, SA>::particles(unsigned scale)
   {
     if (scale < PS)
       return matcher_[scale]->compact_particles();
