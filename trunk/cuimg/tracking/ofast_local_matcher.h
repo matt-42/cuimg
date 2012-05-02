@@ -81,6 +81,8 @@ namespace cuimg
       unsigned short age;
       unsigned short fault;
       float pertinence;
+      /* PA attributes; */
+      float depth;
       i_short2 pos_history[history_size];
     };
 
@@ -107,6 +109,7 @@ namespace cuimg
 
     void swap_buffers();
 
+    particle_vector& compact_particles();
     const particle_vector& compact_particles() const;
     const i_short2_vector& particle_positions() const { return particles_vec1_; }
 

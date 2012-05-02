@@ -41,7 +41,7 @@ namespace cuimg
     const D& domain() const;
 
     void                   update(const host_image2d<i_uchar3>& in);
-    const particle_vector& particles(unsigned scale) const;
+    particle_vector& particles(unsigned scale);
     const image2d_P&       particles_img(unsigned scale) const;
     unsigned               nparticles(unsigned scale) const;
     const image2d_c&       errors() const;
