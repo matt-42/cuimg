@@ -187,7 +187,7 @@ namespace cuimg
       // else
       // prediction = i_int2(i_int2(p) + particles(p).speed + particles(p).acceleration + mvt);
 
-      //prediction = i_int2(i_int2(p) + particles(p).speed + mvt);
+      prediction = i_int2(i_int2(p) + particles(p).speed + mvt);
 
       if (!f.s1().has(prediction)
           ||
@@ -302,9 +302,11 @@ namespace cuimg
       // else
         new_particles(match).ipos = particles(p).ipos;
 
-      states(match) =
-        f.weighted_mean(p_state, 4.f,
-                        match, 1.f);
+	if (norml2(new_speed) > 2)
+	  states(match) =f.weighted_mean(p_state, 4.f,
+					 match, 1.f);
+	else
+	  states(match) = p_state;
 
       // new_particles(match).state =
       //   f.weighted_mean(p_state, 1.f,
@@ -332,6 +334,7 @@ namespace cuimg
     }
     else
     {
+      compact_particles[threadid].pos = i_short2(-1, -1);
       matches(p) = i_short2(-1, -1);
 
 #ifdef WITH_DISPLAY
@@ -630,6 +633,13 @@ namespace cuimg
   ofast_local_matcher<F, HS>::particles() const
   {
     return *new_particles_;
+  }
+
+  template <typename F, unsigned HS>
+  typename ofast_local_matcher<F, HS>::particle_vector&
+  ofast_local_matcher<F, HS>::compact_particles()
+  {
+    return compact_particles_;
   }
 
   template <typename F, unsigned HS>
