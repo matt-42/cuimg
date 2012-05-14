@@ -46,6 +46,7 @@ namespace cuimg
     unsigned               nparticles(unsigned scale) const;
     const image2d_c&       errors() const;
     i_short2               camera_acceleration(unsigned scale) const;
+    const image2d_s2&      matches(unsigned scale) const;
 
   private:
     void display();
@@ -68,8 +69,6 @@ namespace cuimg
     std::vector<i_short2 > accelerations_;
 
     image2d_s2 dummy_matches_;
-
-    /* trajectory_tracer<target> traj_tracer_; */
 
     global_mvt_thread<SA> mvt_detector_thread_;
   };

@@ -36,8 +36,8 @@ using namespace dg::widgets;
 namespace cuimg
 {
 
-  #define s1_tex UNIT_STATIC(hawzxb)
-  #define s2_tex UNIT_STATIC(xyhgtk)
+  #define s1_tex UNIT_STATIC(hadsfwzxb)
+  #define s2_tex UNIT_STATIC(xysdfhgtk)
 
 
 #ifdef NVCC
@@ -211,45 +211,6 @@ namespace cuimg
     { 0,-1}, {-1,-1}
   };
   */
-
-
-  template <typename V>
-  __global__ void filter_pertinence(kernel_image2d<i_float1> pertinence,
-                                    kernel_image2d<i_float1> out)
-  {
-    point2d<int> p = thread_pos2d();
-    if (!pertinence.has(p))
-      return;
-
-
-
-    if (p.row() < 3 || p.row() > pertinence.domain().nrows() - 3 ||
-        p.col() < 3 || p.col() > pertinence.domain().ncols() - 3)
-    {
-      out(p).x = 0.f;
-      return;
-    }
-
-    float max = pertinence(p).x;
-
-    //for_all_in_static_neighb2d(p, n, c25)
-    for(unsigned i = 0; i < 25; i++)
-    {
-      // point2d<int> n(p.row() + c25[i][0],
-      //                p.col() + c25[i][1]);
-      float vn = pertinence(p.row() + c25[i][0],
-                            p.col() + c25[i][1]);
-      if (//pertinence.has(n) &&
-          max < vn)
-        max = vn;
-      //max = ::max(max, pertinence(n).x);
-   }
-
-    if (max > 0.3f)
-      out(p) = pertinence(p).x;
-    else
-      out(p) = 0.f;
-  }
 
 
 #define FFAST382SL_sig(T, V)                      \

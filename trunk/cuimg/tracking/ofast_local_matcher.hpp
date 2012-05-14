@@ -36,6 +36,8 @@
 
 # include <cuimg/tracking/matcher_tools.h>
 
+// extern unsigned it_counter;
+// extern unsigned n_counter;
 
 namespace cuimg
 {
@@ -205,6 +207,7 @@ namespace cuimg
     {
 
       unsigned match_i = 8;
+      // n_counter++;
       for (int search = 0; search < 7; search++)
       {
         int i = c8_it[match_i][0];
@@ -247,6 +250,7 @@ namespace cuimg
           break;
         else
           prediction = match;
+
       }
 
     }
@@ -400,7 +404,7 @@ namespace cuimg
     dim3 dimblock(128, 1, 1);
     dim3 dimgrid = grid_dimension(new_particles_->domain(), dimblock);
 
-    memset(matches_, 0);
+    memset(matches_, -1);
     memset(*new_particles_, 0);
 
   //  particle p; p.age = 0;
@@ -562,6 +566,9 @@ namespace cuimg
                                                  n_particles_,
                                                  *particles_, *new_particles_, matches_);
       check_cuda_error();
+
+     ImageView("frame2") << distance_
+                         << dg::widgets::show;
 
 
       memset(errors_, 0);

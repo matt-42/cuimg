@@ -16,7 +16,7 @@ namespace cuimg
   multi_scale_tracker<F, SA>::multi_scale_tracker(const D& d)
     : frame_uc3_(d),
       frame_(d),
-      // traj_tracer_(d),
+      accelerations_(PS),
       accelerations_(PS),
       dummy_matches_(d),
       mvt_detector_thread_(d)
@@ -203,9 +203,9 @@ namespace cuimg
     if (!out.has(p))
       return;
 
-    if (pts(p).age > age_filter) out(p) = i_float4(1.f, 0.f, 0.f, 1.f);
-    else
-      out(p) = i_float4(pertinence(p), pertinence(p), pertinence(p), 1.f);
+    if (pts(p).age > age_filter) plot_c4(out, p, i_float4(1.f, 0, 0, 1.f));//out(p) = i_float4(1.f, 0.f, 0.f, 1.f);
+    // else
+    //   out(p) = i_float4(pertinence(p), pertinence(p), pertinence(p), 1.f);
   }
 
 #define draw_particle_pertinence_sig(T, P) kernel_image2d<i_float1>, kernel_image2d<P>, \
@@ -337,10 +337,9 @@ extern "C" {
 
     flag<target> f;
 
-//#define TD 0
+    //#define TD 0
     unsigned TD = Slider("display_scale").value();
     if (TD >= PS) TD = PS - 1;
-    //traj_tracer_.update(matcher_[TD]->matches(), matcher_[TD]->particles());
 
     D d = matcher_[TD]->particles().domain();
     dim3 db(16, 16);
@@ -349,7 +348,6 @@ extern "C" {
     feature_[TD]->display();
     matcher_[TD]->display();
     mvt_detector_thread_.mvt_detector().display();
-    //traj_tracer_.display("trajectories", pyramid_[TD]);
 
     pyramid_display1_[TD] = aggregate<float>::run(get_x(pyramid_[TD]), get_x(pyramid_[TD]), get_x(pyramid_[TD]), 1.f);
 
@@ -359,8 +357,13 @@ extern "C" {
 
     image2d_f4 particle_pertinence(matcher_[TD]->particles().domain());
     image2d_f4 of(matcher_[TD]->particles().domain());
-    pw_call<draw_particle_pertinence_sig(target, P)>(f,dg,db,feature_[TD]->pertinence(), matcher_[TD]->particles(),
-                                             particle_pertinence, Slider("age_filter").value());
+
+    particle_pertinence = aggregate<float>::run(get_x(feature_[TD]->pertinence()),
+                                                get_x(feature_[TD]->pertinence()),
+                                                get_x(feature_[TD]->pertinence()), 1.f);
+
+    // pw_call<draw_particle_pertinence_sig(target, P)>(f,dg,db,feature_[TD]->pertinence(), matcher_[TD]->particles(),
+    //                                          particle_pertinence, Slider("age_filter").value());
 
     pw_call<draw_speed_sig(target, P)>
       (f, dg,db, kernel_image2d<P>(matcher_[TD]->particles()),
@@ -368,7 +371,9 @@ extern "C" {
 
     pw_call<of_reconstruction_sig(target, P)>(f,dg,db,pyramid_speed_[TD], pyramid_[TD], of);
 
-    ImageView("frame") <<= dg::dl() - frame_ - pyramid_display1_[TD] - pyramid_display2_[TD] - pyramid_speed_[TD] + of - particle_pertinence;
+    // ImageView("frame") <<= dg::dl() - frame_ - pyramid_display1_[TD] - pyramid_display2_[TD] - pyramid_speed_[TD] + of - particle_pertinence;
+
+    ImageView("frame") <<= dg::dl() - pyramid_display1_[TD] - particle_pertinence;
 
     // dg::record("views.avi") <<= ImageView("video") <<= dg::dl() - pyramid_display1_[TD] - feature_[TD]->pertinence() +
     //   traj_tracer_.straj() - of;
@@ -406,6 +411,17 @@ extern "C" {
       return matcher_[scale]->n_particles();
     else
       return matcher_[PS - 1]->n_particles();
+  }
+
+  template <typename F, typename SA>
+  inline
+  const typename multi_scale_tracker<F, SA>::image2d_s2&
+  multi_scale_tracker<F, SA>::matches(unsigned scale) const
+  {
+    if (scale < PS)
+      return matcher_[scale]->matches();
+    else
+      return matcher_[PS - 1]->matches();
   }
 
   template <typename F, typename SA>
