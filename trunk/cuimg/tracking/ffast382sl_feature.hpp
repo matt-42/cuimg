@@ -276,10 +276,13 @@ namespace cuimg
 	    //   break;
 	    // }
 	  }
-          if (max_single_diff < adiff) max_single_diff = adiff;
+          float contrast = std::max(fabs(pv - v1), fabs(pv - v2));
+          if (max_single_diff < contrast) max_single_diff = contrast;
+          //if (max_single_diff < adiff) max_single_diff = adiff;
         }
       }
 
+      /*
       pv = V(tex2D(flag<GPU>(), s2_tex, frame_s2, p.col()/2, p.row()/2));
       float min_diff_large = 9999999.f;
       float max_single_diff_large = 0.f;
@@ -321,10 +324,10 @@ namespace cuimg
         max_single_diff = max_single_diff_large;
       }
 
-
+*/
       if (max_single_diff >= grad_thresh)
       {
-        min_diff = min_diff / max_single_diff;
+         min_diff = min_diff / max_single_diff;
       }
       else
         min_diff = 0;

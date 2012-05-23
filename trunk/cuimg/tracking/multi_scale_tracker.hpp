@@ -17,7 +17,6 @@ namespace cuimg
     : frame_uc3_(d),
       frame_(d),
       accelerations_(PS),
-      accelerations_(PS),
       dummy_matches_(d),
       mvt_detector_thread_(d)
   {

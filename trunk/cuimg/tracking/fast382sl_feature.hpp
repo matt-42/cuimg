@@ -303,16 +303,18 @@ namespace cuimg
 	  {
             min_diff = adiff;
 
-	    if (min_diff < 0.01)
+            /*	    if (min_diff < 0.01)
 	    {
 	      min_diff = 0;
 	      break;
-	    }
+              }*/
 	  }
-          if (max_single_diff < adiff) max_single_diff = adiff;
+
+          float contrast = std::max(fabs(pv - v1), fabs(pv - v2));
+          if (max_single_diff < contrast) max_single_diff = contrast;
         }
       }
-
+      /*
       pv = tex2D(flag<GPU>(), s2_tex, frame_s2, p).x;
       float min_diff_large = 9999999.f;
       float max_single_diff_large = 0.f;
@@ -342,7 +344,9 @@ namespace cuimg
 	    }
           }
 
-          if (max_single_diff_large < adiff) max_single_diff_large = adiff;
+          float contrast = max(fabs(pv - v1), fabs(pv - v2));
+          if (max_single_diff < contrast) max_single_diff = contrast;
+          //if (max_single_diff_large < adiff) max_single_diff_large = adiff;
         }
 
       }
@@ -353,7 +357,7 @@ namespace cuimg
         min_diff = min_diff_large;
         max_single_diff = max_single_diff_large;
       }
-
+      */
 
       if (max_single_diff >= grad_thresh)
       {
@@ -557,7 +561,7 @@ kernel_image2d<dfast382sl> in,                  \
 
     //local_jet_static2_<0,0,1, 0,0,2, 6>::run(in, blurred_s1_, blurred_s2_, tmp_, pertinence2_);
 
-    if (!(frame_cpt_ % 5))
+    //if (!(frame_cpt_ % 5))
     {
     if (target == GPU)
     {

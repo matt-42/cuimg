@@ -278,7 +278,7 @@ namespace cuimg
     else
       fault = 0;
 
-    if (f.pertinence()(match) < 0.001f) fault += 5;
+    if (f.pertinence()(match) < 0.001f) fault += 4;
 
     if (match_distance < (0.4f) && fault < 20)
     {
