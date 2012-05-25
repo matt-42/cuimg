@@ -25,6 +25,15 @@ namespace cuimg
   }
 
   template <typename V>
+  host_image2d<V>::host_image2d(V* data, unsigned nrows, unsigned ncols, unsigned pitch)
+    : domain_(nrows, ncols),
+      pitch_(pitch)
+  {
+    data_ = PT(data, dummy_free<V>);
+    buffer_ = data_.get();
+  }
+
+  template <typename V>
   host_image2d<V>::host_image2d(const domain_type& d, bool pinned)
     : domain_(d),
       pitch_(ncols() * sizeof(V))

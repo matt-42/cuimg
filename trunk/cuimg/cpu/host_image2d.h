@@ -31,6 +31,7 @@ namespace cuimg
 
     host_image2d();
     host_image2d(unsigned nrows, unsigned ncols, bool pinned = 0);
+    host_image2d(V* data, unsigned nrows, unsigned ncols, unsigned pitch);
     host_image2d(const domain_type& d, bool pinned = 0);
 
     host_image2d(const host_image2d<V>& d);
