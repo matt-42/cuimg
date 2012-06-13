@@ -49,6 +49,17 @@ namespace cuimg
     };
 
     template <int I>
+    class assign_repeat
+    {
+    public:
+      template <typename U, unsigned N, typename R>
+      static __device__ __host__ inline void run(improved_builtin<U, N>& a, const R& r)
+      {
+        bt_getter<I>::get(a) = r;
+      }
+    };
+
+    template <int I>
     class reset
     {
     public:
@@ -250,6 +261,22 @@ namespace cuimg
   improved_builtin<T, N>::operator=(const zero&)
   {
     meta::loop<internal::reset, 0, size - 1>::iter(*this);
+    return *this;
+  }
+
+  template <typename T, unsigned N>
+  template <typename R>
+  improved_builtin<T, N>::improved_builtin(const repeat_<R>& r)
+  {
+    meta::loop<internal::assign_repeat, 0, size - 1>::iter(*this, r.v);
+  }
+
+  template <typename T, unsigned N>
+  template <typename R>
+  improved_builtin<T, N>&
+  improved_builtin<T, N>::operator=(const repeat_<R>& r)
+  {
+    meta::loop<internal::assign_repeat, 0, size - 1>::iter(*this, r.v);
     return *this;
   }
 

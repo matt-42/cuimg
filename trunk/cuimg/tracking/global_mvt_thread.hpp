@@ -12,7 +12,11 @@ namespace cuimg
   template <typename M>
   void global_mvt_thread_loop(M* o)
   {
-    while (!o->thread_end()) o->prepare_next_frame();
+    while (true)
+    {
+      boost::this_thread::interruption_point();
+      o->prepare_next_frame();
+    }
   }
 
   template <class M>
@@ -30,8 +34,14 @@ namespace cuimg
   template <class M>
   global_mvt_thread<M>::~global_mvt_thread()
   {
-    thread_end_ = true;
-    is_empty_cond_.notify_one();
+    terminate_thread();
+  }
+
+  template <class M>
+  void
+  global_mvt_thread<M>::terminate_thread()
+  {
+    producer_thread_.interrupt();
     producer_thread_.join();
   }
 
@@ -39,10 +49,13 @@ namespace cuimg
   void
   global_mvt_thread<M>::update(const M& m, unsigned l)
   {
+    // std::cout << "update_" << std::endl;
     assert(!matcher_);
     matcher_ = &m;
     level_ = l;
     is_empty_cond_.notify_one();
+
+    boost::unique_lock<boost::mutex> lock(mutex_);
   }
 
   template <class M>
@@ -50,13 +63,6 @@ namespace cuimg
   global_mvt_thread<M>::synchronize()
   {
     ::boost::unique_lock<boost::mutex> lock(mutex_);
-  }
-
-  template <class M>
-  bool
-  global_mvt_thread<M>::thread_end() const
-  {
-    return thread_end_;
   }
 
   template <class M>
@@ -104,23 +110,21 @@ namespace cuimg
   void
   global_mvt_thread<M>::prepare_next_frame()
   {
+    // std::cout << "prepare_next_frame wait" << std::endl;
     boost::unique_lock<boost::mutex> lock(mutex_);
-    while (!matcher_ && !thread_end())
-    {
+    while (!matcher_)
       is_empty_cond_.wait(lock);
-    }
 
-    if (!thread_end())
-    {
-      read_back_particles(particles_, matcher_->compact_particles(), matcher_->n_particles());
-      // copy_async(matcher_->matches(), matches_[level_], 0);
-      // copy_async(matcher_->particles(), particles_[level_], 0);
-      // cudaStreamSynchronize(cuda_stream_);
-      //while (cudaStreamQuery(cuda_stream_) != cudaSuccess);
-      mvt_ = mvt_detector_.estimate(particles_, matcher_->n_particles());
-    }
+    // std::cout << "prepare_next_frame process" << std::endl;
+    read_back_particles(particles_, matcher_->compact_particles(), matcher_->n_particles());
+    // copy_async(matcher_->matches(), matches_[level_], 0);
+    // copy_async(matcher_->particles(), particles_[level_], 0);
+    // cudaStreamSynchronize(cuda_stream_);
+    //while (cudaStreamQuery(cuda_stream_) != cudaSuccess);
+    mvt_ = mvt_detector_.estimate(particles_, matcher_->n_particles());
 
     matcher_ = 0;
+    // std::cout << "matcher_ == 0" << std::endl;
     is_empty_cond_.notify_one();
   }
 
@@ -136,7 +140,6 @@ namespace cuimg
   template <class M>
   void global_mvt_thread<M>::start_producer_thread()
   {
-    thread_end_ = false;
     producer_thread_ = boost::thread(&global_mvt_thread_loop<global_mvt_thread<M> >, this);
   }
 

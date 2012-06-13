@@ -102,6 +102,7 @@ namespace cuimg
     inline image2d_D& previous_frame();
     inline image2d_D& current_frame();
     inline image2d_f1& pertinence();
+    inline const image2d_f1& pertinence() const;
     inline image2d_f1& s1();
     inline image2d_f1& s2();
 
@@ -158,6 +159,10 @@ namespace cuimg
     __host__ __device__ float distance_linear(const dfast382sl& a,
 					      const point2d<int>& n);
 
+      inline
+    __host__ __device__ float distance_linear_fast(const dfast382sl& a,
+                                                   const point2d<int>& n);
+
     /* inline */
     /* __host__ __device__ float distance_linear(const point2d<int>& a, */
     /*                                  const point2d<int>& b); */
@@ -193,6 +198,8 @@ namespace cuimg
     /* kernel_image2d<dfast382sl> f_; */
     kernel_image2d<i_float1> s1_;
     kernel_image2d<i_float1> s2_;
+    int offsets_s1[16];
+    int offsets_s2[16];
   };
 
 }

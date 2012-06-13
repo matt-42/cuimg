@@ -1,6 +1,7 @@
 #ifndef CUIMG_OFAST_LOCAL_MATCHER_HPP_
 # define  CUIMG_OFAST_LOCAL_MATCHER_HPP_
 
+#include <omp.h>
 #include <GL/glew.h>
 #include <cuimg/gpu/cuda.h>
 
@@ -8,7 +9,7 @@
 #  include <thrust/remove.h>
 # endif
 
-
+/*
 #include <dige/window.h>
 #include <dige/widgets/image_view.h>
 #include <dige/image.h>
@@ -23,7 +24,7 @@
 #include <dige/event/keycode.h>
 #include <dige/recorder.h>
 #include <cuimg/dige.h>
-
+*/
 
 # include <cuimg/gpu/texture.h>
 # include <cuimg/gpu/device_image2d.h>
@@ -45,25 +46,6 @@ namespace cuimg
   // #define feat_tex UNIT_STATIC(feat_tex_id)
 
   // texture<float4, 2, cudaReadModeElementType> feat_tex;
-
-#define init_particles_vec_sig(TG, T)                           \
-  i_short2*, kernel_image2d<T>, &init_particles_vec<TG, T>
-
-  template <unsigned target, typename T>
-  __host__ __device__ void init_particles_vec(thread_info<target> ti,
-                                              i_short2* particles_vec,
-                                              kernel_image2d<T> particles)
-  {
-    point2d<int> p = thread_pos2d(ti);
-
-    if (!particles.has(p)) return;
-
-    i_short2 res(-1, -1);
-    if (particles(p).age != 0)
-      res = i_short2(p.row(), p.col());
-    particles_vec[p.row() * particles.ncols() + p.col()] = res;
-  }
-
 
 #define naive_matching_kernel2_sig(TG, F, T)    \
   i_short2* ,                                   \
@@ -166,6 +148,8 @@ namespace cuimg
             prediction.row() < 7 || prediction.row() >= particles.domain().nrows() - 7 ||
             prediction.col() < 7 || prediction.col() >= particles.domain().ncols() - 7
             ) return;
+
+        match = prediction;
         // if (!particles.has(prediction)) return;
         /*
           for_all_in_static_neighb2d(prediction, n, c81) if (particles.has(n))
@@ -204,19 +188,20 @@ namespace cuimg
     }
 
     //    if (match_distance > 0.01f)
+    if (true)
     {
-
       unsigned match_i = 8;
       // n_counter++;
       for (int search = 0; search < 7; search++)
       {
         int i = c8_it[match_i][0];
-
+        int end = c8_it[match_i][1];
         {
           point2d<int> n(prediction.row() + c8[i][0],
                          prediction.col() + c8[i][1]);
           {
             float d = f.distance_linear(p_state, n);
+            // std::cout << i << " : " << d << std::endl;
             if (d < match_distance)
             {
               match = n;
@@ -228,7 +213,8 @@ namespace cuimg
         }
 
 #pragma unroll 4
-        for(; i != c8_it[match_i][1]; i = (i + 1) & 7)
+
+        for(; i != end; i = (i + 1) & 7)
         {
           point2d<int> n(prediction.row() + c8[i][0],
                          prediction.col() + c8[i][1]);
@@ -254,17 +240,23 @@ namespace cuimg
       }
 
     }
-    // for_all_in_static_neighb2d(prediction, n, c49) if (particles.has(n))
-    // {
-    //   //float d = f.distance_linear(p_state, tex2D(feat_tex, n));
-    //   float d = f.distance_linear(p_state, f.current_frame()(n));
-    //   if (d < match_distance)
-    //   {
-    //     match = n;
-    //     match_distance = d;
-    //     //if (match_distance < 0.1f) break;
-    //   }
-    // }
+    else
+    {
+      for_all_in_static_neighb2d(prediction, n, c49)
+        if (n->row() > 10 && n->row() < (particles.domain().nrows() - 10) &&
+            n->col() > 10 && n->col() < (particles.domain().ncols() - 10))
+      {
+        //float d = f.distance_linear(p_state, tex2D(feat_tex, n));
+        float d = f.distance_linear(p_state, n);
+        // float d = f.distance_linear(p_state, f.current_frame()(n));
+        if (d < match_distance)
+        {
+          match = n;
+          match_distance = d;
+          //if (match_distance < 0.1f) break;
+        }
+      }
+    }
 #ifdef WITH_DISPLAY
     dist(p) = i_float4(match_distance, match_distance, match_distance, 1.f);
 #endif
@@ -280,7 +272,8 @@ namespace cuimg
 
     if (f.pertinence()(match) < 0.001f) fault += 4;
 
-    if (match_distance < (0.4f) && fault < 20)
+    if (match_distance < (0.2f)
+      && fault < 20)
     {
 
       i_float2 new_speed = i_int2(match) - i_int2(p);
@@ -318,8 +311,9 @@ namespace cuimg
 
       for (unsigned i = 1; i < T::history_size; i++)
 	new_particles(match).pos_history[i] = particles(p).pos_history[i - 1];
-      new_particles(match).pos_history[0] = i_int2(match);
+      new_particles(match).pos_history[0] = p;
 
+      new_particles(match).pos = match;
       new_particles(match).age = p_age + 1;
       new_particles(match).pertinence = f.pertinence()(match);
       new_particles(match).fault = fault;
@@ -332,6 +326,8 @@ namespace cuimg
 
       matches(p) = i_short2(match.row(), match.col());
 
+      //if (
+
       // if (ls_p_found)
       //   dist(p) = i_float4(0.f, 0.7f, 0.f, 1.f);
 
@@ -340,7 +336,7 @@ namespace cuimg
     {
       compact_particles[threadid].pos = i_short2(-1, -1);
       matches(p) = i_short2(-1, -1);
-
+      // debug(p) = i_uchar3(0,0,255);
 #ifdef WITH_DISPLAY
       if (p_age <= 5)
         dist(p) = i_float4(1.f, 1.f, 1.f, 1.f);
@@ -366,6 +362,7 @@ namespace cuimg
 
   }
 
+  // Constructor.
   template <typename F, unsigned HS>
   ofast_local_matcher<F, HS>::ofast_local_matcher(const domain_t& d)
     : t1_(d),
@@ -393,6 +390,29 @@ namespace cuimg
     memset(*particles_, 0);
     memset(*new_particles_, 0);
     memset(errors_, 0);
+
+    omp_set_dynamic(0);
+    if (target == CPU)
+    {
+      std::cout << omp_get_max_threads() << std::endl;
+
+      compaction_openmp_buffers = new i_short2*[omp_get_max_threads()];
+      std::cout << compaction_openmp_buffers  << std::endl;
+
+      for (unsigned t = 0; t < omp_get_max_threads(); t++)
+        compaction_openmp_buffers[t] = new i_short2[20000];
+    }
+  }
+
+  template <typename F, unsigned HS>
+  ofast_local_matcher<F, HS>::~ofast_local_matcher()
+  {
+    if (target == CPU)
+    {
+      for (unsigned t = 0; t < omp_get_max_threads(); t++)
+        delete [] compaction_openmp_buffers[t];
+      delete [] compaction_openmp_buffers;
+    }
   }
 
    template <typename F, unsigned HS>
@@ -434,6 +454,8 @@ namespace cuimg
   ofast_local_matcher<F, HS>::update(const flag<GPU>&, F& f, global_mvt_thread<ofast_local_matcher<F, HS> >& t_mvt,
                                  const image2d_s2& ls_matches)
   {
+    SCOPE_PROF(ofast_local_matcher_update);
+
     frame_cpt++;
     dim3 dimblock(128, 1, 1);
     dim3 dimgrid = grid_dimension(f.domain(), dimblock);
@@ -445,8 +467,10 @@ namespace cuimg
     particles_vec2_.resize(matches_.nrows() * matches_.ncols());
 
     //std::cout << "particles_vec_.size " << particles_vec_.size() << std::endl;
+    START_PROF(init_particles);
     pw_call<init_particles_vec_sig(GPU, particle)>(flag<GPU>(), dimgrid, dimblock,
                                                    thrust::raw_pointer_cast( &particles_vec1_[0]), *particles_);
+    END_PROF(init_particles);
 
     // return;
 
@@ -458,7 +482,6 @@ namespace cuimg
 
     // n_particles_ = matches_.nrows() * matches_.ncols();
     //std::cout << "particles_vec_.size after " << particles_vec_.size() << std::endl;
-
 
     if (n_particles_ > 0)
     {
@@ -513,7 +536,7 @@ namespace cuimg
 
     // check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test2_);
 
-    if (!(frame_cpt % 5))
+    //if (!(frame_cpt % 5))
       pw_call<create_particles_kernel_sig(GPU, typename F::kernel_type, particle)>(flag<GPU>(), dimgrid, dimblock, f, *new_particles_, f.pertinence(), states_);
 
 
@@ -530,6 +553,9 @@ namespace cuimg
   ofast_local_matcher<F, HS>::update(const flag<CPU>&, F& f, global_mvt_thread<ofast_local_matcher<F, HS> >& t_mvt,
                                  const image2d_s2& ls_matches)
   {
+    SCOPE_PROF(ofast_local_matcher_update);
+
+
     frame_cpt++;
     dim3 dimblock(f.domain().ncols(), 1, 1);
 
@@ -549,13 +575,16 @@ namespace cuimg
       distance_ = aggregate<float>::run(1.f, 0.f, 0.f, 1.f);
 #endif
       i_short2 mvt = t_mvt.mvt() * 2;
+      START_PROF(matching_kernel);
       pw_call<naive_matching_kernel2_sig(CPU, typename F::kernel_type, particle)>
         (flag<CPU>(), reduced_dimgrid, dimblock,
          &particles_vec1_[0],
          n_particles_, f, *particles_, *new_particles_, matches_, states_,
          ls_matches, mvt, &compact_particles_[0]
          ,distance_);
+      END_PROF(matching_kernel);
 
+      START_PROF(filter_robbers);
       pw_call<filter_robbers_sig(CPU, particle)>(flag<CPU>(), reduced_dimgrid, dimblock,
                                                  &particles_vec1_[0],
                                                  n_particles_,
@@ -565,10 +594,8 @@ namespace cuimg
                                                  &particles_vec1_[0],
                                                  n_particles_,
                                                  *particles_, *new_particles_, matches_);
+      END_PROF(filter_robbers);
       check_cuda_error();
-
-     ImageView("frame2") << distance_
-                         << dg::widgets::show;
 
 
       memset(errors_, 0);
@@ -581,12 +608,14 @@ namespace cuimg
 # endif
 #endif
 
-      // if (!(frame_cpt % 30))
+      //if (!(frame_cpt % 30))
+      START_PROF(filter_false_matching);
       pw_call<filter_false_matching_sig(CPU, particle)>(flag<CPU>(), reduced_dimgrid, dimblock,
                                                         &particles_vec1_[0],
                                                         n_particles_,
                                                         *particles_, *new_particles_,
                                                         matches_, errors_, fm_disp_);
+      END_PROF(filter_false_matching);
 
 
     }
@@ -598,25 +627,119 @@ namespace cuimg
     // check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test2_);
 
     //if (!(frame_cpt % 5))
+
+      START_PROF(create_particles_kernel);
       pw_call<create_particles_kernel_sig(CPU, typename F::kernel_type, particle)>(flag<CPU>(), dimgrid, dimblock, typename F::kernel_type(f), *new_particles_, f.pertinence(), states_);
+      END_PROF(create_particles_kernel);
 
-    particles_vec1_.resize(matches_.nrows() * matches_.ncols());
-    n_particles_ = 0;
-    for (unsigned r = 0; r < particles_->nrows(); r++)
-      for (unsigned c = 0; c < particles_->ncols(); c++)
-        if ((*new_particles_)(r, c).age != 0)
-        {
-          particles_vec1_[n_particles_] = i_short2(r, c);
-	  compact_particles_[n_particles_] = (*new_particles_)(r,c);
-          n_particles_++;
-        }
-
-    particles_vec1_.resize(n_particles_);
-    compact_particles_.resize(n_particles_);
+      particles_compation(flag<CPU>());
     check_cuda_error();
     return;
 
 
+  }
+
+
+  template <typename F, unsigned HS>
+  void
+  ofast_local_matcher<F, HS>::particles_compation(const flag<CPU>&)
+  {
+    SCOPE_PROF(compact_particles);
+
+    std::vector<int> out_size(4);
+
+    unsigned size = 0;
+
+    int num_threads = omp_get_max_threads();
+
+    START_PROF(loop);
+#pragma omp parallel
+    {
+      int tid;
+      i_short2* curr;
+      tid = omp_get_thread_num();
+      curr = compaction_openmp_buffers[tid];
+      // std::cout << "curr start: " << curr << std::endl;
+      assert(curr);
+#pragma omp for schedule(static, 4)
+      for (unsigned r = 0; r < particles_->nrows(); r++)
+      {
+        particle* it = &(*new_particles_)(r, 0);
+        particle* end = it + particles_->ncols();
+        for (unsigned c = 0; it < end; it++, c++)
+          if (it->age != 0)
+          {
+            assert(curr >= compaction_openmp_buffers[tid] && curr < compaction_openmp_buffers[tid] + 20000);
+            *curr = i_short2(r, c);
+            // std::cout << "curr write: " << curr <<  " " << tid << std::endl;
+
+            ++curr;
+          }
+      }
+
+      out_size[tid] = curr - compaction_openmp_buffers[tid];
+
+#pragma omp barrier
+      unsigned before = 0;
+      for (unsigned t = 0; t < tid; t++)
+        before += out_size[t];
+
+      if (tid == 0)
+      {
+        unsigned size = 0;
+        for (unsigned t = 0; t < num_threads; t++)
+          size += out_size[t];
+        particles_vec1_.resize(size);
+      }
+
+#pragma omp barrier
+      memcpy(&particles_vec1_[0] + before, compaction_openmp_buffers[tid], out_size[tid] * sizeof(int));
+    }
+    END_PROF(loop);
+
+    compact_particles_.resize(particles_vec1_.size());
+
+#pragma omp for schedule(static, 1024)
+    for (unsigned i = 0; i < particles_vec1_.size(); i++)
+      compact_particles_[i] = (*new_particles_)(particles_vec1_[i]);
+
+    n_particles_ = particles_vec1_.size();
+
+  }
+
+  template <typename F, unsigned HS>
+  void
+  ofast_local_matcher<F, HS>::particles_compation_old(const flag<CPU>&)
+  {
+      START_PROF(compact_particles);
+      particles_vec1_.resize(matches_.nrows() * matches_.ncols());
+      compact_particles_.resize(matches_.nrows() * matches_.ncols());
+      // particles_vec1_.clear();
+      // compact_particles_.clear();
+      n_particles_ = 0;
+      START_PROF(loop);
+
+      #pragma omp for schedule(static, 2)
+      for (unsigned r = 0; r < particles_->nrows(); r++)
+      {
+        for (unsigned c = 0; c < particles_->ncols(); c++)
+          if ((*new_particles_)(r, c).age != 0)
+          {
+            //#pragma omp critical
+            {
+              particles_vec1_[n_particles_] = i_short2(r, c);
+              compact_particles_[n_particles_] = (*new_particles_)(r,c);
+              n_particles_++;
+            }
+          }
+      }
+
+      END_PROF(loop);
+
+      particles_vec1_.resize(n_particles_);
+      compact_particles_.resize(n_particles_);
+
+      END_PROF(compact_particles);
   }
 
   template <typename F, unsigned HS>

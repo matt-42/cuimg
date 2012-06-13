@@ -53,7 +53,7 @@ namespace cuimg
       const auto& p = particles[i];
       if (p.age > 5 && p.pos != i_int2(-1, -1))
       {
-        i_int2 speed = p.pos_history[0] - p.pos_history[1];
+        i_int2 speed = p.pos - p.pos_history[0];
         i_int2 bin(hhs + speed.r(), hhs + speed.c());
         if (histo.has(bin) && (histo(bin) += p.age) > hmax_)
         {

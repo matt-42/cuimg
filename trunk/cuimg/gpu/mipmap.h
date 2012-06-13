@@ -143,12 +143,15 @@ namespace cuimg
                      cudaStream_t stream = 0,
                      dim3 dimblock = dim3(16, 16, 1))
   {
+    SCOPE_PROF(update_mipmap);
     using namespace mipmap_internals;
 
     typedef typename I::value_type U;
     typedef typename U::cuda_bt V;
 
+    START_PROF(copy);
     copy(exact(in), pyramid_out[0]);
+    END_PROF(copy);
     /* local_jet_static<I, I, I, 0, 0, 1, 1> */
     /*   (exact(in), pyramid_out[0], pyramid_tmp1[0], stream, dimblock); */
 
@@ -162,7 +165,9 @@ namespace cuimg
 
       /* local_jet_static<I, I, I, 0, 0, 1, 1> */
       /*   (c, gaussian, tmp, stream, dimblock); */
-      copy(c, gaussian);
+      /* START_PROF(copy); */
+      /* copy(c, gaussian); */
+      /* END_PROF(copy); */
 
       dim3 dimgrid = grid_dimension(out.domain(), dimblock);
 
@@ -171,7 +176,9 @@ namespace cuimg
         bindTexture2d(gaussian, mipmap_internals::UNIT_STATIC(mipmap_input_tex)<V>::tex());
 #endif
 
-      pw_call<mipmap_kernel_sig(I::target, U)>(flag<I::target>(), dimgrid, dimblock, gaussian, out);
+      START_PROF(resize_kernel);
+      pw_call<mipmap_kernel_sig(I::target, U)>(flag<I::target>(), dimgrid, dimblock, c, out);
+      END_PROF(resize_kernel);
 
 #ifndef NO_CUDA
       if (I::target == unsigned(GPU))
@@ -182,6 +189,36 @@ namespace cuimg
 
       if (I::target == unsigned(GPU))
         check_cuda_error();
+    }
+
+  }
+
+  template <typename I>
+  void update_mipmap_level(const Image2d<I>& in,
+                           std::vector<I>& pyramid_out,
+                           unsigned level,
+                           cudaStream_t stream = 0,
+                           dim3 dimblock = dim3(16, 16, 1))
+  {
+    SCOPE_PROF(update_mipmap_level);
+    using namespace mipmap_internals;
+
+    typedef typename I::value_type U;
+    typedef typename U::cuda_bt V;
+
+    if (level == 0)
+    {
+      START_PROF(copy);
+      copy(exact(in), pyramid_out[0]);
+      END_PROF(copy);
+    }
+    else
+    {
+      dim3 dimgrid = grid_dimension(pyramid_out[level].domain(), dimblock);
+      START_PROF(resize_kernel);
+      pw_call<mipmap_kernel_sig(I::target, U)>(flag<I::target>(), dimgrid, dimblock,
+                                               pyramid_out[level-1], pyramid_out[level]);
+      END_PROF(resize_kernel);
     }
 
   }

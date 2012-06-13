@@ -48,6 +48,8 @@ namespace cuimg
     i_short2               camera_acceleration(unsigned scale) const;
     const image2d_s2&      matches(unsigned scale) const;
 
+    const F&               feature(unsigned scale) const;
+
   private:
     void display();
 

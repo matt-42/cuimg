@@ -6,6 +6,54 @@
 namespace cuimg
 {
 
+
+
+#ifndef NO_CUDA
+  template <unsigned T, typename V>
+  struct thrust_vector
+  {
+    typedef thrust::device_vector<V> ret;
+  };
+
+  template <typename V>
+  struct thrust_vector<GPU, V>
+  {
+    typedef thrust::device_vector<V> ret;
+  };
+#else
+  template <unsigned T, typename V>
+  struct thrust_vector
+  {
+    typedef std::vector<V> ret;
+  };
+#endif
+
+  template <typename V>
+  struct thrust_vector<CPU, V>
+  {
+    typedef std::vector<V> ret;
+  };
+
+  
+#define init_particles_vec_sig(TG, T)                           \
+  i_short2*, kernel_image2d<T>, &init_particles_vec<TG, T>
+
+  template <unsigned target, typename T>
+  __host__ __device__ void init_particles_vec(thread_info<target> ti,
+                                              i_short2* particles_vec,
+                                              kernel_image2d<T> particles)
+  {
+    point2d<int> p = thread_pos2d(ti);
+
+    if (!particles.has(p)) return;
+
+    i_short2 res(-1, -1);
+    if (particles(p).age != 0)
+      res = i_short2(p.row(), p.col());
+    particles_vec[p.row() * particles.ncols() + p.col()] = res;
+  }
+
+  
 #define check_robbers_sig(TG, T)                \
   kernel_image2d<T> ,                           \
     kernel_image2d<T> ,                         \
@@ -156,6 +204,8 @@ namespace cuimg
     {
       new_particles(match).age = 0;
       errors(match) = 1;
+      //debug(p) = i_uchar3(0,255,0);
+
       if (new_particles(match).age <= 1)
         disp(match) = i_float4(1.f, 0.f, 0.f, 1.f);
     }
@@ -226,7 +276,8 @@ namespace cuimg
                                                    kernel_image2d<typename F::feature_t> states)
   {
     point2d<int> p = thread_pos2d(ti);
-    if (!particles.has(p) || p.row() < 12 || p.row() > particles.domain().nrows() - 12 ||
+    if (!particles.has(p) || particles(p).age
+        || p.row() < 12 || p.row() > particles.domain().nrows() - 12 ||
         p.col() < 12 || p.col() > particles.domain().ncols() - 12)
     return;
 
@@ -243,25 +294,26 @@ namespace cuimg
       return;
 
     {
-      bool max = true;
-      //for_all_in_static_neighb2d(p, n, c8)
+      //bool max = true;
 #pragma unroll
-      for (int i = 0; i < 8; i++)
+      for_all_in_static_neighb2d(p, n, c8)
+      /* for (int i = 0; i < 8; i++) */
       {
-        point2d<int> n(p.row() + c8[i][0],
-                       p.col() + c8[i][1]);
+        /* point2d<int> n(p.row() + c8[i][0], */
+        /*                p.col() + c8[i][1]); */
 
         if (pp < pertinence(n).x || particles(n).age > 1)
         {
-          max = false;
-          break;
+          //max = false;
+          return;
         }
       }
 
-      if (max)
+      //if (max)
       {
         T np;
-        np.ipos = i_int2(p);
+        np.pos = i_int2(p);
+        //np.ipos = i_int2(p);
         np.age = 1;
         // np.state = f.new_state(p);
         np.speed = i_float2(0.f, 0.f);
@@ -269,7 +321,7 @@ namespace cuimg
         states(p) = f.new_state(p);
         particles(p) = np;
       }
-      else
+      //else
       {}
     }
 

@@ -414,13 +414,6 @@ namespace cuimg
                                  p.col() + circle_r3_h[(i+8)][1],
                                  p.row() + circle_r3_h[(i+8)][0]).x;
 
-
-        // if (!(i % 2))
-        // {
-        //     distances[i/2] = (v1 * 255);
-        //     distances[i/2 + 4] = (v2 * 255);
-        // }
-
         {
           float diff = pv -
             (v1 + v2) / 2.f;
@@ -548,6 +541,8 @@ kernel_image2d<dfast382sl> in,                  \
   void
   fast382sl_feature<T>::update(const image2d_f1& in, const image2d_f1& in_s2)
   {
+    SCOPE_PROF(fast382sl_feature_update);
+
     frame_cpt_++;
     swap_buffers();
     dim3 dimblock(16, 16, 1);
@@ -570,10 +565,12 @@ kernel_image2d<dfast382sl> in,                  \
     }
 
     // grad_thresh = Slider("grad_thresh").value() / 100.f;
+    START_PROF(kernel);
     pw_call<FAST382SL_sig(target, i_float1)>(flag<target>(), dimgrid, dimblock,
                                              color_blurred_, blurred_s1_, blurred_s2_,
                                              //*f_,
 					     pertinence_, grad_thresh);
+    END_PROF(kernel);
 
     // filter_pertinence<i_float1><<<dimgrid, dimblock>>>
     //   (pertinence_, pertinence2_);
@@ -654,6 +651,15 @@ kernel_image2d<dfast382sl> in,                  \
   }
 
 
+  template <unsigned T>
+  inline
+  const typename fast382sl_feature<T>::image2d_f1&
+  fast382sl_feature<T>::pertinence() const
+  {
+    return pertinence_;
+  }
+
+
     template <unsigned target>
     __host__ __device__
     inline
@@ -664,6 +670,12 @@ kernel_image2d<dfast382sl> in,                  \
       s1_(f.s1()),
       s2_(f.s2())
   {
+    for (unsigned i = 0; i < 16; i++)
+    {
+      point2d<int> p(10,10);
+      offsets_s1[i] = (long(&s1_(p + i_int2(circle_r3[i]))) - long(&s1_(p))) / sizeof(i_float1);
+      offsets_s2[i] = (long(&s2_(p + i_int2(circle_r3[i])*2)) - long(&s2_(p))) / sizeof(i_float1);
+    }
   }
 
 
@@ -718,42 +730,28 @@ kernel_image2d<dfast382sl> in,                  \
     return new_state(n);
   }
 
+
   inline
   __host__ __device__ float kernel_fast382sl_feature::distance_linear(const dfast382sl& a,
-								      const point2d<int>& n)
+                                                                      const point2d<int>& n)
   {
-    float d = 0;
+    float d = 0.f;
 
+    i_float1* data = &s1_(n);
     for(int i = 0; i < 8; i ++)
     {
-      float v = s1_(n.row() + circle_r3[i*2][0],
-    		   n.col() + circle_r3[i*2][1]).x * 255.f;
+      float v = data[offsets_s1[i*2]].x * 255.f;
       d += fabs(v - a[i]);
     }
 
+    data = &s2_(n);
     for(int i = 0; i < 8; i ++)
     {
-      float v = s2_(n.row() + 2 * circle_r3[i*2][0],
-    		    n.col() + 2 * circle_r3[i*2][1]).x * 255.f;
+      float v = data[offsets_s2[i*2]].x * 255.f;
       d += fabs(v - a[8+i]);
     }
+
     return d / (255.f * 16.f);
-
-    // for(int i = 0; i < 16; i += 2)
-    // {
-    //   float v = s1_(n.row() + circle_r3[i][0],
-    // 		   n.col() + circle_r3[i][1]).x * 255.f;
-    //   d += fabs(v - a[i/2]);
-    // }
-    // for(int i = 0; i < 16; i += 2)
-    // {
-    //   float v = s2_(n.row() + 2 * circle_r3[i][0],
-    // 		    n.col() + 2 * circle_r3[i][1]).x * 255.f;
-    //   d += fabs(v - a[8+i/2]);
-    // }
-    // return d / (255.f * 16.f);
-
-    // return cuimg::distance_mean_linear(a, new_state(n));
   }
 
   inline

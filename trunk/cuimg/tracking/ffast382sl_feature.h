@@ -105,6 +105,7 @@ namespace cuimg
     inline image2d_D& previous_frame();
     inline image2d_D& current_frame();
     inline image2d_f1& pertinence();
+    inline const image2d_f1& pertinence() const;
     inline image2d_V& s1();
     inline image2d_V& s2();
 

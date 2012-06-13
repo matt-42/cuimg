@@ -229,6 +229,7 @@ namespace cuimg
                             kernel_image2d<i_float1> pertinence,
                             float grad_thresh)
   {
+
     point2d<int> p = thread_pos2d(ti);
     if (!frame_s1.has(p))//; || track(p).x == 0)
       return;
@@ -241,75 +242,66 @@ namespace cuimg
       return;
     }
 
-    gl01f pv;
+    // dfast382sl distances;
+
+    float pv;
 
     {
       float min_diff = 9999999.f;
       float max_single_diff = 0.f;
-      pv = V(tex2D(flag<GPU>(), s1_tex, frame_s1, p));
+      pv = tex2D(flag<CPU>(), s1_tex, frame_s1, p).x;
       int sign = 0;
       for(int i = 0; i < 8; i++)
       {
 
-        gl01f v1 = V(tex2D(flag<GPU>(), s1_tex, frame_s1,
-			  p.col() + circle_r3[i][1],
-			  p.row() + circle_r3[i][0]));
+        float v1 = tex2D(flag<CPU>(), s1_tex, frame_s1,
+                                 p.col() + circle_r3_h[i][1],
+                                 p.row() + circle_r3_h[i][0]).x;
 
-        gl01f v2 = V(tex2D(flag<GPU>(), s1_tex, frame_s1,
-			  p.col() + circle_r3[(i+8)][1],
-			  p.row() + circle_r3[(i+8)][0]));
+        float v2 = tex2D(flag<CPU>(), s1_tex, frame_s1,
+                                 p.col() + circle_r3_h[(i+8)][1],
+                                 p.row() + circle_r3_h[(i+8)][0]).x;
 
         {
-          float diff = (pv - (v1 + v2) / 2.f);
-          // int diff = pv -
-          //   (v1 + v2) / 2;
+          float diff = pv -
+            (v1 + v2) / 2.f;
+
 
           float adiff = fabs(diff);
 
           if (adiff < min_diff)
-	  {
             min_diff = adiff;
 
-	    // if (min_diff < 0.01)
-	    // {
-	    //   min_diff = 0;
-	    //   break;
-	    // }
-	  }
-          float contrast = std::max(fabs(pv - v1), fabs(pv - v2));
-          if (max_single_diff < contrast) max_single_diff = contrast;
-          //if (max_single_diff < adiff) max_single_diff = adiff;
+
+
+          if (max_single_diff < adiff) max_single_diff = adiff;
+
         }
       }
 
-      /*
-      pv = V(tex2D(flag<GPU>(), s2_tex, frame_s2, p.col()/2, p.row()/2));
+      pv = tex2D(flag<CPU>(), s2_tex, frame_s2, p).x;
       float min_diff_large = 9999999.f;
       float max_single_diff_large = 0.f;
       //int min_orientation_large;
       for(int i = 0; i < 8; i++)
       {
 
-        gl01f v1 = V(tex2D(flag<GPU>(), s2_tex, frame_s2,
-			   p.col()/2 + circle_r3[i][1],
-			  p.row()/2 + circle_r3[i][0]));
+        float v1 = tex2D(flag<CPU>(), s2_tex, frame_s2,
+                         p.col() + circle_r3_h[i][1],
+                         p.row() + circle_r3_h[i][0]).x;
 
-        gl01f v2 = V(tex2D(flag<GPU>(), s2_tex, frame_s2,
-			p.col()/2 + circle_r3[(i+8)][1],
-			p.row()/2 + circle_r3[(i+8)][0]));
+        float v2 = tex2D(flag<CPU>(), s2_tex, frame_s2,
+                         p.col() + circle_r3_h[(i+8)][1],
+                         p.row() + circle_r3_h[(i+8)][0]).x;
 
         {
-          float diff = (pv - (v1 + v2) / 2.f);
+          float diff = pv - (v1 + v2) / 2.f;
           float adiff = fabs(diff);
 
           if (adiff < min_diff_large)
           {
             min_diff_large = adiff;
-	    // if (min_diff_large < 0.01)
-	    // {
-	    //   min_diff_large = 0;
-	    //   break;
-	    // }
+            //if (min_diff_large < 0.01) break;
           }
 
           if (max_single_diff_large < adiff) max_single_diff_large = adiff;
@@ -324,15 +316,16 @@ namespace cuimg
         max_single_diff = max_single_diff_large;
       }
 
-*/
+
       if (max_single_diff >= grad_thresh)
       {
-         min_diff = min_diff / max_single_diff;
+        min_diff = min_diff / max_single_diff;
       }
       else
         min_diff = 0;
 
       pertinence(p) = min_diff;
+      // out(p) = distances;
 
     }
 
@@ -387,7 +380,7 @@ namespace cuimg
         // }
 
 	{
-          float diff = (pv - (v1 + v2) / 2) / 255.f;
+          float diff = (pv - (int(v1) + v2) / 2) / 255.f;
           // float diff = pv -
           //   (v1 + v2) / 2.f;
 
@@ -403,7 +396,7 @@ namespace cuimg
 
         }
       }
-
+      
       pv = V(tex2D(flag<CPU>(), s2_tex, frame_s2, p.col()/2, p.row()/2));
       float min_diff_large = 9999999.f;
       float max_single_diff_large = 0.f;
@@ -420,7 +413,7 @@ namespace cuimg
                          p.row()/2 + circle_r3_h[(i+8)][0]));
 
         {
-          float diff = (pv - (v1 + v2) / 2) / 255.f;
+          float diff = (pv - (int(v1) + v2) / 2) / 255.f;
           // float diff = pv - (v1 + v2) / 2.f;
           float adiff = fabs(diff);
 
@@ -442,6 +435,136 @@ namespace cuimg
         max_single_diff = max_single_diff_large;
       }
 
+      if (max_single_diff >= grad_thresh)
+      {
+        min_diff = min_diff / max_single_diff;
+      }
+      else
+        min_diff = 0;
+
+       pertinence(p) = min_diff;
+      // pertinence(p) = p.col() / float(frame_s1.ncols());
+      // pertinence(p) = float(frame_s1(p)) / 255.f;
+      // out(p) = distances;
+
+    }
+
+  }
+
+#define FFAST382SL_fast_sig(T, V)                      \
+  kernel_image2d<i_float4>,                     \
+  kernel_image2d<V>,                            \
+    kernel_image2d<V>,                          \
+    kernel_image2d<i_float1>,                   \
+    float,                                      \
+    short*,\
+    &FFAST382SL_fast<V>
+
+  template <typename V>
+  void FFAST382SL_fast(thread_info<CPU> ti,
+                 kernel_image2d<i_float4> frame_color,
+                 kernel_image2d<V> frame_s1,
+                 kernel_image2d<V> frame_s2,
+                 // kernel_image2d<dffast382sl> out,
+                 kernel_image2d<i_float1> pertinence,
+                  float grad_thresh,
+                  short* offsets)
+  {
+
+    point2d<int> p = thread_pos2d(ti);
+    if (!frame_s1.has(p))//; || track(p).x == 0)
+      return;
+
+
+    if (p.row() < 3 || p.row() >= pertinence.domain().nrows() - 3 ||
+        p.col() < 3 || p.col() >= pertinence.domain().ncols() - 3)
+    {
+      pertinence(p).x = 0.f;
+      return;
+    }
+
+    // dffast382sl distances;
+
+    gl01f pv;
+
+    V* iptr = &frame_s1(p);
+
+    {
+      float min_diff = 9999999.f;
+      float max_single_diff = 0.f;
+      pv = *iptr;
+      int sign = 0;
+      for(int i = 0; i < 8; i++)
+      {
+
+        // gl8u v1 = iptr[offsets[i]];
+        // gl8u v2 = iptr[offsets[i+8]];
+
+
+        gl01f v1 = V(tex2D(flag<CPU>(), s1_tex, frame_s1,
+                          p.col()/2 + circle_r3_h[i][1],
+			   p.row()/2 + circle_r3_h[i][0]));
+
+        gl01f v2 = V(tex2D(flag<CPU>(), s1_tex, frame_s1,
+                         p.col()/2 + circle_r3_h[(i+8)][1],
+                         p.row()/2 + circle_r3_h[(i+8)][0]));
+
+	{
+          //float diff = (pv - (v1 + v2) / 2) / 255.f;
+          float diff = (pv - (v1 + v2) / 2);
+          float adiff = fabs(diff);
+
+          if (adiff < min_diff)
+            min_diff = adiff;
+
+          if (max_single_diff < adiff) max_single_diff = adiff;
+
+        }
+      }
+      
+      // pv = V(tex2D(flag<CPU>(), s2_tex, frame_s2, p.col()/2, p.row()/2));
+      float min_diff_large = 9999999.f;
+      float max_single_diff_large = 0.f;
+
+      iptr = &frame_s2(point2d<int>(p.row()/2, p.col()/2));
+      pv = *iptr;
+      //int min_orientation_large;
+      for(int i = 0; i < 8; i++)
+      {
+
+        // gl8u v1 = iptr[offsets[i]];
+        // gl8u v2 = iptr[offsets[i+8]];
+
+        gl01f v1 = V(tex2D(flag<CPU>(), s2_tex, frame_s2,
+                          p.col()/2 + circle_r3_h[i][1],
+			   p.row()/2 + circle_r3_h[i][0]));
+
+        gl01f v2 = V(tex2D(flag<CPU>(), s2_tex, frame_s2,
+                         p.col()/2 + circle_r3_h[(i+8)][1],
+                         p.row()/2 + circle_r3_h[(i+8)][0]));
+
+        {
+          //float diff = (pv - (v1 + v2) / 2) / 255.f;
+          float diff = pv - (v1 + v2) / 2.f;
+          float adiff = fabs(diff);
+
+          if (adiff < min_diff_large)
+          {
+            min_diff_large = adiff;
+            //if (min_diff_large < 0.01) break;
+          }
+
+          if (max_single_diff_large < adiff) max_single_diff_large = adiff;
+        }
+
+      }
+
+
+      if (min_diff < min_diff_large)
+      {
+        min_diff = min_diff_large;
+        max_single_diff = max_single_diff_large;
+      }
 
       if (max_single_diff >= grad_thresh)
       {
@@ -511,6 +634,7 @@ kernel_image2d<dffast382sl> in,                  \
   void
   ffast382sl_feature<V, T>::update(const image2d_V& in, const image2d_V& in_s2)
   {
+    SCOPE_PROF(ffast382sl_feature_update);
     frame_cpt_++;
     swap_buffers();
     dim3 dimblock(16, 16, 1);
@@ -522,20 +646,40 @@ kernel_image2d<dffast382sl> in,                  \
     blurred_s1_ = in;
     blurred_s2_ = in_s2;
 
+    short offsets[16];
+
+    for (unsigned i = 0; i < 16; i++)
+    {
+      point2d<int> p(10, 10);
+      offsets[i] = (long(&in(p + i_int2(circle_r3[i]))) - long(&in(p))) / sizeof(V);
+    }
+
     //local_jet_static2_<0,0,1, 0,0,2, 6>::run(in, blurred_s1_, blurred_s2_, tmp_, pertinence2_);
 
     // if (!(frame_cpt_ % 5))
     {
       if (target == unsigned(GPU))
-    {
-      bindTexture2d(blurred_s1_, s1_tex);
-      bindTexture2d(blurred_s2_, s2_tex);
-    }
+      {
+        SCOPE_PROF(kernel);
+        bindTexture2d(blurred_s1_, s1_tex);
+        bindTexture2d(blurred_s2_, s2_tex);
+        pw_call<FFAST382SL_sig(target, V)>(flag<target>(), dimgrid, dimblock,
+                                           color_blurred_, blurred_s1_, blurred_s2_,
+                                           //*f_,
+                                           pertinence_, grad_thresh_);
+      }
+      else
+      {
+        SCOPE_PROF(kernel);
+        pw_call<FFAST382SL_sig(target, V)>(flag<target>(), dimgrid, dimblock,
+                                           color_blurred_, blurred_s1_, blurred_s2_,
+                                           pertinence_, grad_thresh_);
+        // pw_call<FFAST382SL_fast_sig(target, V)>(flag<target>(), dimgrid, dimblock,
+        //                                    color_blurred_, blurred_s1_, blurred_s2_,
+        //                                    pertinence_, grad_thresh_, offsets);
+        
+      }
 
-    pw_call<FFAST382SL_sig(target, V)>(flag<target>(), dimgrid, dimblock,
-                                             color_blurred_, blurred_s1_, blurred_s2_,
-                                             //*f_,
-					      pertinence_, grad_thresh_);
 
     // filter_pertinence<i_float1><<<dimgrid, dimblock>>>
     //   (pertinence_, pertinence2_);
@@ -619,6 +763,14 @@ kernel_image2d<dffast382sl> in,                  \
   inline
   typename ffast382sl_feature<V, T>::image2d_f1&
   ffast382sl_feature<V, T>::pertinence()
+  {
+    return pertinence_;
+  }
+
+  template <typename V, unsigned T>
+  inline
+  const typename ffast382sl_feature<V, T>::image2d_f1&
+  ffast382sl_feature<V, T>::pertinence() const
   {
     return pertinence_;
   }
@@ -818,6 +970,7 @@ kernel_image2d<dffast382sl> in,                  \
   {
     return pertinence_;
   }
+
 
   template <typename V>
   inline

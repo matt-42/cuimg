@@ -15,36 +15,10 @@
 
 # include <cuimg/target.h>
 # include <cuimg/image2d_target.h>
+# include <cuimg/tracking/matcher_tools.h>
 
 namespace cuimg
 {
-
-
-#ifndef NO_CUDA
-  template <unsigned T, typename V>
-  struct thrust_vector
-  {
-    typedef thrust::device_vector<V> ret;
-  };
-
-  template <typename V>
-  struct thrust_vector<GPU, V>
-  {
-    typedef thrust::device_vector<V> ret;
-  };
-#else
-  template <unsigned T, typename V>
-  struct thrust_vector
-  {
-    typedef std::vector<V> ret;
-  };
-#endif
-
-  template <typename V>
-  struct thrust_vector<CPU, V>
-  {
-    typedef std::vector<V> ret;
-  };
 
   template <typename F, unsigned HS>
   class ofast_local_matcher
@@ -70,16 +44,29 @@ namespace cuimg
       particle(int a, feature_t s, i_float2 speed) : age(a), fault(0), // state(s),
                                                      speed(speed) {}
 
+      particle(const particle& o)
+      : speed(o.speed),
+        brut_acceleration(o.brut_acceleration),
+        ipos(o.ipos),
+        pos(o.pos),
+        age(o.age),
+        fault(o.fault),
+        pertinence(o.pertinence),
+        depth(o.depth)
+      {
+        for (unsigned i = 0; i < history_size; i++)
+          pos_history[i] = o.pos_history[i];
+      }
       // feature_t state;
 
+      unsigned short age;
+      unsigned short fault;
       i_float2 speed;
       //i_float2 acceleration;
       i_float2 brut_acceleration;
 
       i_short2 ipos;
       i_short2 pos;
-      unsigned short age;
-      unsigned short fault;
       float pertinence;
       /* PA attributes; */
       float depth;
@@ -91,7 +78,8 @@ namespace cuimg
     typedef image2d_target(target, particle) image2d_P;
 
     ofast_local_matcher(const domain_t& d);
-
+    ~ofast_local_matcher();
+    
     void update(F& f, global_mvt_thread<ofast_local_matcher<F, HS> >& t_mvt,
                 const image2d_s2& ls_matches);
 
@@ -116,6 +104,8 @@ namespace cuimg
     unsigned n_particles() const;
 
   private:
+    void particles_compation(const flag<CPU>&);
+    void particles_compation_old(const flag<CPU>&);
 
     image2d_P t1_;
     image2d_P t2_;
@@ -139,6 +129,8 @@ namespace cuimg
 
     int n_particles_;
     unsigned frame_cpt;
+
+    i_short2** compaction_openmp_buffers;
   };
 
 }

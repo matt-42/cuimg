@@ -34,9 +34,8 @@ namespace cuimg
     i_short2 mvt();
     void reset_mvt();
 
-    bool thread_end() const;
-
     void prepare_next_frame();
+    void terminate_thread();
 
     large_mvt_detector<i_float1> mvt_detector();
 
@@ -69,8 +68,6 @@ namespace cuimg
 # endif
 
     large_mvt_detector<i_float1> mvt_detector_;
-
-    bool thread_end_;
 
     cudaStream_t cuda_stream_;
   };

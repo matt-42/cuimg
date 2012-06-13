@@ -38,6 +38,19 @@ struct make_cuda_bt;
 #define make_cuda_bt(X, Y) typename make_cuda_bt<X, Y>::ret
 #define make_cuda_bt_(X, Y) make_cuda_bt<X, Y>::ret
 
+template <typename T>
+struct repeat_
+{
+  repeat_(const T& v_)
+  : v(v_)
+  {}
+
+public:
+  T v;
+};
+
+template <typename T>
+repeat_<T> repeat(const T& t) { return repeat_<T>(t); }
 
 template <typename T, unsigned N>
 class improved_builtin : public make_cuda_bt<T, N>::ret
@@ -62,6 +75,11 @@ class improved_builtin : public make_cuda_bt<T, N>::ret
 
   __host__ __device__ improved_builtin(const zero&);
   __host__ __device__ inline self& operator=(const zero&);
+
+  template <typename R>
+  __host__ __device__ improved_builtin(const repeat_<R>&);
+  template <typename R>
+  __host__ __device__ inline self& operator=(const repeat_<R>&);
 
   template <typename U, unsigned US>
   __host__ __device__ inline improved_builtin(const improved_builtin<U, US>& bt);

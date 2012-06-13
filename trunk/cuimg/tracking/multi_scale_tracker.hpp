@@ -45,6 +45,7 @@ namespace cuimg
   template <typename F, typename SA>
   multi_scale_tracker<F, SA>::~multi_scale_tracker()
   {
+    mvt_detector_thread_.terminate_thread();
     for (unsigned i = 0; i < pyramid_.size(); i++)
     {
       delete feature_[i];
@@ -287,6 +288,16 @@ extern "C" {
     else
       update_mipmap(frame_, pyramid_, pyramid_tmp1_, pyramid_tmp2_, PS, 0, dim3(16, 16));
 
+    // update_mipmap_level(frame_, pyramid_, 0, 0, dim3(in.ncols(), 2));
+    // update_mipmap_level(frame_, pyramid_, 1, 0, dim3(in.ncols(), 2));
+    // feature_[0]->update(pyramid_[0], pyramid_[1]);
+
+    // for (int l = 1; l < pyramid_.size() - 1; l++)
+    // {
+    //   update_mipmap_level(frame_, pyramid_, l+1, 0, dim3(in.ncols(), 2));
+    //   feature_[l]->update(pyramid_[l], pyramid_[l+1]);
+    // }
+
     mvt_detector_thread_.reset_mvt();
     for (int l = pyramid_.size() - 2; l >= 0; l--)
     {
@@ -437,6 +448,14 @@ extern "C" {
   multi_scale_tracker<F, SA>::camera_acceleration(unsigned scale) const
   {
     return accelerations_[scale];
+  }
+
+  template <typename F, typename SA>
+  inline
+  const F&
+  multi_scale_tracker<F, SA>::feature(unsigned scale) const
+  {
+    return *feature_[scale];
   }
 
 }

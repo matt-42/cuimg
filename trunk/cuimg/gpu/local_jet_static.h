@@ -13,6 +13,7 @@ namespace cuimg
   void local_jet_static(const TI& in, TO& out, TT& tmp,
                         cudaStream_t stream = 0, dim3 dimblock = dim3(16, 16))
   {
+    SCOPE_PROF(local_jet_static);
     assert(in.domain() == out.domain());
     assert(in.domain() == tmp.domain());
 
@@ -31,6 +32,7 @@ namespace cuimg
   void local_jet_static(const TI& in, TO& out1, TO& out2, TT& tmp1, TT& tmp2,
                         cudaStream_t stream = 0, dim3 dimblock = dim3(16, 16))
   {
+    SCOPE_PROF(local_jet_static);
     assert(in.domain() == out1.domain());
     assert(in.domain() == tmp1.domain());
     assert(in.domain() == out2.domain());
