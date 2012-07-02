@@ -25,7 +25,7 @@
 # include <cuimg/dige.h>
 
 # ifndef NVCC
-//# include <emmintrin.h>
+# include <emmintrin.h>
 # endif
 
 #include <dige/widgets/image_view.h>
@@ -785,6 +785,12 @@ kernel_image2d<dffast382sl> in,                  \
     s1_(f.s1()),
     s2_(f.s2())
   {
+    for (unsigned i = 0; i < 16; i++)
+    {
+      point2d<int> p(10,10);
+      offsets_s1[i] = (long(&s1_(p + i_int2(circle_r3[i]))) - long(&s1_(p))) / sizeof(V);
+      offsets_s2[i] = (long(&s2_(p + i_int2(circle_r3[i]))) - long(&s2_(p))) / sizeof(V);
+    }
   }
 
 
@@ -844,12 +850,13 @@ kernel_image2d<dffast382sl> in,                  \
 
 
 
-  // union vector4f
-  // {
-  //   __m128i vi;
-  //   unsigned char uc[16];
-  //   unsigned short us[8];
-  // };
+  union vector4f
+  {
+    __m128i vi;
+    unsigned char uc[16];
+    unsigned short us[8];
+    int ui[4];
+  };
 
   // template <typename V>
   // inline
@@ -864,7 +871,7 @@ kernel_image2d<dffast382sl> in,                  \
   //   for(int i = 0; i < 8; i ++)
   //   {
   //     gl8u v = s1_(n.row() + circle_r3[i*2][0],
-  // 		    n.col() + circle_r3[i*2][1]);
+  // 		   n.col() + circle_r3[i*2][1]);
   //     b.uc[i] = v;
   //   }
 
@@ -886,8 +893,37 @@ kernel_image2d<dffast382sl> in,                  \
   template <typename V>
   inline
   __host__ __device__ float
-  kernel_ffast382sl_feature<V>::distance_linear(const dffast382sl& a,
-  						const point2d<int>& n)
+  kernel_ffast382sl_feature<V>::distance_linear_sse(const dffast382sl& a,
+						    const point2d<int>& n)
+  {
+    // float d = 0;
+
+    vector4f b;
+
+    V* data1 = &s1_(n);
+    for(int i = 0; i < 8; i ++)
+    {
+      gl8u v = data1[offsets_s1[i*2]];
+      b.uc[i] = v;
+    }
+
+    V* data2 = &s2_(n / 2);
+    for(int i = 0; i < 8; i ++)
+    {
+      gl8u v = data2[offsets_s2[i*2]];
+      b.uc[i+8] = v;
+    }
+
+    vector4f sum;
+    sum.vi = _mm_sad_epu8(a.v_sse, b.vi);
+    return (float(sum.us[0]) + float(sum.us[4])) / (255.f * 16.f);
+  }
+
+  template <typename V>
+  inline
+  __host__ __device__ float
+  kernel_ffast382sl_feature<V>::distance_linear_naive(const dffast382sl& a,
+						      const point2d<int>& n)
   {
     unsigned short d = 0;
 
@@ -905,22 +941,15 @@ kernel_image2d<dffast382sl> in,                  \
       d += ::abs(v - a[8+i]);
     }
     return d / (255.f * 16.f);
+  }
 
-    // for(int i = 0; i < 16; i += 2)
-    // {
-    //   float v = s1_(n.row() + circle_r3[i][0],
-    // 		   n.col() + circle_r3[i][1]).x * 255.f;
-    //   d += fabs(v - a[i/2]);
-    // }
-    // for(int i = 0; i < 16; i += 2)
-    // {
-    //   float v = s2_(n.row() + 2 * circle_r3[i][0],
-    // 		    n.col() + 2 * circle_r3[i][1]).x * 255.f;
-    //   d += fabs(v - a[8+i/2]);
-    // }
-    // return d / (255.f * 16.f);
-
-    // return cuimg::distance_mean_linear(a, new_state(n));
+  template <typename V>
+  inline
+  __host__ __device__ float
+  kernel_ffast382sl_feature<V>::distance_linear(const dffast382sl& a,
+						      const point2d<int>& n)
+  {
+    return distance_linear_sse(a, n);
   }
 
   template <typename V>

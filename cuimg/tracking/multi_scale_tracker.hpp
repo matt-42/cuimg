@@ -301,6 +301,10 @@ extern "C" {
     mvt_detector_thread_.reset_mvt();
     for (int l = pyramid_.size() - 2; l >= 0; l--)
     {
+      std::stringstream profiler_ss;
+      profiler_ss << "scale_" << l;
+      profile_scope profiler(prof, profiler_ss.str());
+
       feature_[l]->update(pyramid_[l], pyramid_[l + 1]);
       if (l != pyramid_.size() - 1)
         matcher_[l]->update(*(feature_[l]), mvt_detector_thread_, matcher_[l+1]->matches());

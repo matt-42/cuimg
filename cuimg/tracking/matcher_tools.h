@@ -296,13 +296,14 @@ namespace cuimg
     {
       //bool max = true;
 #pragma unroll
-      for_all_in_static_neighb2d(p, n, c8)
-      /* for (int i = 0; i < 8; i++) */
+      /* for_all_in_static_neighb2d(p, n, c8) */
+      for (int i = 0; i < 8; i++)
       {
-        /* point2d<int> n(p.row() + c8[i][0], */
-        /*                p.col() + c8[i][1]); */
+        point2d<int> n(p.row() + c8[i][0],
+                       p.col() + c8[i][1]);
 
-        if (pp < pertinence(n).x || particles(n).age > 1)
+        if (pp < pertinence(n).x ||
+	    particles(n).age > 1)
         {
           //max = false;
           return;

@@ -54,6 +54,7 @@ namespace cuimg
     {
       unsigned char distances[16];
       float4 tex_float;
+      __m128i v_sse;
     };
 
   };
@@ -163,6 +164,12 @@ namespace cuimg
     inline
     __host__ __device__ float distance_linear(const dffast382sl& a,
 					      const point2d<int>& n);
+    inline
+    __host__ __device__ float distance_linear_sse(const dffast382sl& a,
+						  const point2d<int>& n);
+    inline
+    __host__ __device__ float distance_linear_naive(const dffast382sl& a,
+						  const point2d<int>& n);
 
     /* inline */
     /* __host__ __device__ float distance_linear(const point2d<int>& a, */
@@ -193,6 +200,8 @@ namespace cuimg
     kernel_image2d<i_float1> pertinence_;
     kernel_image2d<V> s1_;
     kernel_image2d<V> s2_;
+    int offsets_s1[16];
+    int offsets_s2[16];
   };
 
 }

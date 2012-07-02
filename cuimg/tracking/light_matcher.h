@@ -39,8 +39,8 @@ namespace cuimg
       __host__ __device__
       particle() : age(0), fault(0), speed(0.f, 0.f) {}
       __host__ __device__
-      particle(int a, feature_t s, i_float2 speed) : age(a), fault(0),
-                                                     speed(speed) {}
+      particle(int a, feature_t s, i_float2 speed) : speed(speed), age(a), fault(0)
+      {}
 
       particle(const particle& o)
       : speed(o.speed),
@@ -51,12 +51,11 @@ namespace cuimg
       {
       }
 
-      unsigned short age;
-      unsigned short fault;
       i_float2 speed;
       i_float2 brut_acceleration;
-
       i_short2 pos;
+      unsigned short age;
+      unsigned short fault;
     };
 
     typedef typename thrust_vector<target, particle>::ret particle_vector;
@@ -65,7 +64,7 @@ namespace cuimg
 
     light_matcher(const domain_t& d);
     ~light_matcher();
-    
+
     void update(F& f, global_mvt_thread<light_matcher<F> >& t_mvt,
                 const image2d_s2& ls_matches);
 
