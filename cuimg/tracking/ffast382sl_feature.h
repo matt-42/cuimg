@@ -75,11 +75,12 @@ namespace cuimg
   template <typename V>
   class kernel_ffast382sl_feature;
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   class ffast382sl_feature
   {
   public:
-    enum { target = T };
+    static const cuimg::target target = T;
+    //enum { target = T };
 
     typedef V vtype;
     /* typedef i_float1 V; */
@@ -99,7 +100,8 @@ namespace cuimg
 
     inline ffast382sl_feature(const domain_t& d);
 
-    inline void update(const image2d_V& in, const image2d_V& in_s2);
+    inline void update(const image2d_V& mask,
+		       const image2d_V& in, const image2d_V& in_s2);
 
     inline const domain_t& domain() const;
 
@@ -150,7 +152,7 @@ namespace cuimg
   public:
     typedef dffast382sl feature_t;
 
-    template <unsigned target>
+    template <cuimg::target target>
     __host__ __device__
     inline kernel_ffast382sl_feature(ffast382sl_feature<V, target>& f);
 

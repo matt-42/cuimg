@@ -23,6 +23,7 @@ namespace cuimg
     pyramid_ = allocate_mipmap(V(), frame_, PS);
     pyramid_tmp1_ = allocate_mipmap(V(), frame_, PS);
     pyramid_tmp2_ = allocate_mipmap(V(), frame_, PS);
+    mask_ = allocate_mipmap(V(), frame_, PS);
 
     pyramid_display1_ = allocate_mipmap(i_float4(), frame_, PS);
     pyramid_display2_ = allocate_mipmap(i_float4(), frame_, PS);
@@ -69,7 +70,7 @@ namespace cuimg
     out(p) = i_float4(0.f, 0.f, 0.f, 1.f);
   }
 
-  template <unsigned target, typename P>
+  template <target target, typename P>
   __host__ __device__ void draw_particles(thread_info<target> ti,
                                           kernel_image2d<i_float1> frame,
                                           kernel_image2d<P> pts,
@@ -88,7 +89,38 @@ namespace cuimg
 #define draw_particles_sig(T, P) kernel_image2d<i_float1>, kernel_image2d<P>, \
     kernel_image2d<i_float4>, int, &draw_particles<T, P>
 
-  template <unsigned target, typename P>
+  template <target target, typename V, typename P>
+  __host__ __device__ void compute_mask(thread_info<target> ti,
+					kernel_image2d<V> frame,
+					kernel_image2d<P> pts,
+					kernel_image2d<V> out)
+  {
+    point2d<int> p = thread_pos2d(ti);
+
+    if (!frame.has(p)
+        || p.row() < 12 || p.row() > pts.domain().nrows() - 12 ||
+        p.col() < 12 || p.col() > pts.domain().ncols() - 12)
+    return;
+
+    V res = 100;
+    //::abs(frame(p + i_int2(-1, 0)) - frame(p + i_int2(1, 0))) +
+    //::abs(frame(p + i_int2( 0,-1)) - frame(p + i_int2(0, 1)));
+    if (res > 5)
+    for (int i = 0; i < 8; i++)
+    {
+      point2d<int> n(p.row() + c8[i][0],
+		     p.col() + c8[i][1]);
+
+      if (pts(p).age > 0) res = 0;
+    }
+
+    out(p) = res;
+  }
+
+#define compute_mask_sig(T, V, P) kernel_image2d<V>, kernel_image2d<P>, kernel_image2d<V>, \
+    &compute_mask<T, V, P>
+
+  template <target target, typename P>
   __host__ __device__ void draw_speed(thread_info<target> ti, kernel_image2d<P> track, kernel_image2d<i_float4> out)
   {
     point2d<int> p = thread_pos2d(ti);
@@ -116,7 +148,7 @@ namespace cuimg
 
 #define draw_speed_sig(T, P) kernel_image2d<P>, kernel_image2d<i_float4>, &draw_speed<T, P>
 
-  template <unsigned target, typename P>
+  template <target target, typename P>
   __host__ __device__ void of_reconstruction(thread_info<target> ti, kernel_image2d<i_float4> speed, kernel_image2d<i_float1> in, kernel_image2d<i_float4> out)
   {
     point2d<int> p = thread_pos2d(ti);
@@ -149,7 +181,7 @@ namespace cuimg
 #define of_reconstruction_sig(T, P) kernel_image2d<i_float4>, kernel_image2d<i_float1>, \
             kernel_image2d<i_float4>, &of_reconstruction<T, P>
 
-  template <unsigned target, typename P>
+  template <target target, typename P>
   __host__ __device__ void sub_global_mvt(thread_info<target> ti, const i_short2* particles_vec,
                                           unsigned n_particles, kernel_image2d<P> particles, i_short2 mvt)
   {
@@ -176,7 +208,7 @@ namespace cuimg
 #define sub_global_mvt_sig(T, P) const i_short2*, unsigned,      \
     kernel_image2d<P>, i_short2, &sub_global_mvt<T, P>
 
-  template <unsigned target, typename P>
+  template <target target, typename P>
   __host__ __device__ void draw_particles2(thread_info<target> ti, kernel_image2d<P> pts,
                                           kernel_image2d<i_float4> out,
                                           int age_filter)
@@ -192,7 +224,7 @@ namespace cuimg
 
 #define draw_particles2_sig(T, P) kernel_image2d<P>, kernel_image2d<i_float4>, int, &draw_particles2<T, P>
 
-  template <unsigned target, typename P>
+  template <target target, typename P>
   __host__ __device__ void draw_particle_pertinence(thread_info<target> ti,
                                                     kernel_image2d<i_float1> pertinence,
                                                     kernel_image2d<P> pts,
@@ -301,11 +333,21 @@ extern "C" {
     mvt_detector_thread_.reset_mvt();
     for (int l = pyramid_.size() - 2; l >= 0; l--)
     {
+      dim3 dimblock(16, 16, 1);
+      if (target == CPU)
+	dimblock = dim3(in.ncols(), 2, 1);
+      dim3 dimgrid = grid_dimension(pyramid_[l].domain(), dimblock);
+
       std::stringstream profiler_ss;
       profiler_ss << "scale_" << l;
       profile_scope profiler(prof, profiler_ss.str());
 
-      feature_[l]->update(pyramid_[l], pyramid_[l + 1]);
+      // START_PROF(compute_mask);
+      // pw_call<compute_mask_sig(target, V, P)>(flag<target>(), dimgrid, dimblock,
+      // 					     pyramid_[l], matcher_[l]->particles(), mask_[l]);
+      // END_PROF(compute_mask);
+
+      feature_[l]->update(mask_[l], pyramid_[l], pyramid_[l + 1]);
       if (l != pyramid_.size() - 1)
         matcher_[l]->update(*(feature_[l]), mvt_detector_thread_, matcher_[l+1]->matches());
       else
@@ -318,16 +360,16 @@ extern "C" {
         mvt_detector_thread_.update(*(matcher_[l]), l);
       }
 
-      dim3 dimblock(128, 1);
-      dim3 reduced_dimgrid(1 + matcher_[l]->n_particles() / (dimblock.x * dimblock.y), dimblock.y, 1);
+      dim3 r_dimblock(128, 1);
+      dim3 reduced_dimgrid(1 + matcher_[l]->n_particles() / (r_dimblock.x * r_dimblock.y), r_dimblock.y, 1);
 
 #ifndef NO_CUDA
-      pw_call<sub_global_mvt_sig(target, P)>(flag<target>(), reduced_dimgrid, dimblock,
+      pw_call<sub_global_mvt_sig(target, P)>(flag<target>(), reduced_dimgrid, r_dimblock,
 					     thrust::raw_pointer_cast(&matcher_[l]->particle_positions()[0]),
 					     matcher_[l]->n_particles(), matcher_[l]->particles(),
 					     mvt_detector_thread_.mvt());
 #else
-      pw_call<sub_global_mvt_sig(target, P)>(flag<target>(), reduced_dimgrid, dimblock,
+      pw_call<sub_global_mvt_sig(target, P)>(flag<target>(), reduced_dimgrid, r_dimblock,
 					     &(matcher_[l]->particle_positions()[0]),
 					     matcher_[l]->n_particles(), matcher_[l]->particles(),
 					     mvt_detector_thread_.mvt());
@@ -465,4 +507,3 @@ extern "C" {
 }
 
 #endif // !CUIMG_MULTI_SCALE_TRACKER_HPP_
-

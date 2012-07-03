@@ -56,7 +56,7 @@ namespace cuimg
     kernel_image2d<O>, kernel_image2d<O>,                               \
     &meta_convolve_internal::meta_convolve_row_static_kernel<T, I, O, G, KERNEL_HALF_SIZE>
 
-    template <unsigned T, typename I, typename O, typename G, int KERNEL_HALF_SIZE>
+    template <target T, typename I, typename O, typename G, int KERNEL_HALF_SIZE>
     __host__ __device__ void meta_convolve_row_static_kernel(thread_info<T> ti,
                                                              kernel_image2d<O> in,
                                                              kernel_image2d<O> out)
@@ -111,7 +111,7 @@ namespace cuimg
     kernel_image2d<O>, kernel_image2d<O>,                               \
     &meta_convolve_internal::meta_convolve_col_static_kernel<T, I, O, G, KERNEL_HALF_SIZE>
 
-    template <unsigned T, typename I, typename O, typename G, int KERNEL_HALF_SIZE>
+    template <target T, typename I, typename O, typename G, int KERNEL_HALF_SIZE>
     __host__ __device__ void meta_convolve_col_static_kernel(thread_info<T> ti,
                                                              kernel_image2d<O> in,
                                                              kernel_image2d<O> out)

@@ -23,7 +23,7 @@ namespace cuimg
   class benchmark_matcher
   {
   public:
-    enum { target = F::target };
+    static const cuimg::target target = F::target;
     typedef typename F::feature_t feature_t;
     typedef obox2d domain_t;
 

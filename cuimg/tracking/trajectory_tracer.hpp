@@ -21,7 +21,7 @@ using dg::dl;
 
 #ifdef NVCC
 
-template <unsigned TG>
+template <target TG>
 inline
 trajectory_tracer<TG>::trajectory_tracer(const domain_t& d)
 : rand_colors_(d),
@@ -390,7 +390,7 @@ __global__ void draw_straight_traj(kernel_image2d<P> particles,
 //   }
 // }
 
-template <unsigned TG>
+template <target TG>
 template <typename P>
 inline
 void
@@ -419,7 +419,7 @@ trajectory_tracer<TG>::update(const image2d_s2& matches,
 
 }
 
-template <unsigned TG>
+template <target TG>
 inline
 void
 trajectory_tracer<TG>::display(const std::string& w, const image2d_f1& colors)

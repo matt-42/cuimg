@@ -36,16 +36,16 @@ using namespace dg::widgets;
 namespace cuimg
 {
 
-  #define s1_tex UNIT_STATIC(hadsfwzxb)
-  #define s2_tex UNIT_STATIC(xysdfhgtk)
+  #define ff_s1_tex UNIT_STATIC(hadsfwzxb)
+  #define ff_s2_tex UNIT_STATIC(xysdfhgtk)
 
 
 #ifdef NVCC
-  texture<float1, cudaTextureType2D, cudaReadModeElementType> s1_tex;
-  texture<float1, cudaTextureType2D, cudaReadModeElementType> s2_tex;
+  texture<float1, cudaTextureType2D, cudaReadModeElementType> ff_s1_tex;
+  texture<float1, cudaTextureType2D, cudaReadModeElementType> ff_s2_tex;
 #else
-  int s1_tex;
-  int s2_tex;
+  int ff_s1_tex;
+  int ff_s2_tex;
 #endif
 
   // inline
@@ -218,16 +218,18 @@ namespace cuimg
   kernel_image2d<V>,                            \
     kernel_image2d<V>,                          \
     kernel_image2d<i_float1>,                   \
+    kernel_image2d<V>,                          \
     float,                                      \
     &FFAST382SL<V>
 
   template <typename V>
   __device__ void FFAST382SL(thread_info<GPU> ti,
-                            kernel_image2d<i_float4> frame_color,
-                            kernel_image2d<V> frame_s1,
-                            kernel_image2d<V> frame_s2,
-                            kernel_image2d<i_float1> pertinence,
-                            float grad_thresh)
+			     kernel_image2d<i_float4> frame_color,
+			     kernel_image2d<V> frame_s1,
+			     kernel_image2d<V> frame_s2,
+			     kernel_image2d<i_float1> pertinence,
+			     kernel_image2d<V> mask,
+			     float grad_thresh)
   {
 
     point2d<int> p = thread_pos2d(ti);
@@ -249,16 +251,15 @@ namespace cuimg
     {
       float min_diff = 9999999.f;
       float max_single_diff = 0.f;
-      pv = tex2D(flag<CPU>(), s1_tex, frame_s1, p).x;
-      int sign = 0;
+      pv = tex2D(flag<GPU>(), ff_s1_tex, frame_s1, p).x;
       for(int i = 0; i < 8; i++)
       {
 
-        float v1 = tex2D(flag<CPU>(), s1_tex, frame_s1,
+        float v1 = tex2D(flag<GPU>(), ff_s1_tex, frame_s1,
                                  p.col() + circle_r3_h[i][1],
                                  p.row() + circle_r3_h[i][0]).x;
 
-        float v2 = tex2D(flag<CPU>(), s1_tex, frame_s1,
+        float v2 = tex2D(flag<GPU>(), ff_s1_tex, frame_s1,
                                  p.col() + circle_r3_h[(i+8)][1],
                                  p.row() + circle_r3_h[(i+8)][0]).x;
 
@@ -279,18 +280,18 @@ namespace cuimg
         }
       }
 
-      pv = tex2D(flag<CPU>(), s2_tex, frame_s2, p).x;
+      pv = tex2D(flag<GPU>(), ff_s2_tex, frame_s2, p).x;
       float min_diff_large = 9999999.f;
       float max_single_diff_large = 0.f;
       //int min_orientation_large;
       for(int i = 0; i < 8; i++)
       {
 
-        float v1 = tex2D(flag<CPU>(), s2_tex, frame_s2,
+        float v1 = tex2D(flag<GPU>(), ff_s2_tex, frame_s2,
                          p.col() + circle_r3_h[i][1],
                          p.row() + circle_r3_h[i][0]).x;
 
-        float v2 = tex2D(flag<CPU>(), s2_tex, frame_s2,
+        float v2 = tex2D(flag<GPU>(), ff_s2_tex, frame_s2,
                          p.col() + circle_r3_h[(i+8)][1],
                          p.row() + circle_r3_h[(i+8)][0]).x;
 
@@ -333,12 +334,13 @@ namespace cuimg
 
   template <typename V>
   void FFAST382SL(thread_info<CPU> ti,
-                 kernel_image2d<i_float4> frame_color,
-                 kernel_image2d<V> frame_s1,
-                 kernel_image2d<V> frame_s2,
-                 // kernel_image2d<dffast382sl> out,
-                 kernel_image2d<i_float1> pertinence,
-                 float grad_thresh)
+		  kernel_image2d<i_float4> frame_color,
+		  kernel_image2d<V> frame_s1,
+		  kernel_image2d<V> frame_s2,
+		  // kernel_image2d<dffast382sl> out,
+		  kernel_image2d<i_float1> pertinence,
+		  kernel_image2d<V> mask,
+		  float grad_thresh)
   {
 
     point2d<int> p = thread_pos2d(ti);
@@ -347,7 +349,8 @@ namespace cuimg
 
 
     if (p.row() < 6 || p.row() >= pertinence.domain().nrows() - 6 ||
-        p.col() < 6 || p.col() >= pertinence.domain().ncols() - 6)
+        p.col() < 6 || p.col() >= pertinence.domain().ncols() - 6// || mask(p) < 10
+	)
     {
       pertinence(p).x = 0.f;
       return;
@@ -360,16 +363,15 @@ namespace cuimg
     {
       float min_diff = 9999999.f;
       float max_single_diff = 0.f;
-      pv = V(tex2D(flag<CPU>(), s1_tex, frame_s1, p));
-      int sign = 0;
+      pv = V(tex2D(flag<CPU>(), ff_s1_tex, frame_s1, p));
       for(int i = 0; i < 8; i++)
       {
 
-        gl8u v1 = V(tex2D(flag<CPU>(), s1_tex, frame_s1,
+        gl8u v1 = V(tex2D(flag<CPU>(), ff_s1_tex, frame_s1,
 			   p.col() + circle_r3_h[i][1],
 			   p.row() + circle_r3_h[i][0]));
 
-        gl8u v2 = V(tex2D(flag<CPU>(), s1_tex, frame_s1,
+        gl8u v2 = V(tex2D(flag<CPU>(), ff_s1_tex, frame_s1,
 			   p.col() + circle_r3_h[(i+8)][1],
 			   p.row() + circle_r3_h[(i+8)][0]));
 
@@ -397,18 +399,18 @@ namespace cuimg
         }
       }
       
-      pv = V(tex2D(flag<CPU>(), s2_tex, frame_s2, p.col()/2, p.row()/2));
+      pv = V(tex2D(flag<CPU>(), ff_s2_tex, frame_s2, p.col()/2, p.row()/2));
       float min_diff_large = 9999999.f;
       float max_single_diff_large = 0.f;
       //int min_orientation_large;
       for(int i = 0; i < 8; i++)
       {
 
-        gl8u v1 = V(tex2D(flag<CPU>(), s2_tex, frame_s2,
+        gl8u v1 = V(tex2D(flag<CPU>(), ff_s2_tex, frame_s2,
                          p.col()/2 + circle_r3_h[i][1],
 			   p.row()/2 + circle_r3_h[i][0]));
 
-        gl8u v2 = V(tex2D(flag<CPU>(), s2_tex, frame_s2,
+        gl8u v2 = V(tex2D(flag<CPU>(), ff_s2_tex, frame_s2,
                          p.col()/2 + circle_r3_h[(i+8)][1],
                          p.row()/2 + circle_r3_h[(i+8)][0]));
 
@@ -462,13 +464,15 @@ namespace cuimg
 
   template <typename V>
   void FFAST382SL_fast(thread_info<CPU> ti,
-                 kernel_image2d<i_float4> frame_color,
-                 kernel_image2d<V> frame_s1,
-                 kernel_image2d<V> frame_s2,
-                 // kernel_image2d<dffast382sl> out,
-                 kernel_image2d<i_float1> pertinence,
-                  float grad_thresh,
-                  short* offsets)
+		       kernel_image2d<i_float4> frame_color,
+		       kernel_image2d<V> frame_s1,
+		       kernel_image2d<V> frame_s2,
+		       // kernel_image2d<dffast382sl> out,
+		       kernel_image2d<i_float1> pertinence,
+		       float grad_thresh,
+		       short* offsets,
+		       kernel_image2d<V> mask
+		       )
   {
 
     point2d<int> p = thread_pos2d(ti);
@@ -477,7 +481,7 @@ namespace cuimg
 
 
     if (p.row() < 3 || p.row() >= pertinence.domain().nrows() - 3 ||
-        p.col() < 3 || p.col() >= pertinence.domain().ncols() - 3)
+        p.col() < 3 || p.col() >= pertinence.domain().ncols() - 3 || mask < 10)
     {
       pertinence(p).x = 0.f;
       return;
@@ -493,7 +497,6 @@ namespace cuimg
       float min_diff = 9999999.f;
       float max_single_diff = 0.f;
       pv = *iptr;
-      int sign = 0;
       for(int i = 0; i < 8; i++)
       {
 
@@ -501,11 +504,11 @@ namespace cuimg
         // gl8u v2 = iptr[offsets[i+8]];
 
 
-        gl01f v1 = V(tex2D(flag<CPU>(), s1_tex, frame_s1,
+        gl01f v1 = V(tex2D(flag<CPU>(), ff_s1_tex, frame_s1,
                           p.col()/2 + circle_r3_h[i][1],
 			   p.row()/2 + circle_r3_h[i][0]));
 
-        gl01f v2 = V(tex2D(flag<CPU>(), s1_tex, frame_s1,
+        gl01f v2 = V(tex2D(flag<CPU>(), ff_s1_tex, frame_s1,
                          p.col()/2 + circle_r3_h[(i+8)][1],
                          p.row()/2 + circle_r3_h[(i+8)][0]));
 
@@ -522,7 +525,7 @@ namespace cuimg
         }
       }
       
-      // pv = V(tex2D(flag<CPU>(), s2_tex, frame_s2, p.col()/2, p.row()/2));
+      // pv = V(tex2D(flag<CPU>(), ff_s2_tex, frame_s2, p.col()/2, p.row()/2));
       float min_diff_large = 9999999.f;
       float max_single_diff_large = 0.f;
 
@@ -535,11 +538,11 @@ namespace cuimg
         // gl8u v1 = iptr[offsets[i]];
         // gl8u v2 = iptr[offsets[i+8]];
 
-        gl01f v1 = V(tex2D(flag<CPU>(), s2_tex, frame_s2,
+        gl01f v1 = V(tex2D(flag<CPU>(), ff_s2_tex, frame_s2,
                           p.col()/2 + circle_r3_h[i][1],
 			   p.row()/2 + circle_r3_h[i][0]));
 
-        gl01f v2 = V(tex2D(flag<CPU>(), s2_tex, frame_s2,
+        gl01f v2 = V(tex2D(flag<CPU>(), ff_s2_tex, frame_s2,
                          p.col()/2 + circle_r3_h[(i+8)][1],
                          p.row()/2 + circle_r3_h[(i+8)][0]));
 
@@ -587,7 +590,7 @@ kernel_image2d<dffast382sl> in,                  \
     kernel_image2d<i_float4> out,               \
     &dffast382sl_to_color<T>
 
-  template <unsigned target>
+  template <target target>
   __host__ __device__  void dffast382sl_to_color(thread_info<target> ti,
                                                 kernel_image2d<dffast382sl> in,
                                                 kernel_image2d<i_float4> out)
@@ -604,7 +607,7 @@ kernel_image2d<dffast382sl> in,                  \
     out(p) = res;
   }
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   inline
   ffast382sl_feature<V, T>::ffast382sl_feature(const domain_t& d)
     : gl_frame_(d),
@@ -629,10 +632,10 @@ kernel_image2d<dffast382sl> in,                  \
 
   }
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   inline
   void
-  ffast382sl_feature<V, T>::update(const image2d_V& in, const image2d_V& in_s2)
+  ffast382sl_feature<V, T>::update(const image2d_V& mask, const image2d_V& in, const image2d_V& in_s2)
   {
     SCOPE_PROF(ffast382sl_feature_update);
     frame_cpt_++;
@@ -646,12 +649,12 @@ kernel_image2d<dffast382sl> in,                  \
     blurred_s1_ = in;
     blurred_s2_ = in_s2;
 
-    short offsets[16];
+    //short offsets[16];
 
     for (unsigned i = 0; i < 16; i++)
     {
       point2d<int> p(10, 10);
-      offsets[i] = (long(&in(p + i_int2(circle_r3[i]))) - long(&in(p))) / sizeof(V);
+      //offsets[i] = (long(&in(p + i_int2(circle_r3[i]))) - long(&in(p))) / sizeof(V);
     }
 
     //local_jet_static2_<0,0,1, 0,0,2, 6>::run(in, blurred_s1_, blurred_s2_, tmp_, pertinence2_);
@@ -661,19 +664,19 @@ kernel_image2d<dffast382sl> in,                  \
       if (target == unsigned(GPU))
       {
         SCOPE_PROF(kernel);
-        bindTexture2d(blurred_s1_, s1_tex);
-        bindTexture2d(blurred_s2_, s2_tex);
+        bindTexture2d(blurred_s1_, ff_s1_tex);
+        bindTexture2d(blurred_s2_, ff_s2_tex);
         pw_call<FFAST382SL_sig(target, V)>(flag<target>(), dimgrid, dimblock,
                                            color_blurred_, blurred_s1_, blurred_s2_,
                                            //*f_,
-                                           pertinence_, grad_thresh_);
+                                           pertinence_, mask, grad_thresh_);
       }
       else
       {
         SCOPE_PROF(kernel);
         pw_call<FFAST382SL_sig(target, V)>(flag<target>(), dimgrid, dimblock,
                                            color_blurred_, blurred_s1_, blurred_s2_,
-                                           pertinence_, grad_thresh_);
+                                           pertinence_, mask, grad_thresh_);
         // pw_call<FFAST382SL_fast_sig(target, V)>(flag<target>(), dimgrid, dimblock,
         //                                    color_blurred_, blurred_s1_, blurred_s2_,
         //                                    pertinence_, grad_thresh_, offsets);
@@ -687,14 +690,14 @@ kernel_image2d<dffast382sl> in,                  \
 
     if (target == unsigned(GPU))
     {
-      cudaUnbindTexture(s1_tex);
-      cudaUnbindTexture(s2_tex);
+      cudaUnbindTexture(ff_s1_tex);
+      cudaUnbindTexture(ff_s2_tex);
       check_cuda_error();
     }
     }
   }
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   inline
   const typename ffast382sl_feature<V, T>::image2d_f4&
   ffast382sl_feature<V, T>::feature_color() const
@@ -702,7 +705,7 @@ kernel_image2d<dffast382sl> in,                  \
     return ffast382sl_color_;
   }
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   inline
   void
   ffast382sl_feature<V, T>::swap_buffers()
@@ -710,7 +713,7 @@ kernel_image2d<dffast382sl> in,                  \
     std::swap(f_prev_, f_);
   }
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   inline
   void
   ffast382sl_feature<V, T>::set_detector_thresh(float t)
@@ -718,7 +721,7 @@ kernel_image2d<dffast382sl> in,                  \
     grad_thresh_ = t;
   }
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   inline
   const typename ffast382sl_feature<V, T>::domain_t&
   ffast382sl_feature<V, T>::domain() const
@@ -726,7 +729,7 @@ kernel_image2d<dffast382sl> in,                  \
     return f1_.domain();
   }
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   inline
   typename ffast382sl_feature<V, T>::image2d_D&
   ffast382sl_feature<V, T>::previous_frame()
@@ -735,7 +738,7 @@ kernel_image2d<dffast382sl> in,                  \
   }
 
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   inline
   typename ffast382sl_feature<V, T>::image2d_D&
   ffast382sl_feature<V, T>::current_frame()
@@ -743,7 +746,7 @@ kernel_image2d<dffast382sl> in,                  \
     return *f_;
   }
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   inline
   typename ffast382sl_feature<V, T>::image2d_V&
   ffast382sl_feature<V, T>::s1()
@@ -751,7 +754,7 @@ kernel_image2d<dffast382sl> in,                  \
     return blurred_s1_;
   }
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   inline
   typename ffast382sl_feature<V, T>::image2d_V&
   ffast382sl_feature<V, T>::s2()
@@ -759,7 +762,7 @@ kernel_image2d<dffast382sl> in,                  \
     return blurred_s2_;
   }
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   inline
   typename ffast382sl_feature<V, T>::image2d_f1&
   ffast382sl_feature<V, T>::pertinence()
@@ -767,7 +770,7 @@ kernel_image2d<dffast382sl> in,                  \
     return pertinence_;
   }
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   inline
   const typename ffast382sl_feature<V, T>::image2d_f1&
   ffast382sl_feature<V, T>::pertinence() const
@@ -777,7 +780,7 @@ kernel_image2d<dffast382sl> in,                  \
 
 
   template <typename V>
-  template <unsigned target>
+  template <target target>
   __host__ __device__
   inline
   kernel_ffast382sl_feature<V>::kernel_ffast382sl_feature(ffast382sl_feature<V, target>& f)
@@ -919,6 +922,18 @@ kernel_image2d<dffast382sl> in,                  \
     return (float(sum.us[0]) + float(sum.us[4])) / (255.f * 16.f);
   }
 
+  int abs_test(int value)
+
+  {
+
+    static const int INT_BITS = sizeof(int) * CHAR_BIT;
+
+    int topbitreplicated = value >> (INT_BITS - 1);
+
+    return (value ^ topbitreplicated) - topbitreplicated;
+
+  }
+
   template <typename V>
   inline
   __host__ __device__ float
@@ -929,9 +944,9 @@ kernel_image2d<dffast382sl> in,                  \
 
     for(int i = 0; i < 8; i ++)
     {
-      gl8u v = s1_(n.row() + circle_r3[i*2][0],
+      gl8u v1 = s1_(n.row() + circle_r3[i*2][0],
   		   n.col() + circle_r3[i*2][1]);
-      d += ::abs(v - a[i]);
+      d += ::abs(v1 - a[i]);
     }
 
     for(int i = 0; i < 8; i ++)
@@ -949,7 +964,7 @@ kernel_image2d<dffast382sl> in,                  \
   kernel_ffast382sl_feature<V>::distance_linear(const dffast382sl& a,
 						      const point2d<int>& n)
   {
-    return distance_linear_sse(a, n);
+    return distance_linear_naive(a, n);
   }
 
   template <typename V>
@@ -1017,7 +1032,7 @@ kernel_image2d<dffast382sl> in,                  \
     //return f_(n);
   }
 
-  template <typename V, unsigned T>
+  template <typename V, target T>
   inline
   void
   ffast382sl_feature<V, T>::display() const

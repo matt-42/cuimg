@@ -17,7 +17,7 @@ namespace cuimg
   class device_image2d : public Image2d<device_image2d<V> >
   {
   public:
-    enum { target = GPU };
+    static const cuimg::target target = GPU;
 
     typedef int is_expr;
     typedef boost::shared_ptr<V> PT;

@@ -13,10 +13,19 @@ namespace cuimg
   void fill(host_image2d<U>& out,
             const U& v)
   {
+    unsigned nr = out.nrows();
+    unsigned nc = out.ncols();
 #pragma omp parallel for schedule(static, 2)
-    for (unsigned r = 0; r < out.nrows(); r++)
-      for (unsigned c = 0; c < out.ncols(); c++)
-	out(r, c) = v;
+    for (unsigned r = 0; r < nr; r++)
+    {
+      U* row = &(out(r, 0));
+      U* row_end = &(out(r, nc - 1));
+      while (row != row_end)
+      {
+	*row = v;
+	++row;
+      }
+    }
   }
 
 }

@@ -145,6 +145,7 @@ REGISTER_TEXTURE2D_TYPE_(P, char2)                                      \
 REGISTER_TEXTURE2D_TYPE_(P, char4)                                      \
 REGISTER_TEXTURE2D_TYPE_(P, uchar1)                                     \
 REGISTER_TEXTURE2D_TYPE_(P, uchar2)                                     \
+REGISTER_TEXTURE2D_TYPE_(P, uchar3)                                     \
 REGISTER_TEXTURE2D_TYPE_(P, uchar4)                                     \
 REGISTER_TEXTURE2D_TYPE_(P, short1)                                     \
 REGISTER_TEXTURE2D_TYPE_(P, short2)                                     \

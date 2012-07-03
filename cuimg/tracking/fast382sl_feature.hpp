@@ -5,6 +5,7 @@
 
 # include <cmath>
 
+# include <cuimg/target.h>
 # include <cuimg/copy.h>
 # include <cuimg/pw_call.h>
 # include <cuimg/neighb2d_data.h>
@@ -280,7 +281,6 @@ namespace cuimg
       float min_diff = 9999999.f;
       float max_single_diff = 0.f;
       pv = tex2D(flag<GPU>(), s1_tex, frame_s1, p).x;
-      int sign = 0;
       for(int i = 0; i < 8; i++)
       {
 
@@ -402,7 +402,6 @@ namespace cuimg
       float min_diff = 9999999.f;
       float max_single_diff = 0.f;
       pv = tex2D(flag<CPU>(), s1_tex, frame_s1, p).x;
-      int sign = 0;
       for(int i = 0; i < 8; i++)
       {
 
@@ -494,7 +493,7 @@ kernel_image2d<dfast382sl> in,                  \
     kernel_image2d<i_float4> out,               \
     &dfast382sl_to_color<T>
 
-  template <unsigned target>
+  template <target target>
   __host__ __device__  void dfast382sl_to_color(thread_info<target> ti,
                                                 kernel_image2d<dfast382sl> in,
                                                 kernel_image2d<i_float4> out)
@@ -511,7 +510,7 @@ kernel_image2d<dfast382sl> in,                  \
     out(p) = res;
   }
 
-  template <unsigned T>
+  template <target T>
   inline
   fast382sl_feature<T>::fast382sl_feature(const domain_t& d)
     : gl_frame_(d),
@@ -536,7 +535,7 @@ kernel_image2d<dfast382sl> in,                  \
 
   }
 
-  template <unsigned T>
+  template <target T>
   inline
   void
   fast382sl_feature<T>::update(const image2d_f1& in, const image2d_f1& in_s2)
@@ -585,7 +584,7 @@ kernel_image2d<dfast382sl> in,                  \
     }
   }
 
-  template <unsigned T>
+  template <target T>
   inline
   const typename fast382sl_feature<T>::image2d_f4&
   fast382sl_feature<T>::feature_color() const
@@ -593,7 +592,7 @@ kernel_image2d<dfast382sl> in,                  \
     return fast382sl_color_;
   }
 
-  template <unsigned T>
+  template <target T>
   inline
   void
   fast382sl_feature<T>::swap_buffers()
@@ -601,7 +600,7 @@ kernel_image2d<dfast382sl> in,                  \
     std::swap(f_prev_, f_);
   }
 
-  template <unsigned T>
+  template <target T>
   inline
   const typename fast382sl_feature<T>::domain_t&
   fast382sl_feature<T>::domain() const
@@ -609,7 +608,7 @@ kernel_image2d<dfast382sl> in,                  \
     return f1_.domain();
   }
 
-  template <unsigned T>
+  template <target T>
   inline
   typename fast382sl_feature<T>::image2d_D&
   fast382sl_feature<T>::previous_frame()
@@ -618,7 +617,7 @@ kernel_image2d<dfast382sl> in,                  \
   }
 
 
-  template <unsigned T>
+  template <target T>
   inline
   typename fast382sl_feature<T>::image2d_D&
   fast382sl_feature<T>::current_frame()
@@ -626,7 +625,7 @@ kernel_image2d<dfast382sl> in,                  \
     return *f_;
   }
 
-  template <unsigned T>
+  template <target T>
   inline
   typename fast382sl_feature<T>::image2d_f1&
   fast382sl_feature<T>::s1()
@@ -634,7 +633,7 @@ kernel_image2d<dfast382sl> in,                  \
     return blurred_s1_;
   }
 
-  template <unsigned T>
+  template <target T>
   inline
   typename fast382sl_feature<T>::image2d_f1&
   fast382sl_feature<T>::s2()
@@ -642,7 +641,7 @@ kernel_image2d<dfast382sl> in,                  \
     return blurred_s2_;
   }
 
-  template <unsigned T>
+  template <target T>
   inline
   typename fast382sl_feature<T>::image2d_f1&
   fast382sl_feature<T>::pertinence()
@@ -651,7 +650,7 @@ kernel_image2d<dfast382sl> in,                  \
   }
 
 
-  template <unsigned T>
+  template <target T>
   inline
   const typename fast382sl_feature<T>::image2d_f1&
   fast382sl_feature<T>::pertinence() const
@@ -660,7 +659,7 @@ kernel_image2d<dfast382sl> in,                  \
   }
 
 
-    template <unsigned target>
+    template <target target>
     __host__ __device__
     inline
     kernel_fast382sl_feature::kernel_fast382sl_feature(fast382sl_feature<target>& f)
@@ -813,7 +812,7 @@ kernel_image2d<dfast382sl> in,                  \
     //return f_(n);
   }
 
-  template <unsigned T>
+  template <target T>
   inline
   void
   fast382sl_feature<T>::display() const

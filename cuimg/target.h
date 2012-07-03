@@ -13,13 +13,13 @@ namespace cuimg
     GPU = 1
   };
 
-  template <unsigned F>
+  template <cuimg::target F>
   struct flag
   {
   };
 
 }
 
-BOOST_TYPEOF_REGISTER_TEMPLATE(cuimg::flag, (unsigned));
+BOOST_TYPEOF_REGISTER_TEMPLATE(cuimg::flag, (BOOST_TYPEOF_INTEGRAL(cuimg::target)));
 
 #endif // !CUIMG_TARGET_H_

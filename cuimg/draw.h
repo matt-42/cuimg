@@ -55,6 +55,14 @@ namespace cuimg
       }
   }
 
+  template <typename T>
+  void draw_abs(T& a, T& b)
+  {
+    T tmp = a;
+    a = b;
+    b = tmp;
+  }
+
   template <typename I>
   __device__ __host__ void draw_line2d(I out, point2d<int> a, point2d<int> b,
                                        typename I::value_type color)
@@ -62,7 +70,7 @@ namespace cuimg
     int x0 = a.col(); int y0 = a.row();
     int x1 = b.col(); int y1 = b.row();
 
-    int steep = abs(y1 - y0) > abs(x1 - x0);
+    int steep = ::abs(y1 - y0) > ::abs(x1 - x0);
 
     if (steep)
     {
@@ -77,7 +85,7 @@ namespace cuimg
     }
 
     int deltax = x1 - x0;
-    int deltay = abs(y1 - y0);
+    int deltay = ::abs(y1 - y0);
     float error = 0.f;
     float deltaerr = deltay / float(deltax);
     int ystep;

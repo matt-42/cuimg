@@ -20,7 +20,7 @@ namespace cuimg
     struct UNIT_STATIC(mipmap_input_tex);
       REGISTER_TEXTURE2D_PROXY(mipmap_input_tex);
 
-    template <unsigned T, typename I>
+    template <target T, typename I>
     __host__ __device__ void mipmap_kernel(thread_info<T> ti, kernel_image2d<I> in, kernel_image2d<I> out)
     {
       typedef typename I::cuda_bt V;
@@ -172,7 +172,7 @@ namespace cuimg
       dim3 dimgrid = grid_dimension(out.domain(), dimblock);
 
 #ifndef NO_CUDA
-      if (I::target == unsigned(GPU))
+      if (I::target == GPU)
         bindTexture2d(gaussian, mipmap_internals::UNIT_STATIC(mipmap_input_tex)<V>::tex());
 #endif
 
@@ -181,13 +181,13 @@ namespace cuimg
       END_PROF(resize_kernel);
 
 #ifndef NO_CUDA
-      if (I::target == unsigned(GPU))
+      if (I::target == GPU)
         cudaUnbindTexture(mipmap_internals::UNIT_STATIC(mipmap_input_tex)<V>::tex());
 #endif
 
       c = out;
 
-      if (I::target == unsigned(GPU))
+      if (I::target == GPU)
         check_cuda_error();
     }
 

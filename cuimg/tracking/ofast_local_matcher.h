@@ -24,7 +24,7 @@ namespace cuimg
   class ofast_local_matcher
   {
   public:
-    enum { target = F::target };
+    static const cuimg::target target = F::target;
     typedef typename F::feature_t feature_t;
     typedef obox2d domain_t;
 
@@ -44,6 +44,7 @@ namespace cuimg
       particle(int a, feature_t s, i_float2 speed) : age(a), fault(0), // state(s),
                                                      speed(speed) {}
 
+      __host__ __device__
       particle(const particle& o)
       : speed(o.speed),
         brut_acceleration(o.brut_acceleration),

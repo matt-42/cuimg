@@ -2,6 +2,7 @@
 # define CUIMG_MATCHER_TOOLS_H_
 
 # include <cuimg/gpu/kernel_image2d.h>
+# include <cuimg/target.h>
 
 namespace cuimg
 {
@@ -38,7 +39,7 @@ namespace cuimg
 #define init_particles_vec_sig(TG, T)                           \
   i_short2*, kernel_image2d<T>, &init_particles_vec<TG, T>
 
-  template <unsigned target, typename T>
+  template <target target, typename T>
   __host__ __device__ void init_particles_vec(thread_info<target> ti,
                                               i_short2* particles_vec,
                                               kernel_image2d<T> particles)
@@ -61,7 +62,7 @@ namespace cuimg
     kernel_image2d<i_float4>,                   \
     &check_robbers<TG, T>
 
-  template <unsigned target, typename T>
+  template <target target, typename T>
   __host__ __device__ void check_robbers(thread_info<target> ti,
                                          kernel_image2d<T> particles,
                                          kernel_image2d<T> new_particles,
@@ -86,7 +87,7 @@ namespace cuimg
     kernel_image2d<i_short2>,                   \
     &filter_robbers<TG, T>
 
-  template <unsigned target, typename T>
+  template <target target, typename T>
   __host__ __device__ void filter_robbers(thread_info<target> ti,
                                           i_short2* particles_vec,
                                           unsigned n_particles,
@@ -119,7 +120,7 @@ namespace cuimg
     &extract_age<TG, T>
 
 
-  template <unsigned target, typename T>
+  template <target target, typename T>
   __host__ __device__ void extract_age(thread_info<target> ti,
                               kernel_image2d<T> particles,
                               kernel_image2d<i_float4> disp)
@@ -155,7 +156,7 @@ namespace cuimg
     kernel_image2d<i_float4>,                   \
     &filter_false_matching<TG, T>
 
-  template <unsigned target, typename T>
+  template <target target, typename T>
   __host__ __device__ void filter_false_matching(thread_info<target> ti,
                                         i_short2* particles_vec,
                                         unsigned n_particles,
@@ -215,7 +216,7 @@ namespace cuimg
   kernel_image2d<T>,                            \
     &init_particles_kernel<TG, T>
 
-  template <unsigned target, typename T>
+  template <target target, typename T>
   __host__ __device__ void init_particles_kernel(thread_info<target> ti,
                                                  kernel_image2d<T> particles)
   {
@@ -234,7 +235,7 @@ namespace cuimg
     kernel_image2d<typename F::feature_t> ,     \
     &create_particles_kernel_<TG, F, T>         \
 
-  template <unsigned target, typename F, typename T>
+  template <target target, typename F, typename T>
   __host__ __device__ void create_particles_kernel_(thread_info<target> ti,
                                            F f,
                                            kernel_image2d<T> particles,
@@ -268,7 +269,7 @@ namespace cuimg
     kernel_image2d<F::feature_t> ,                  \
     &create_particles_kernel<TG, F, T>
 
-  template <unsigned target, typename F, typename T>
+  template <target target, typename F, typename T>
   __host__ __device__ void create_particles_kernel(thread_info<target> ti,
                                                    F f,
                                                    kernel_image2d<T> particles,
@@ -276,7 +277,7 @@ namespace cuimg
                                                    kernel_image2d<typename F::feature_t> states)
   {
     point2d<int> p = thread_pos2d(ti);
-    if (!particles.has(p) || particles(p).age
+    if (!particles.has(p) || pertinence(p).x < 0.5f || particles(p).age
         || p.row() < 12 || p.row() > particles.domain().nrows() - 12 ||
         p.col() < 12 || p.col() > particles.domain().ncols() - 12)
     return;

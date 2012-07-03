@@ -62,7 +62,7 @@ namespace cuimg
     &naive_matching_kernel2<TG, F, T>
 
 
-  template <unsigned target, typename F, typename T>
+  template <target target, typename F, typename T>
   __host__ __device__ void naive_matching_kernel2(thread_info<target> ti,
                                                   i_short2* particles_vec,
                                                   unsigned n_particles,
@@ -537,7 +537,7 @@ namespace cuimg
     // check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test2_);
 
     //if (!(frame_cpt % 5))
-      pw_call<create_particles_kernel_sig(GPU, typename F::kernel_type, particle)>(flag<GPU>(), dimgrid, dimblock, f, *new_particles_, f.pertinence(), states_);
+    pw_call<create_particles_kernel_sig(GPU, typename F::kernel_type, particle)>(flag<GPU>(), dimgrid, dimblock, f, *new_particles_, f.pertinence(), states_);
 
 
     check_cuda_error();
@@ -647,8 +647,6 @@ namespace cuimg
     SCOPE_PROF(compact_particles);
 
     std::vector<int> out_size(4);
-
-    unsigned size = 0;
 
     int num_threads = omp_get_max_threads();
 

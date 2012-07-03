@@ -7,7 +7,7 @@
 
 namespace cuimg
 {
-  template <unsigned T>
+  template <target T>
   struct thread_info
   {
     dim3 blockDim;

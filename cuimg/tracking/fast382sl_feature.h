@@ -72,12 +72,11 @@ namespace cuimg
 
   class kernel_fast382sl_feature;
 
-  template <unsigned T>
+  template <target T>
   class fast382sl_feature
   {
   public:
-    enum { target = T };
-
+    static const cuimg::target target = T;
 
     typedef gl01f vtype;
     typedef image2d_target(target, i_uchar3) image2d_uc3;
@@ -143,7 +142,7 @@ namespace cuimg
   public:
     typedef dfast382sl feature_t;
 
-    template <unsigned target>
+    template <target target>
     __host__ __device__
     inline kernel_fast382sl_feature(fast382sl_feature<target>& f);
 

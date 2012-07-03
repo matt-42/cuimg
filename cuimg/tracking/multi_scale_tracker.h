@@ -18,7 +18,8 @@ namespace cuimg
   public:
     typedef obox2d D;
 
-    enum { target = F::target };
+    static const cuimg::target target = F::target;
+    //enum { target = F::target };
 
     typedef typename F::vtype V;
     typedef image2d_target(target, i_uchar3) image2d_uc3;
@@ -58,6 +59,7 @@ namespace cuimg
     std::vector<image2d_V > pyramid_;
     std::vector<image2d_V > pyramid_tmp1_;
     std::vector<image2d_V > pyramid_tmp2_;
+    std::vector<image2d_V > mask_;
 
     std::vector<F*> feature_;
     std::vector<SA*> matcher_;

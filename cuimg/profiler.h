@@ -3,13 +3,14 @@
 
 
 # include <cassert>
+# include <iomanip>
+# include <iostream>
 # include <ctime>
 # include <map>
 # include <vector>
 # include <algorithm>
 # include <stack>
 # include <string>
-# include <iomanip>
 
 namespace cuimg
 {

@@ -25,6 +25,7 @@
 #include <cuimg/dige.h>
 
 
+#include <cuimg/target.h>
 # include <cuimg/gpu/texture.h>
 # include <cuimg/gpu/device_image2d.h>
 # include <cuimg/gpu/fill.h>
@@ -55,7 +56,7 @@ namespace cuimg
     &benchmark_matcher_kernel<TG, F, T>
 
 
-  template <unsigned target, typename F, typename T>
+  template <target target, typename F, typename T>
   __host__ __device__ void benchmark_matcher_kernel(thread_info<target> ti,
                                                   i_short2* particles_vec,
                                                   unsigned n_particles,

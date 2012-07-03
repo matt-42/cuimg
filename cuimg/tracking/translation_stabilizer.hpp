@@ -50,7 +50,7 @@ namespace cuimg
 
     for (unsigned i = 0; i < particles.size(); i++)
     {
-      const auto& p = particles[i];
+      const typename V::value_type& p = particles[i];
       if (p.age > 5 && p.pos != i_int2(-1, -1))
       {
         i_int2 speed = p.pos - p.pos_history[0];

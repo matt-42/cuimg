@@ -6,7 +6,7 @@
 namespace cuimg
 {
 
-  template <unsigned T>
+  template <target T>
   struct make_image2d_target;
 
   template <>

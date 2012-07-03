@@ -62,7 +62,7 @@ namespace cuimg
     &ligth_matching_kernel<TG, F, T>
 
 
-  template <unsigned target, typename F, typename T>
+  template <cuimg::target target, typename F, typename T>
   __host__ __device__ void ligth_matching_kernel(thread_info<target> ti,
                                                   i_short2* particles_vec,
                                                   unsigned n_particles,
@@ -372,11 +372,7 @@ namespace cuimg
     omp_set_dynamic(0);
     if (target == CPU)
     {
-      std::cout << omp_get_max_threads() << std::endl;
-
       compaction_openmp_buffers = new i_short2*[omp_get_max_threads()];
-      std::cout << compaction_openmp_buffers  << std::endl;
-
       for (unsigned t = 0; t < omp_get_max_threads(); t++)
         compaction_openmp_buffers[t] = new i_short2[20000];
     }

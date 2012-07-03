@@ -1,6 +1,7 @@
 #ifndef CUIMG_META_CONVOLVE2_STATIC_H_
 # define CUIMG_META_CONVOLVE2_STATIC_H_
 
+# include <cuimg/target.h>
 # include <cuimg/util.h>
 # include <cuimg/error.h>
 # include <cuimg/gpu/texture.h>
@@ -17,7 +18,7 @@ namespace cuimg
     template <typename I, int R, int E, typename G1, typename G2>
     struct meta_convolve2d_row_loop2
     {
-      template <unsigned T, typename U>
+      template <target T, typename U>
       static __host__ __device__ inline void iter(const kernel_image2d<U>& in, U& r1, U& r2, const i_int2& p)
       {;
         U v = U(tex2D(flag<T>(), UNIT_STATIC(g_input_tex)<typename U::cuda_bt>::tex(), in, p.y + R, p.x));
@@ -31,7 +32,7 @@ namespace cuimg
     template <typename I, int E, typename G1, typename G2>
     struct meta_convolve2d_row_loop2<I, E, E, G1, G2>
     {
-      template <unsigned T, typename U>
+      template <target T, typename U>
       static __host__ __device__ inline void iter(const kernel_image2d<U>& in, U& r1, U& r2, const i_int2& p)
       {;
         U v = U(tex2D(flag<T>(), UNIT_STATIC(g_input_tex)<typename U::cuda_bt>::tex(), in, p.y + E, p.x));
@@ -46,7 +47,7 @@ namespace cuimg
       kernel_image2d<O>,                                           \
       &meta_convolve_internal::meta_convolve_row_static_kernel2<T, I, O, G1, G2, KERNEL_HALF_SIZE>
 
-    template <unsigned T, typename I, typename O, typename G1, typename G2, int KERNEL_HALF_SIZE>
+    template <target T, typename I, typename O, typename G1, typename G2, int KERNEL_HALF_SIZE>
     __host__ __device__ void meta_convolve_row_static_kernel2(thread_info<T> ti,
                                                                      kernel_image2d<O> in1,
                                                                      kernel_image2d<O> out1,
@@ -71,7 +72,7 @@ namespace cuimg
     template <typename I, int R, int E, typename G1, typename G2>
     struct meta_convolve2d_col_loop2
     {
-      template <unsigned T, typename U>
+      template <target T, typename U>
       static __host__ __device__ inline void iter(const kernel_image2d<U>& in1,
                                                   const kernel_image2d<U>& in2,
                                                   U& r1, U& r2, const i_int2& p)
@@ -87,7 +88,7 @@ namespace cuimg
     template <typename I, int E, typename G1, typename G2>
     struct meta_convolve2d_col_loop2<I, E, E, G1, G2>
     {
-      template <unsigned T, typename U>
+      template <target T, typename U>
       static __host__ __device__ inline void iter(const kernel_image2d<U>& in1,
                                                   const kernel_image2d<U>& in2,
                                                   U& r1, U& r2, const i_int2& p)
@@ -99,7 +100,7 @@ namespace cuimg
       }
     };
 
-    template <unsigned T, typename I, typename O, typename G1, typename G2, int KERNEL_HALF_SIZE>
+    template <target T, typename I, typename O, typename G1, typename G2, int KERNEL_HALF_SIZE>
     __host__ __device__ void meta_convolve_col_static_kernel2(thread_info<T> ti,
                                                                      kernel_image2d<O> in1,
                                                                      kernel_image2d<O> in2,

@@ -8,16 +8,17 @@
 # endif
 
 # include <cuimg/gpu/device_image2d.h>
+# include <cuimg/target.h>
 # include <cuimg/image2d_target.h>
 
 using namespace cuimg;
 
 
-template <unsigned TG>
+template <target TG>
 class trajectory_tracer
 {
  public:
-  enum { target = TG };
+  static const cuimg::target target = TG;
 
   typedef image2d_target(target, i_short2) image2d_s2;
   typedef image2d_target(target, i_float1) image2d_f1;

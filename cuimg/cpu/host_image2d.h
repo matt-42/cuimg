@@ -21,7 +21,7 @@ namespace cuimg
   class host_image2d : public Image2d<host_image2d<V> >
   {
   public:
-    enum { target = CPU };
+    static const cuimg::target target = CPU;
 
     typedef int is_expr;
     typedef V value_type;
