@@ -2,6 +2,7 @@
 # define CUIMG_MATCHER_TOOLS_H_
 
 # include <cuimg/gpu/kernel_image2d.h>
+# include <cuimg/neighb2d_data.h>
 # include <cuimg/target.h>
 
 namespace cuimg

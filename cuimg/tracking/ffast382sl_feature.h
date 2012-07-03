@@ -54,7 +54,7 @@ namespace cuimg
     {
       unsigned char distances[16];
       float4 tex_float;
-      __m128i v_sse;
+      // __m128i v_sse;
     };
 
   };
@@ -187,7 +187,8 @@ namespace cuimg
     __host__ __device__ inline
     dffast382sl weighted_mean(const dffast382sl& a, float aw, const point2d<int>& b, float bw);
 
-    inline  __host__ __device__ dffast382sl
+    inline  __host__ __device__
+    dffast382sl
     new_state(const point2d<int>& n);
 
     inline __host__ __device__
@@ -202,8 +203,6 @@ namespace cuimg
     kernel_image2d<i_float1> pertinence_;
     kernel_image2d<V> s1_;
     kernel_image2d<V> s2_;
-    int offsets_s1[16];
-    int offsets_s2[16];
   };
 
 }

@@ -58,7 +58,6 @@ namespace cuimg
     const kernel_image2d<i_short2> ,            \
     i_short2 ,                                  \
     T*,                                         \
-    kernel_image2d<i_float4> ,                  \
     &naive_matching_kernel2<TG, F, T>
 
 
@@ -74,14 +73,12 @@ namespace cuimg
                                                   const kernel_image2d<i_short2> ls_matches,
                                                   i_short2 mvt,
                                                   T* compact_particles
-                                                  ,kernel_image2d<i_float4> dist
                                                   )
   {
     unsigned threadid = ti.blockIdx.x * ti.blockDim.x + ti.threadIdx.x;
     if (threadid >= n_particles) return;
     point2d<int> p = particles_vec[threadid];
 
-    //point2d<int> p = thread_pos2d();
     if (!particles.has(p))
       return;
 
@@ -96,9 +93,6 @@ namespace cuimg
 
     if (particles(p).age == 0)
     {
-#ifdef WITH_DISPLAY
-      dist(p) = i_float4(0.2f, 0.f, 0.f, 1.f);
-#endif
       return;
     }
 
@@ -496,8 +490,7 @@ namespace cuimg
         (flag<GPU>(), reduced_dimgrid, dimblock,
          thrust::raw_pointer_cast( &particles_vec1_[0]),
          n_particles_, f, *particles_, *new_particles_, matches_, states_,
-         ls_matches, mvt, thrust::raw_pointer_cast( &compact_particles_[0])
-         ,distance_);
+         ls_matches, mvt, thrust::raw_pointer_cast( &compact_particles_[0]));
 
       pw_call<filter_robbers_sig(GPU, particle)>(flag<GPU>(), reduced_dimgrid, dimblock,
                                                  thrust::raw_pointer_cast( &particles_vec1_[0]),
@@ -580,8 +573,7 @@ namespace cuimg
         (flag<CPU>(), reduced_dimgrid, dimblock,
          &particles_vec1_[0],
          n_particles_, f, *particles_, *new_particles_, matches_, states_,
-         ls_matches, mvt, &compact_particles_[0]
-         ,distance_);
+         ls_matches, mvt, &compact_particles_[0]);
       END_PROF(matching_kernel);
 
       START_PROF(filter_robbers);

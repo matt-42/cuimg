@@ -246,7 +246,7 @@ namespace cuimg
 
     // dfast382sl distances;
 
-    float pv;
+    V pv;
 
     {
       float min_diff = 9999999.f;
@@ -255,13 +255,13 @@ namespace cuimg
       for(int i = 0; i < 8; i++)
       {
 
-        float v1 = tex2D(flag<GPU>(), ff_s1_tex, frame_s1,
-                                 p.col() + circle_r3_h[i][1],
-                                 p.row() + circle_r3_h[i][0]).x;
+        V v1 = tex2D(flag<GPU>(), ff_s1_tex, frame_s1,
+                                 p.col() + circle_r3[i][1],
+                                 p.row() + circle_r3[i][0]).x;
 
-        float v2 = tex2D(flag<GPU>(), ff_s1_tex, frame_s1,
-                                 p.col() + circle_r3_h[(i+8)][1],
-                                 p.row() + circle_r3_h[(i+8)][0]).x;
+        V v2 = tex2D(flag<GPU>(), ff_s1_tex, frame_s1,
+                                 p.col() + circle_r3[(i+8)][1],
+                                 p.row() + circle_r3[(i+8)][0]).x;
 
         {
           float diff = pv -
@@ -287,13 +287,13 @@ namespace cuimg
       for(int i = 0; i < 8; i++)
       {
 
-        float v1 = tex2D(flag<GPU>(), ff_s2_tex, frame_s2,
-                         p.col() + circle_r3_h[i][1],
-                         p.row() + circle_r3_h[i][0]).x;
+        V v1 = tex2D(flag<GPU>(), ff_s2_tex, frame_s2,
+                         p.col() + circle_r3[i][1],
+                         p.row() + circle_r3[i][0]).x;
 
-        float v2 = tex2D(flag<GPU>(), ff_s2_tex, frame_s2,
-                         p.col() + circle_r3_h[(i+8)][1],
-                         p.row() + circle_r3_h[(i+8)][0]).x;
+        V v2 = tex2D(flag<GPU>(), ff_s2_tex, frame_s2,
+                         p.col() + circle_r3[(i+8)][1],
+                         p.row() + circle_r3[(i+8)][0]).x;
 
         {
           float diff = pv - (v1 + v2) / 2.f;
@@ -358,7 +358,7 @@ namespace cuimg
 
     // dffast382sl distances;
 
-    gl8u pv;
+    V pv;
 
     {
       float min_diff = 9999999.f;
@@ -367,11 +367,11 @@ namespace cuimg
       for(int i = 0; i < 8; i++)
       {
 
-        gl8u v1 = V(tex2D(flag<CPU>(), ff_s1_tex, frame_s1,
+        V v1 = V(tex2D(flag<CPU>(), ff_s1_tex, frame_s1,
 			   p.col() + circle_r3_h[i][1],
 			   p.row() + circle_r3_h[i][0]));
 
-        gl8u v2 = V(tex2D(flag<CPU>(), ff_s1_tex, frame_s1,
+        V v2 = V(tex2D(flag<CPU>(), ff_s1_tex, frame_s1,
 			   p.col() + circle_r3_h[(i+8)][1],
 			   p.row() + circle_r3_h[(i+8)][0]));
 
@@ -406,11 +406,11 @@ namespace cuimg
       for(int i = 0; i < 8; i++)
       {
 
-        gl8u v1 = V(tex2D(flag<CPU>(), ff_s2_tex, frame_s2,
+        V v1 = V(tex2D(flag<CPU>(), ff_s2_tex, frame_s2,
                          p.col()/2 + circle_r3_h[i][1],
 			   p.row()/2 + circle_r3_h[i][0]));
 
-        gl8u v2 = V(tex2D(flag<CPU>(), ff_s2_tex, frame_s2,
+        V v2 = V(tex2D(flag<CPU>(), ff_s2_tex, frame_s2,
                          p.col()/2 + circle_r3_h[(i+8)][1],
                          p.row()/2 + circle_r3_h[(i+8)][0]));
 
@@ -791,8 +791,8 @@ kernel_image2d<dffast382sl> in,                  \
     for (unsigned i = 0; i < 16; i++)
     {
       point2d<int> p(10,10);
-      offsets_s1[i] = (long(&s1_(p + i_int2(circle_r3[i]))) - long(&s1_(p))) / sizeof(V);
-      offsets_s2[i] = (long(&s2_(p + i_int2(circle_r3[i]))) - long(&s2_(p))) / sizeof(V);
+      // offsets_s1[i] = (long(&s1_(p + i_int2(circle_r3[i]))) - long(&s1_(p))) / sizeof(V);
+      // offsets_s2[i] = (long(&s2_(p + i_int2(circle_r3[i]))) - long(&s2_(p))) / sizeof(V);
     }
   }
 
@@ -893,6 +893,7 @@ kernel_image2d<dffast382sl> in,                  \
   //   return (float(sum.us[0]) + float(sum.us[4])) / (255.f * 16.f);
   // }
 
+#ifndef NVCC
   template <typename V>
   inline
   __host__ __device__ float
@@ -921,6 +922,7 @@ kernel_image2d<dffast382sl> in,                  \
     sum.vi = _mm_sad_epu8(a.v_sse, b.vi);
     return (float(sum.us[0]) + float(sum.us[4])) / (255.f * 16.f);
   }
+#endif
 
   int abs_test(int value)
 
@@ -935,6 +937,20 @@ kernel_image2d<dffast382sl> in,                  \
   }
 
   template <typename V>
+  inline __host__ __device__
+  float normalize_ffast_distance(float d)
+  {
+    return d / 16.f;
+  }
+
+  template <>
+  inline __host__ __device__
+  float normalize_ffast_distance<gl8u>(float d)
+  {
+    return d / (255.f * 16.f);
+  }
+
+  template <typename V>
   inline
   __host__ __device__ float
   kernel_ffast382sl_feature<V>::distance_linear_naive(const dffast382sl& a,
@@ -944,18 +960,18 @@ kernel_image2d<dffast382sl> in,                  \
 
     for(int i = 0; i < 8; i ++)
     {
-      gl8u v1 = s1_(n.row() + circle_r3[i*2][0],
+      gl01f v1 = s1_(n.row() + circle_r3[i*2][0],
   		   n.col() + circle_r3[i*2][1]);
       d += ::abs(v1 - a[i]);
     }
 
     for(int i = 0; i < 8; i ++)
     {
-      gl8u v = s2_(n.row() / 2 + circle_r3[i*2][0],
+      gl01f v = s2_(n.row() / 2 + circle_r3[i*2][0],
   		   n.col() / 2 + circle_r3[i*2][1]);
       d += ::abs(v - a[8+i]);
     }
-    return d / (255.f * 16.f);
+    return normalize_ffast_distance<gl01f>(d);
   }
 
   template <typename V>

@@ -287,10 +287,10 @@ __global__ void update_trajectories(kernel_image2d<i_float4> rand_colors,
   if (tr.age == 1) // New particle
   {
     rand_colors(p).w = 1.f;
-    new_traces(p).color = rand_colors(p);
+    new_traces(p).color = i_float4(1,0,0,1);
     new_traces(p).age = 1;
     new_traces(p).set_current_pos(i_int2(p));
-    traj_(p) = rand_colors(p);
+    traj_(p) = i_float4(1,0,0,1);
     age(p) = 1;
   }
   else
@@ -399,11 +399,11 @@ trajectory_tracer<TG>::update(const image2d_s2& matches,
 {
   std::swap(traces_, new_traces_);
 #ifndef NO_CUDA
-  if (TG == GPU)
-  {
-    curandGenerateUniform(gen, (float*)rand_colors_.data(),
-                          rand_colors_.pitch() * rand_colors_.nrows() / sizeof(float));
-  }
+  // if (TG == GPU)
+  // {
+  //   curandGenerateUniform(gen, (float*)rand_colors_.data(),
+  //                         rand_colors_.pitch() * rand_colors_.nrows() / sizeof(float));
+  // }
 #endif
 
   dim3 dimblock(16, 16);
@@ -415,7 +415,7 @@ trajectory_tracer<TG>::update(const image2d_s2& matches,
   traj_decay<int><<<dimgrid, dimblock>>>(traj_, age_);
 
   fill(straj_, i_float4(1.f, 1.f, 1.f, 1.f));
-  draw_straight_traj<P><<<dimgrid, dimblock>>>(particles, *new_traces_, straj_);
+  draw_straight_traj<P, trace><<<dimgrid, dimblock>>>(particles, *new_traces_, straj_);
 
 }
 
@@ -431,7 +431,7 @@ trajectory_tracer<TG>::display(const std::string& w, const image2d_f1& colors)
   tmp = aggregate<float>::run(get_x(colors),get_x(colors),get_x(colors),1.f);
 
   fill(traj_heads_, i_float4(0.f, 0.f, 0.f, 1.f));
-  draw_traj_heads<int><<<dimgrid, dimblock>>>(*new_traces_, traj_heads_);
+  draw_traj_heads<int, trace><<<dimgrid, dimblock>>>(*new_traces_, traj_heads_);
 
   display_image_ = threshold(norml2(traj_heads_), 1.01f, traj_heads_, traj_);
   display_image_ = threshold(norml2(display_image_), 1.01f, display_image_,

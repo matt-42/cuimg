@@ -49,13 +49,14 @@ namespace cuimg
   void
   global_mvt_thread<M>::update(const M& m, unsigned l)
   {
-    // std::cout << "update_" << std::endl;
+    boost::unique_lock<boost::mutex> lock(mutex_);
+    while (matcher_)
+      is_empty_cond_.wait(lock);
+
     assert(!matcher_);
     matcher_ = &m;
     level_ = l;
     is_empty_cond_.notify_one();
-
-    boost::unique_lock<boost::mutex> lock(mutex_);
   }
 
   template <class M>

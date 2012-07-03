@@ -181,6 +181,7 @@ namespace dg
       cuimg::check_cuda_error();
       cudaGraphicsUnmapResources(1, &cuda_tex_.resource);
       cuimg::check_cuda_error();
+
     }
 
     internal::cuda_texture_cat texcat()
