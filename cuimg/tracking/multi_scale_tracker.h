@@ -5,7 +5,6 @@
 # include <cuimg/gpu/device_image2d.h>
 
 # include <cuimg/tracking/large_mvt_detector.h>
-# include <cuimg/tracking/trajectory_tracer.h>
 
 # include <cuimg/tracking/global_mvt_thread.h>
 

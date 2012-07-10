@@ -25,6 +25,10 @@
 # ifdef WITH_DISPLAY
 #  include <cuimg/dige.h>
 #  include <dige/widgets/image_view.h>
+<<<<<<< HEAD
+=======
+#  include <dige/widgets/image_view.h>
+>>>>>>> 3dc8fc9e97245eb1e407214ccb41b613468b0229
 using dg::dl;
 using namespace dg::widgets;
 # endif
@@ -33,6 +37,10 @@ using namespace dg::widgets;
 //# include <emmintrin.h>
 # endif
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3dc8fc9e97245eb1e407214ccb41b613468b0229
 
 namespace cuimg
 {
@@ -850,7 +858,10 @@ kernel_image2d<dffast382sl> in,                  \
 
 
 #ifdef SSE
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3dc8fc9e97245eb1e407214ccb41b613468b0229
   union vector4f
   {
     __m128i vi;
@@ -859,6 +870,15 @@ kernel_image2d<dffast382sl> in,                  \
     int ui[4];
   };
 
+<<<<<<< HEAD
+  template <typename V>
+  inline
+  __host__ __device__ float
+  kernel_ffast382sl_feature<V>::distance_linear_sse(const dffast382sl& a,
+						    const point2d<int>& n)
+  {
+    // float d = 0;
+=======
   // template <typename V>
   // inline
   // __host__ __device__ float
@@ -901,6 +921,7 @@ kernel_image2d<dffast382sl> in,                  \
   // 						    const point2d<int>& n)
   // {
   //   // float d = 0;
+>>>>>>> 2c20813ee0455f4f4495c15044bb3ec94ee8a6cf
 
   //   vector4f b;
 

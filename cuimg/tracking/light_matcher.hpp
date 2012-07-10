@@ -2,11 +2,20 @@
 # define  CUIMG_LIGHT_MATCHER_HPP_
 
 #include <omp.h>
+<<<<<<< HEAD
+=======
+
+# ifdef WITH_DISPLAY
+#  include <GL/glew.h>
+# endif
+
+>>>>>>> 3dc8fc9e97245eb1e407214ccb41b613468b0229
 #include <cuimg/gpu/cuda.h>
 
 # ifndef NO_CUDA
 #  include <thrust/remove.h>
 # endif
+
 
 /*
 #include <dige/window.h>

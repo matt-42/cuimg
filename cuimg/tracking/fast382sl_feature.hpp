@@ -7,6 +7,7 @@
 
 # include <cuimg/target.h>
 # include <cuimg/copy.h>
+# include <cuimg/gl.h>
 # include <cuimg/pw_call.h>
 # include <cuimg/neighb2d_data.h>
 # include <cuimg/gpu/local_jet_static.h>
@@ -23,10 +24,20 @@
 # include <cuimg/gpu/texture.h>
 
 # ifdef WITH_DISPLAY
+
 #  include <cuimg/dige.h>
 #  include <dige/widgets/image_view.h>
+#  include <cuimg/dige.h>
+#  include <dige/widgets/image_view.h>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3dc8fc9e97245eb1e407214ccb41b613468b0229
 using dg::dl;
 using namespace dg::widgets;
+# endif
+
+
 # endif
 
 

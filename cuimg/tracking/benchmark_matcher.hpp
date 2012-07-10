@@ -1,6 +1,10 @@
 #ifndef CUIMG_BENCHMARK_MATCHER_HPP_
 # define  CUIMG_BENCHMARK_MATCHER_HPP_
 
+# ifdef WITH_DISPLAY
+#  include <GL/glew.h>
+# endif
+
 #include <cuimg/gpu/cuda.h>
 
 # ifndef NO_CUDA
@@ -9,20 +13,20 @@
 
 
 # ifdef WITH_DISPLAY
-# include <dige/window.h>
-# include <dige/widgets/image_view.h>
-# include <dige/image.h>
-# include <dige/process_events.h>
-# include <dige/pick_coords.h>
-# include <dige/widgets/slider.h>
-# include <dige/widgets/push_button.h>
-# include <dige/event/wait_event.h>
-# include <dige/event/event_queue.h>
-# include <dige/event/click.h>
-# include <dige/event/key_release.h>
-# include <dige/event/keycode.h>
-# include <dige/recorder.h>
-# include <cuimg/dige.h>
+#include <dige/window.h>
+#include <dige/widgets/image_view.h>
+#include <dige/image.h>
+#include <dige/process_events.h>
+#include <dige/pick_coords.h>
+#include <dige/widgets/slider.h>
+#include <dige/widgets/push_button.h>
+#include <dige/event/wait_event.h>
+#include <dige/event/event_queue.h>
+#include <dige/event/click.h>
+#include <dige/event/key_release.h>
+#include <dige/event/keycode.h>
+#include <dige/recorder.h>
+#include <cuimg/dige.h>
 # endif
 
 
