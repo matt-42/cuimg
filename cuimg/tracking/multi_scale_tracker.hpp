@@ -347,7 +347,7 @@ extern "C" {
       // 					     pyramid_[l], matcher_[l]->particles(), mask_[l]);
       // END_PROF(compute_mask);
 
-      feature_[l]->update(mask_[l], pyramid_[l], pyramid_[l + 1]);
+      feature_[l]->update(pyramid_[l], pyramid_[l + 1]);
       if (l != pyramid_.size() - 1)
         matcher_[l]->update(*(feature_[l]), mvt_detector_thread_, matcher_[l+1]->matches());
       else

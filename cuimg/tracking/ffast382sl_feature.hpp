@@ -218,7 +218,6 @@ namespace cuimg
   kernel_image2d<V>,                            \
     kernel_image2d<V>,                          \
     kernel_image2d<i_float1>,                   \
-    kernel_image2d<V>,                          \
     float,                                      \
     &FFAST382SL<V>
 
@@ -228,7 +227,6 @@ namespace cuimg
 			     kernel_image2d<V> frame_s1,
 			     kernel_image2d<V> frame_s2,
 			     kernel_image2d<i_float1> pertinence,
-			     kernel_image2d<V> mask,
 			     float grad_thresh)
   {
 
@@ -339,7 +337,6 @@ namespace cuimg
 		  kernel_image2d<V> frame_s2,
 		  // kernel_image2d<dffast382sl> out,
 		  kernel_image2d<i_float1> pertinence,
-		  kernel_image2d<V> mask,
 		  float grad_thresh)
   {
 
@@ -349,7 +346,7 @@ namespace cuimg
 
 
     if (p.row() < 6 || p.row() >= pertinence.domain().nrows() - 6 ||
-        p.col() < 6 || p.col() >= pertinence.domain().ncols() - 6// || mask(p) < 10
+        p.col() < 6 || p.col() >= pertinence.domain().ncols() - 6
 	)
     {
       pertinence(p).x = 0.f;
@@ -470,8 +467,7 @@ namespace cuimg
 		       // kernel_image2d<dffast382sl> out,
 		       kernel_image2d<i_float1> pertinence,
 		       float grad_thresh,
-		       short* offsets,
-		       kernel_image2d<V> mask
+		       short* offsets
 		       )
   {
 
@@ -481,7 +477,7 @@ namespace cuimg
 
 
     if (p.row() < 3 || p.row() >= pertinence.domain().nrows() - 3 ||
-        p.col() < 3 || p.col() >= pertinence.domain().ncols() - 3 || mask < 10)
+        p.col() < 3 || p.col() >= pertinence.domain().ncols() - 3)
     {
       pertinence(p).x = 0.f;
       return;
@@ -635,7 +631,7 @@ kernel_image2d<dffast382sl> in,                  \
   template <typename V, target T>
   inline
   void
-  ffast382sl_feature<V, T>::update(const image2d_V& mask, const image2d_V& in, const image2d_V& in_s2)
+  ffast382sl_feature<V, T>::update(const image2d_V& in, const image2d_V& in_s2)
   {
     SCOPE_PROF(ffast382sl_feature_update);
     frame_cpt_++;
@@ -669,14 +665,14 @@ kernel_image2d<dffast382sl> in,                  \
         pw_call<FFAST382SL_sig(target, V)>(flag<target>(), dimgrid, dimblock,
                                            color_blurred_, blurred_s1_, blurred_s2_,
                                            //*f_,
-                                           pertinence_, mask, grad_thresh_);
+                                           pertinence_, grad_thresh_);
       }
       else
       {
         SCOPE_PROF(kernel);
         pw_call<FFAST382SL_sig(target, V)>(flag<target>(), dimgrid, dimblock,
                                            color_blurred_, blurred_s1_, blurred_s2_,
-                                           pertinence_, mask, grad_thresh_);
+                                           pertinence_, grad_thresh_);
         // pw_call<FFAST382SL_fast_sig(target, V)>(flag<target>(), dimgrid, dimblock,
         //                                    color_blurred_, blurred_s1_, blurred_s2_,
         //                                    pertinence_, grad_thresh_, offsets);
@@ -894,34 +890,34 @@ kernel_image2d<dffast382sl> in,                  \
   // }
 
 #ifndef NVCC
-  template <typename V>
-  inline
-  __host__ __device__ float
-  kernel_ffast382sl_feature<V>::distance_linear_sse(const dffast382sl& a,
-						    const point2d<int>& n)
-  {
-    // float d = 0;
+  // template <typename V>
+  // inline
+  // __host__ __device__ float
+  // kernel_ffast382sl_feature<V>::distance_linear_sse(const dffast382sl& a,
+  // 						    const point2d<int>& n)
+  // {
+  //   // float d = 0;
 
-    vector4f b;
+  //   vector4f b;
 
-    V* data1 = &s1_(n);
-    for(int i = 0; i < 8; i ++)
-    {
-      gl8u v = data1[offsets_s1[i*2]];
-      b.uc[i] = v;
-    }
+  //   V* data1 = &s1_(n);
+  //   for(int i = 0; i < 8; i ++)
+  //   {
+  //     gl8u v = data1[offsets_s1[i*2]];
+  //     b.uc[i] = v;
+  //   }
 
-    V* data2 = &s2_(n / 2);
-    for(int i = 0; i < 8; i ++)
-    {
-      gl8u v = data2[offsets_s2[i*2]];
-      b.uc[i+8] = v;
-    }
+  //   V* data2 = &s2_(n / 2);
+  //   for(int i = 0; i < 8; i ++)
+  //   {
+  //     gl8u v = data2[offsets_s2[i*2]];
+  //     b.uc[i+8] = v;
+  //   }
 
-    vector4f sum;
-    sum.vi = _mm_sad_epu8(a.v_sse, b.vi);
-    return (float(sum.us[0]) + float(sum.us[4])) / (255.f * 16.f);
-  }
+  //   vector4f sum;
+  //   sum.vi = _mm_sad_epu8(a.v_sse, b.vi);
+  //   return (float(sum.us[0]) + float(sum.us[4])) / (255.f * 16.f);
+  // }
 #endif
 
   int abs_test(int value)
@@ -960,18 +956,18 @@ kernel_image2d<dffast382sl> in,                  \
 
     for(int i = 0; i < 8; i ++)
     {
-      gl01f v1 = s1_(n.row() + circle_r3[i*2][0],
+      gl8u v1 = s1_(n.row() + circle_r3[i*2][0],
   		   n.col() + circle_r3[i*2][1]);
       d += ::abs(v1 - a[i]);
     }
 
     for(int i = 0; i < 8; i ++)
     {
-      gl01f v = s2_(n.row() / 2 + circle_r3[i*2][0],
+      gl8u v = s2_(n.row() / 2 + circle_r3[i*2][0],
   		   n.col() / 2 + circle_r3[i*2][1]);
       d += ::abs(v - a[8+i]);
     }
-    return normalize_ffast_distance<gl01f>(d);
+    return normalize_ffast_distance<gl8u>(d);
   }
 
   template <typename V>

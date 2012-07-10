@@ -100,8 +100,7 @@ namespace cuimg
 
     inline ffast382sl_feature(const domain_t& d);
 
-    inline void update(const image2d_V& mask,
-		       const image2d_V& in, const image2d_V& in_s2);
+    inline void update(const image2d_V& in, const image2d_V& in_s2);
 
     inline const domain_t& domain() const;
 

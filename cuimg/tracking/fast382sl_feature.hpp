@@ -22,9 +22,10 @@
 # include <cuimg/tracking/fast_tools.h>
 # include <cuimg/gpu/texture.h>
 
-# include <cuimg/dige.h>
-
-#include <dige/widgets/image_view.h>
+# ifdef WITH_DISPLAY
+#  include <cuimg/dige.h>
+#  include <dige/widgets/image_view.h>
+# endif
 
 using dg::dl;
 using namespace dg::widgets;
