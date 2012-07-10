@@ -1,14 +1,8 @@
 #ifndef CUIMG_LARGE_MVT_DETECTOR_HPP_
 # define  CUIMG_LARGE_MVT_DETECTOR_HPP_
 
-#include <GL/glew.h>
-
 #include <cuimg/gpu/cuda.h>
 
-#include <dige/window.h>
-#include <dige/widgets/image_view.h>
-
-#include <cuimg/dige.h>
 
 # include <cuimg/dsl/binary_sub.h>
 # include <cuimg/dsl/abs.h>
@@ -27,11 +21,15 @@
 # include <cuimg/static_neighb2d.h>
 # include <cuimg/point2d.h>
 
-
 # include <cuimg/tracking/fast_tools.h>
 
-# include <dige/widgets/image_view.h>
-
+# ifdef WITH_DISPLAY
+#  include <GL/glew.h>
+#  include <dige/window.h>
+#  include <dige/widgets/image_view.h>
+#  include <cuimg/dige.h>
+#  include <dige/widgets/image_view.h>
+# endif
 
 namespace cuimg
 {

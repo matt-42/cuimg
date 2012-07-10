@@ -6,7 +6,10 @@
 # include <cuimg/gpu/mipmap.h>
 # include <cuimg/dsl/dsl_cast.h>
 # include <cuimg/pw_call.h>
+
+# ifdef WITH_DISPLAY
 # include <dige/recorder.h>
+# endif
 
 namespace cuimg
 {

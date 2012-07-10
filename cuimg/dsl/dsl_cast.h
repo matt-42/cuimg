@@ -1,6 +1,7 @@
 #ifndef CUIMG_GPU_DSL_CAST_H_
 # define CUIMG_GPU_DSL_CAST_H_
 
+# include <cuimg/dsl/has.h>
 # include <cuimg/dsl/expr.h>
 # include <cuimg/dsl/eval.h>
 # include <cuimg/meta.h>

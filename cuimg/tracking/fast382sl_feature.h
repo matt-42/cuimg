@@ -1,6 +1,7 @@
 #ifndef CUIMG_FAST382SL_FEATURE_H_
 # define CUIMG_FAST382SL_FEATURE_H_
 
+# include <cuimg/gl.h>
 # include <cuimg/gpu/device_image2d.h>
 # include <cuimg/gpu/kernel_image2d.h>
 # include <cuimg/point2d.h>

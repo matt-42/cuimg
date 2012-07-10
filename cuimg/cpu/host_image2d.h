@@ -11,7 +11,7 @@
 # include <cuimg/obox2d.h>
 
 #ifdef WITH_OPENCV
-# include <opencv/cxcore.h>
+# include <opencv2/core/core.hpp>
 #endif
 
 

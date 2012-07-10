@@ -5,7 +5,7 @@
 # include <cuimg/free.h>
 
 #ifdef WITH_OPENCV
-#include <opencv/cxcore.h>
+#include <opencv2/core/core.hpp>
 #endif
 
 namespace cuimg

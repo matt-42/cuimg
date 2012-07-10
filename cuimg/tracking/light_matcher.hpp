@@ -2,7 +2,6 @@
 # define  CUIMG_LIGHT_MATCHER_HPP_
 
 #include <omp.h>
-#include <GL/glew.h>
 #include <cuimg/gpu/cuda.h>
 
 # ifndef NO_CUDA

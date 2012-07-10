@@ -2,7 +2,6 @@
 #include <cuimg/gpu/cuda.h>
 
 
-# include <cuimg/dige.h>
 # include <cuimg/dsl/threshold.h>
 # include <cuimg/dsl/norml2.h>
 # include <cuimg/gpu/fill.h>
@@ -11,13 +10,14 @@
 #include <cuimg/static_neighb2d.h>
 #include <cuimg/neighb_iterator2d.h>
 
+
+# ifdef WITH_DISPLAY
+# include <cuimg/dige.h>
 # include <dige/widgets/image_view.h>
 # include <dige/image.h>
-
-# include <cuimg/tracking/trajectory_tracer.h>
-
 using namespace dg::widgets;
 using dg::dl;
+#endif
 
 #ifdef NVCC
 

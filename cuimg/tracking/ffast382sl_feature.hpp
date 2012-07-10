@@ -22,16 +22,17 @@
 # include <cuimg/tracking/fast_tools.h>
 # include <cuimg/gpu/texture.h>
 
-# include <cuimg/dige.h>
-
-# ifndef NVCC
-# include <emmintrin.h>
-# endif
-
-#include <dige/widgets/image_view.h>
-
+# ifdef WITH_DISPLAY
+#  include <cuimg/dige.h>
+#  include <dige/widgets/image_view.h>
 using dg::dl;
 using namespace dg::widgets;
+# endif
+
+# ifndef NVCC
+//# include <emmintrin.h>
+# endif
+
 
 namespace cuimg
 {
@@ -848,6 +849,7 @@ kernel_image2d<dffast382sl> in,                  \
   }
 
 
+#ifdef SSE
 
   union vector4f
   {
@@ -888,6 +890,8 @@ kernel_image2d<dffast382sl> in,                  \
   //   sum.vi = _mm_sad_epu8(av.vi, b.vi);
   //   return (float(sum.us[0]) + float(sum.us[4])) / (255.f * 16.f);
   // }
+
+#endif
 
 #ifndef NVCC
   // template <typename V>
