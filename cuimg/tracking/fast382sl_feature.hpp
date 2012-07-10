@@ -27,6 +27,8 @@
 
 #  include <cuimg/dige.h>
 #  include <dige/widgets/image_view.h>
+#  include <cuimg/dige.h>
+#  include <dige/widgets/image_view.h>
 
 using dg::dl;
 using namespace dg::widgets;
