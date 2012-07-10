@@ -3,6 +3,7 @@
 
 # include <cuimg/dsl/expr.h>
 # include <cuimg/dsl/eval.h>
+# include <cuimg/dsl/has.h>
 # include <cuimg/meta.h>
 
 namespace cuimg

@@ -22,16 +22,19 @@
 # include <cuimg/tracking/fast_tools.h>
 # include <cuimg/gpu/texture.h>
 
-# include <cuimg/dige.h>
-
-# ifndef NVCC
-# include <emmintrin.h>
-# endif
-
-#include <dige/widgets/image_view.h>
-
+# ifdef WITH_DISPLAY
+#  include <cuimg/dige.h>
+#  include <dige/widgets/image_view.h>
+#  include <dige/widgets/image_view.h>
 using dg::dl;
 using namespace dg::widgets;
+# endif
+
+# ifndef NVCC
+//# include <emmintrin.h>
+# endif
+
+
 
 namespace cuimg
 {
@@ -852,7 +855,7 @@ kernel_image2d<dffast382sl> in,                  \
   }
 
 
-
+#ifdef SSE
   union vector4f
   {
     __m128i vi;
@@ -861,39 +864,6 @@ kernel_image2d<dffast382sl> in,                  \
     int ui[4];
   };
 
-  // template <typename V>
-  // inline
-  // __host__ __device__ float
-  // kernel_ffast382sl_feature<V>::distance_linear(const dffast382sl& a,
-  // 						const point2d<int>& n)
-  // {
-  //   // float d = 0;
-
-  //   vector4f b;
-
-  //   for(int i = 0; i < 8; i ++)
-  //   {
-  //     gl8u v = s1_(n.row() + circle_r3[i*2][0],
-  // 		   n.col() + circle_r3[i*2][1]);
-  //     b.uc[i] = v;
-  //   }
-
-  //   for(int i = 0; i < 8; i ++)
-  //   {
-  //     gl8u v = s2_(n.row() / 2 + circle_r3[i*2][0],
-  //   		   n.col() / 2 + circle_r3[i*2][1]);
-  //     b.uc[i+8] = v;
-  //   }
-
-  //   vector4f av;
-  //   for(int i = 0; i < 8; i++)
-  //     av.uc[i] = a[i];
-  //   vector4f sum;
-  //   sum.vi = _mm_sad_epu8(av.vi, b.vi);
-  //   return (float(sum.us[0]) + float(sum.us[4])) / (255.f * 16.f);
-  // }
-
-#ifndef NVCC
   template <typename V>
   inline
   __host__ __device__ float

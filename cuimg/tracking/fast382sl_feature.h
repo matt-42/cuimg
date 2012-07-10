@@ -5,6 +5,7 @@
 # include <cuimg/gpu/kernel_image2d.h>
 # include <cuimg/point2d.h>
 # include <cuimg/obox2d.h>
+# include <cuimg/gl.h>
 # include <cuimg/improved_builtin.h>
 # include <cuimg/target.h>
 # include <cuimg/image2d_target.h>

@@ -7,6 +7,7 @@
 
 # include <cuimg/target.h>
 # include <cuimg/copy.h>
+# include <cuimg/gl.h>
 # include <cuimg/pw_call.h>
 # include <cuimg/neighb2d_data.h>
 # include <cuimg/gpu/local_jet_static.h>
@@ -22,12 +23,16 @@
 # include <cuimg/tracking/fast_tools.h>
 # include <cuimg/gpu/texture.h>
 
-# include <cuimg/dige.h>
+# ifdef WITH_DISPLAY
 
-#include <dige/widgets/image_view.h>
+#  include <cuimg/dige.h>
+#  include <dige/widgets/image_view.h>
 
 using dg::dl;
 using namespace dg::widgets;
+
+# endif
+
 
 namespace cuimg
 {

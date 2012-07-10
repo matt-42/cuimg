@@ -1,7 +1,9 @@
 #ifndef CUIMG_BENCHMARK_MATCHER_HPP_
 # define  CUIMG_BENCHMARK_MATCHER_HPP_
 
-#include <GL/glew.h>
+# ifdef WITH_DISPLAY
+#  include <GL/glew.h>
+# endif
 #include <cuimg/gpu/cuda.h>
 
 # ifndef NO_CUDA
@@ -9,6 +11,7 @@
 # endif
 
 
+# ifdef WITH_DISPLAY
 #include <dige/window.h>
 #include <dige/widgets/image_view.h>
 #include <dige/image.h>
@@ -23,6 +26,7 @@
 #include <dige/event/keycode.h>
 #include <dige/recorder.h>
 #include <cuimg/dige.h>
+# endif
 
 
 #include <cuimg/target.h>
@@ -488,10 +492,6 @@ namespace cuimg
                                                  n_particles_,
                                                  *particles_, *new_particles_, matches_);
       check_cuda_error();
-
-     ImageView("frame2") << distance_
-                         << dg::widgets::show;
-
 
       memset(errors_, 0);
 #ifdef WITH_STATS
