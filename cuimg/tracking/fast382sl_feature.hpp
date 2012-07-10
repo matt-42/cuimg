@@ -27,19 +27,10 @@
 
 #  include <cuimg/dige.h>
 #  include <dige/widgets/image_view.h>
-#  include <cuimg/dige.h>
-#  include <dige/widgets/image_view.h>
-<<<<<<< HEAD
-=======
-
->>>>>>> 3dc8fc9e97245eb1e407214ccb41b613468b0229
 using dg::dl;
 using namespace dg::widgets;
-# endif
-
 
 # endif
-
 
 namespace cuimg
 {
