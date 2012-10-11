@@ -6,6 +6,7 @@
 # include <cuimg/gpu/mipmap.h>
 # include <cuimg/dsl/dsl_cast.h>
 # include <cuimg/pw_call.h>
+# include <cuimg/profiler.h>
 
 # ifdef WITH_DISPLAY
 # include <dige/recorder.h>
@@ -341,9 +342,9 @@ extern "C" {
 	dimblock = dim3(in.ncols(), 2, 1);
       dim3 dimgrid = grid_dimension(pyramid_[l].domain(), dimblock);
 
-      std::stringstream profiler_ss;
-      profiler_ss << "scale_" << l;
-      profile_scope profiler(prof, profiler_ss.str());
+      // std::stringstream profiler_ss;
+      // profiler_ss << "scale_" << l;
+      //profile_scope profiler(prof, profiler_ss.str());
 
       // START_PROF(compute_mask);
       // pw_call<compute_mask_sig(target, V, P)>(flag<target>(), dimgrid, dimblock,

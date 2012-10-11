@@ -20,7 +20,7 @@ namespace cuimg
     {
       U* row = &(out(r, 0));
       U* row_end = &(out(r, nc - 1));
-      while (row != row_end)
+      while (row <= row_end)
       {
 	*row = v;
 	++row;

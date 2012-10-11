@@ -101,8 +101,10 @@ class improved_builtin : public make_cuda_bt<T, N>::ret
   template <typename S>
   __host__ __device__ inline self& operator/=(const S& s);
 
-  __host__ __device__ inline T r() const;
-  __host__ __device__ inline T c() const;
+  __host__ __device__ inline const T& r() const;
+  __host__ __device__ inline const T& c() const;
+  __host__ __device__ inline T& r();
+  __host__ __device__ inline T& c();
  };
 
 template <typename NC, typename T, unsigned N>

@@ -174,4 +174,8 @@ namespace cuimg
 
 };
 
+#define SCOPE_PROF(X)
+#define START_PROF(X)
+#define END_PROF(X)
+
 #endif

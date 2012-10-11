@@ -361,15 +361,30 @@ namespace cuimg
   }
 
   template <typename T, unsigned N>
-  T
+  const T&
   improved_builtin<T, N>::r() const
   {
     return this->x;
   }
 
   template <typename T, unsigned N>
-  T
+  const T&
   improved_builtin<T, N>::c() const
+  {
+    return this->y;
+  }
+
+
+  template <typename T, unsigned N>
+  T&
+  improved_builtin<T, N>::r()
+  {
+    return this->x;
+  }
+
+  template <typename T, unsigned N>
+  T&
+  improved_builtin<T, N>::c()
   {
     return this->y;
   }
