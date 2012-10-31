@@ -25,17 +25,13 @@ namespace cuimg
 
     __host__ __device__ dfast382sl(const dfast382sl& o)
     {
-      //pertinence = o.pertinence;
       tex_float = o.tex_float;
-      //for (unsigned i = 0; i < 16; i++) distances[i] = o.distances[i];
     }
 
     __host__ __device__
     dfast382sl& operator=(const dfast382sl& o)
     {
-      //pertinence = o.pertinence;
       tex_float = o.tex_float;
-      //for (unsigned i = 0; i < 16; i++) distances[i] = o.distances[i];
       return *this;
     }
 

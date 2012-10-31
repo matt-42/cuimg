@@ -61,7 +61,7 @@ namespace cuimg
 
   private:
     profiler& prof_;
-    const std::string& name_;
+    std::string name_;
   };
 
   unsigned long long
@@ -70,7 +70,7 @@ namespace cuimg
     timespec ts;
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
     //clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
-    return ts.tv_sec * 1000000000 + ts.tv_nsec;
+    return ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
   }
 
   void profiler::begin(const std::string& name)
@@ -118,8 +118,8 @@ namespace cuimg
 
     os << std::setw(50) << std::setfill(' ') << std::left << (indent + path + ":") << std::fixed << std::setprecision(2)
        << std::setw(15) << std::setfill(' ') << std::left << n.ncalls
-       << std::setw(15) << std::setfill(' ') << std::left << (n.duration) / (n.ncalls * 1000000.)
-       << std::setw(15) << std::setfill(' ') << std::left << (n.duration) / 1000000.
+       << std::setw(15) << std::setfill(' ') << std::left << (n.duration) / (n.ncalls * 1000.)
+       << std::setw(15) << std::setfill(' ') << std::left << (n.duration) / 1000.
        << std::setw(15) << std::setfill(' ') << std::left << (100.*n.duration/node_time)
        << std::setw(15) << std::setfill(' ') << std::left << (100.*n.duration/total_time)
        << std::setw(15) << std::setfill(' ') << std::left << (100.*(n.duration-childs_sum)/total_time);

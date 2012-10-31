@@ -22,9 +22,9 @@ namespace cuimg
     host_image3d<V>& operator=(const host_image3d<V>& d);
 
     const domain_type& domain() const;
-    unsigned nslices() const;
-    unsigned nrows() const;
-    unsigned ncols() const;
+    int nslices() const;
+    int nrows() const;
+    int ncols() const;
     bool has(const point& p) const;
 
     size_t pitch() const;

@@ -2,6 +2,7 @@
 # define  CUIMG_LIGHT_MATCHER_HPP_
 
 #include <omp.h>
+#include <opencv2/opencv.hpp>
 
 # ifdef WITH_DISPLAY
 #  include <GL/glew.h>
@@ -528,6 +529,20 @@ namespace cuimg
 #endif // ! NO_CUDA
 
   template <typename F>
+  void FAST_pertinence(F& f)
+  {
+      START_PROF(FAST);
+      std::vector<cv::KeyPoint> fast_points;
+      cv::Mat cv_img(f.s2().getIplImage());
+      cv::FAST(cv_img, fast_points, 170);
+      END_PROF(FAST);
+
+      fill(f.pertinence(), gl01f(0.f));
+      for (unsigned i = 0; i < fast_points.size(); i++)
+	f.pertinence()(fast_points[i].pt.y, fast_points[i].pt.x) = 1.f;
+  }
+
+  template <typename F>
   void
   light_matcher<F>::update(const flag<CPU>&, F& f, global_mvt_thread<light_matcher<F> >& t_mvt,
                                  const image2d_s2& ls_matches)
@@ -606,6 +621,15 @@ namespace cuimg
     // check_robbers<particle><<<dimgrid, dimblock>>>(*particles_, *new_particles_, matches_, test2_);
 
     //if (!(frame_cpt % 5))
+
+
+    FAST_pertinence(f);
+      // START_PROF(FAST);
+      // std::vector<cv::KeyPoint> fast_points;
+      // cv::Mat cv_img(f.s1().getIplImage());
+      // cv::FAST(cv_img, fast_points, 100);
+      // std::cout << fast_points.size() << std::endl;
+      // END_PROF(FAST);
 
       START_PROF(create_particles_kernel);
       pw_call<create_particles_kernel_sig(CPU, typename F::kernel_type, particle)>(flag<CPU>(), dimgrid, dimblock, typename F::kernel_type(f), *new_particles_, f.pertinence(), states_);

@@ -47,19 +47,19 @@ namespace cuimg
   }
 
   template <typename V>
-  unsigned host_image3d<V>::nslices() const
+  int host_image3d<V>::nslices() const
   {
     return domain_.nslices();
   }
 
   template <typename V>
-  unsigned host_image3d<V>::nrows() const
+  int host_image3d<V>::nrows() const
   {
     return domain_.nrows();
   }
 
   template <typename V>
-  unsigned host_image3d<V>::ncols() const
+  int host_image3d<V>::ncols() const
   {
     return domain_.ncols();
   }

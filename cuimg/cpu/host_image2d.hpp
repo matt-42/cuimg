@@ -105,6 +105,17 @@ namespace cuimg
   {
     *this = imgIpl;
   }
+
+  template <typename V>
+  host_image2d<V>::host_image2d(cv::Mat m)
+  {
+    m.addref();
+    pitch_ = m.step;
+    data_ = PT((V*) m.data);
+    buffer_ = (V*) m.data;
+    domain_ = domain_type(m.rows, m.cols);
+    // *this = static_cast<IplImage*>(&m);
+  }
 #endif
 
   template <typename V>
@@ -138,6 +149,19 @@ namespace cuimg
     domain_ = domain_type(imgIpl->height,imgIpl->width);
     return *this;
   }
+
+
+  template <typename V>
+  host_image2d<V>&
+  host_image2d<V>::operator=(cv::Mat m)
+  {
+    m.addref();
+    pitch_ = m.step;
+    data_ = PT((V*) m.data);
+    buffer_ = (V*) m.data;
+    domain_ = domain_type(m.rows, m.cols);
+  }
+
 #endif
 
   template <typename V>
@@ -147,12 +171,12 @@ namespace cuimg
   }
 
   template <typename V>
-  unsigned host_image2d<V>::nrows() const
+  int host_image2d<V>::nrows() const
   {
     return domain_.nrows();
   }
   template <typename V>
-  unsigned host_image2d<V>::ncols() const
+  int host_image2d<V>::ncols() const
   {
     return domain_.ncols();
   }
@@ -183,6 +207,13 @@ namespace cuimg
     cvSetData(frameIPL, (void*)data(), pitch());
     return frameIPL;
   }
+
+  template <typename V>
+  host_image2d<V>::operator cv::Mat() const
+  {
+    return cv::Mat(nrows(), ncols(), sizeof(typename V::vtype)*8, (void*)data(), pitch());
+  }
+
 #endif
   template <typename V>
   inline V* host_image2d<V>::data()

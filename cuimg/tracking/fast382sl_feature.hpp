@@ -527,7 +527,7 @@ kernel_image2d<dfast382sl> in,                  \
       fast382sl_color_(d),
       color_blurred_(d),
       color_tmp_(d),
-      grad_thresh(0.02f),
+      grad_thresh(0.01f),
       frame_cpt_(0)
   {
     f_prev_ = &f1_;

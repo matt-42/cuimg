@@ -309,6 +309,7 @@ extern "C" {
   template <typename I, typename J>
   void prepare_input_frame(const flag<GPU>&, const host_image2d<i_uchar3>& in, I& frame, J& tmp_uc3)
   {
+    SCOPE_PROF("preprocess");
     copy(in, tmp_uc3);
     to_graylevel(tmp_uc3, frame, typename I::value_type());
   }
@@ -367,6 +368,7 @@ extern "C" {
       dim3 r_dimblock(128, 1);
       dim3 reduced_dimgrid(1 + matcher_[l]->n_particles() / (r_dimblock.x * r_dimblock.y), r_dimblock.y, 1);
 
+      START_PROF("sub_global_mvt_sig");
 #ifndef NO_CUDA
       pw_call<sub_global_mvt_sig(target, P)>(flag<target>(), reduced_dimgrid, r_dimblock,
 					     thrust::raw_pointer_cast(&matcher_[l]->particle_positions()[0]),
@@ -378,6 +380,7 @@ extern "C" {
 					     matcher_[l]->n_particles(), matcher_[l]->particles(),
 					     mvt_detector_thread_.mvt());
 #endif
+      END_PROF("sub_global_mvt_sig");
 
       // if (l == pyramid_.size() - 3) mvt_detector_thread_.display();
     }

@@ -37,12 +37,13 @@ namespace cuimg
     host_image2d(const host_image2d<V>& d);
 #ifdef WITH_OPENCV
     host_image2d(IplImage * imgIpl);
+    host_image2d(cv::Mat m);
 #endif
     host_image2d<V>& operator=(const host_image2d<V>& d);
 
     const domain_type& domain() const;
-    unsigned nrows() const;
-    unsigned ncols() const;
+    int nrows() const;
+    int ncols() const;
     bool has(const point& p) const;
 
     size_t pitch() const;
@@ -57,8 +58,10 @@ namespace cuimg
     inline const V& eval(const point& p) const { return (*this)(p); };
 
 #ifdef WITH_OPENCV
+    operator cv::Mat() const;
     IplImage* getIplImage() const;
     host_image2d<V>& operator=(IplImage * imgIpl);
+    host_image2d<V>& operator=(cv::Mat imgIpl);
 #endif
 
     V* row(unsigned i);
