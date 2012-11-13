@@ -43,6 +43,13 @@ namespace cuimg
   /*     } */
   /* } */
 
+  template <typename I, typename V>
+    __host__ __device__ void draw_c8(I& out, const point2d<int>& p, const V& value)
+  {
+    for_all_in_static_neighb2d(p, n, c8) if (out.has(n))
+      out(n) = value;
+  }
+
   template <typename I>
     __device__ __host__ void fill_rect(I out, point2d<int> a, unsigned nr, unsigned nc,
 				       typename I::value_type color)
@@ -94,7 +101,15 @@ namespace cuimg
 
     for (int x = x0 + 1; x <= x1; x++)
     {
-      if (steep) out(point2d<int>(x, y)) = color; else out(point2d<int>(y, x)) = color;
+      point2d<int> to_plot;
+      if (steep)
+	to_plot = point2d<int>(x, y);
+      else
+	to_plot = point2d<int>(y, x);
+
+      if (out.has(to_plot))
+	out(to_plot) = color;
+
       error = error + deltaerr;
       if (error >= 0.5)
       {

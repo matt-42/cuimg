@@ -194,6 +194,19 @@ namespace cuimg
   }
 
   template <typename I>
+  void subsample(const Image2d<I>& in,
+		 const Image2d<I>& out)
+  {
+    SCOPE_PROF(subsample);
+
+    dim3 dimblock = dim3(exact(out).domain().ncols(), 1, 1);
+    using namespace mipmap_internals;
+    dim3 dimgrid = grid_dimension(exact(out).domain(), dimblock);
+    pw_call<mipmap_kernel_sig(I::target, typename I::value_type)>(flag<I::target>(), dimgrid, dimblock,
+								  exact(in), exact(out));
+  }
+
+  template <typename I>
   void update_mipmap_level(const Image2d<I>& in,
                            std::vector<I>& pyramid_out,
                            unsigned level,
