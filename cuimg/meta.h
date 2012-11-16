@@ -3,7 +3,10 @@
 
 # include <cuimg/gpu/cuda.h>
 
+#ifndef __GNUC__
 # define BOOST_TYPEOF_COMPLIANT
+#endif
+
 # include <boost/typeof/typeof.hpp>
 # include <boost/type_traits/remove_reference.hpp>
 # include <boost/type_traits/remove_const.hpp>
@@ -81,8 +84,8 @@ namespace cuimg
     template <typename A, typename B>
     struct type_add
     {
-      typedef typename BOOST_TYPEOF( (*(typename boost::remove_reference<A>::type*)1) +
-                                     (*(typename boost::remove_reference<B>::type*)1) ) ret;
+      typedef BOOST_TYPEOF( (*(typename boost::remove_reference<A>::type*)1) +
+                            (*(typename boost::remove_reference<B>::type*)1) ) ret;
     };
 #define type_add(A, B) typename cuimg::meta::type_add<A, B>::ret
 #define type_add_(A, B) cuimg::meta::type_add<A, B>::ret
@@ -90,8 +93,8 @@ namespace cuimg
     template <typename A, typename B>
     struct type_minus
     {
-      typedef typename BOOST_TYPEOF( (*(typename boost::remove_reference<A>::type*)1) -
-                                     (*(typename boost::remove_reference<B>::type*)1) ) ret;
+      typedef BOOST_TYPEOF( (*(typename boost::remove_reference<A>::type*)1) -
+                            (*(typename boost::remove_reference<B>::type*)1) ) ret;
     };
 #define type_minus(A, B) typename cuimg::meta::type_minus<A, B>::ret
 #define type_minus_(A, B) cuimg::meta::type_minus<A, B>::ret
@@ -99,8 +102,8 @@ namespace cuimg
     template <typename A, typename B>
     struct type_mult
     {
-      typedef typename BOOST_TYPEOF( (*(typename boost::remove_reference<A>::type*)1) *
-                                     (*(typename boost::remove_reference<B>::type*)1) ) ret;
+      typedef BOOST_TYPEOF( (*(typename boost::remove_reference<A>::type*)1) *
+                            (*(typename boost::remove_reference<B>::type*)1) ) ret;
     };
 #define type_mult(A, B) typename cuimg::meta::type_mult<A, B>::ret
 #define type_mult_(A, B) cuimg::meta::type_mult<A, B>::ret
@@ -108,8 +111,8 @@ namespace cuimg
     template <typename A, typename B>
     struct type_div
     {
-      typedef typename BOOST_TYPEOF( (*(typename boost::remove_reference<A>::type*)1) /
-                                     (*(typename boost::remove_reference<B>::type*)1) ) ret;
+      typedef BOOST_TYPEOF( (*(typename boost::remove_reference<A>::type*)1) /
+                            (*(typename boost::remove_reference<B>::type*)1) ) ret;
     };
 #define type_div(A, B) typename cuimg::meta::type_div<A, B>::ret
 #define type_div_(A, B) cuimg::meta::type_div<A, B>::ret

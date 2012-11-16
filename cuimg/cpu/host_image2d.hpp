@@ -14,6 +14,7 @@ namespace cuimg
 
   template <typename V>
   host_image2d<V>::host_image2d()
+    : buffer_(0)
   {
   }
 
@@ -72,6 +73,7 @@ namespace cuimg
       // assert(!(size_t(pitch_) % 64));
     }
 
+    assert(buffer_);
   }
 //   template <typename V>
 //   void
@@ -167,6 +169,7 @@ namespace cuimg
   template <typename V>
   const typename host_image2d<V>::domain_type& host_image2d<V>::domain() const
   {
+    assert(buffer_);
     return domain_;
   }
 
@@ -199,6 +202,7 @@ namespace cuimg
   template <typename V>
   IplImage* host_image2d<V>::getIplImage() const
   {
+    assert(buffer_);
     //allocate the structure
     IplImage* frameIPL = cvCreateImageHeader(cvSize(ncols(),nrows()),
 					     sizeof(typename V::vtype)*8,
@@ -211,6 +215,7 @@ namespace cuimg
   template <typename V>
   host_image2d<V>::operator cv::Mat() const
   {
+    assert(buffer_);
     return cv::Mat(nrows(), ncols(), sizeof(typename V::vtype)*8, (void*)data(), pitch());
   }
 
@@ -230,30 +235,35 @@ namespace cuimg
   template <typename V>
   inline size_t host_image2d<V>::buffer_size() const
   {
+    assert(buffer_);
     return nrows() * pitch_;
   }
 
   template <typename V>
   inline V& host_image2d<V>::operator()(const point& p)
   {
+    assert(buffer_);
     return row(p.row())[p.col()];
   }
 
   template <typename V>
   inline const V& host_image2d<V>::operator()(const point& p) const
   {
+    assert(buffer_);
     return row(p.row())[p.col()];
   }
 
   template <typename V>
   inline V* host_image2d<V>::row(unsigned i)
   {
+    assert(buffer_);
     return (V*)(((char*)buffer_) + i * pitch_);
   }
 
   template <typename V>
   inline const V* host_image2d<V>::row(unsigned i) const
   {
+    assert(buffer_);
     return (V*)(((char*)buffer_) + i * pitch_);
   }
 
@@ -261,6 +271,7 @@ namespace cuimg
   inline V&
   host_image2d<V>::operator()(int r, int c)
   {
+    assert(buffer_);
     return operator()(point(r, c));
   }
 
@@ -268,6 +279,7 @@ namespace cuimg
   inline const V&
   host_image2d<V>::operator()(int r, int c) const
   {
+    assert(buffer_);
     return operator()(point(r, c));
   }
 }

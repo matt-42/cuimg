@@ -18,8 +18,8 @@ namespace cuimg
     };
   }
 
-  template <typename ARCH>
-  static dim3 dimblock(size_t elt_size, const obox2d& domain)
+  template <typename ARCH, typename D>
+  static dim3 dimblock(ARCH, size_t elt_size, const D& domain)
   {
     dim3 res;
     if ((domain.ncols() * elt_size) > ARCH::l1_cache_size)

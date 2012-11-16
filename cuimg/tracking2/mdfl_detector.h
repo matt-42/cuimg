@@ -12,13 +12,20 @@ namespace cuimg
   public:
     inline mdfl_1s_detector(const obox2d& d);
 
-    inline void update(const host_image2d<i_uchar1>& input);
+    inline void update(const host_image2d<gl8u>& input);
 
     template <typename F, typename PS>
-    inline void new_particles(const F& feature, PS& pset, float contrast_th, float dev_th);
+    inline void new_particles(const F& feature, PS& pset);
+
+    inline mdfl_1s_detector& set_contrast_threshold(float f);
+    inline mdfl_1s_detector& set_dev_threshold(float f);
+
+    inline const host_image2d<gl01f>& saliency() { return saliency_; }
 
   private:
-    host_image2d<float> saliency_;
+    float contrast_th_;
+    float dev_th_;
+    host_image2d<gl01f> saliency_;
   };
 
 }

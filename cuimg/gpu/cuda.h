@@ -12,7 +12,10 @@
 #  include <cuimg/gpu/nocuda_defines.h>
 # endif
 
+
+#ifndef __GNUC__
 # define BOOST_TYPEOF_COMPLIANT
+#endif
 # include <boost/typeof/typeof.hpp>
 # include BOOST_TYPEOF_INCREMENT_REGISTRATION_GROUP()
 

@@ -16,11 +16,13 @@ namespace cuimg
 
     tracker(const obox2d& d, int nscales);
     ~tracker();
-    
+
+
     void update_input(const I& in);
     void subsample_input(const I& in);
     void run();
 
+    inline const obox2d& domain() const     { return input_.domain(); }
     inline const I& input() const                { return input_; }
     inline       particles_type& pset()     { return pset_; }
     inline const feature_t& feature() const        { return feature_; }
@@ -29,6 +31,7 @@ namespace cuimg
     inline i_short2 prev_camera_motion() const   { return camera_motion_; }
     inline i_short2 camera_motion() const        { return prev_camera_motion_; }
 
+    tracker<F>& scale(unsigned s) { return s && upper_tracker_ ? upper_tracker_->scale(s-1) : *this; }
   private:
     tracker(const obox2d& d, tracker<F>* lower, int nscales);
 

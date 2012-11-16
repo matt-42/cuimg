@@ -623,7 +623,7 @@ namespace cuimg
     //if (!(frame_cpt % 5))
 
 
-    FAST_pertinence(f);
+    // FAST_pertinence(f);
       // START_PROF(FAST);
       // std::vector<cv::KeyPoint> fast_points;
       // cv::Mat cv_img(f.s1().getIplImage());

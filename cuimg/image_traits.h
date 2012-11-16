@@ -3,11 +3,6 @@
 
 # include <cuimg/gpu/cuda.h>
 
-# define BOOST_TYPEOF_COMPLIANT
-# include <boost/typeof/typeof.hpp>
-# include <boost/type_traits/remove_reference.hpp>
-# include <boost/type_traits/remove_const.hpp>
-
 namespace cuimg
 {
 

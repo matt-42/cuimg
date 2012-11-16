@@ -4,6 +4,8 @@
 # include <cuimg/tracking2/tracking_strategies.h>
 # include <cuimg/tracking2/gradient_descent_matcher.h>
 # include <cuimg/tracking2/predictions.h>
+# include <cuimg/tracking2/filter_spacial_incoherences.h>
+# include <cuimg/tracking2/merge_trajectories.h>
 
 namespace cuimg
 {
@@ -12,30 +14,77 @@ namespace cuimg
 
     template <typename T>
     void
+    bc2s_mdfl_gradient_cpu::init(T& tr)
+    {
+      tr.detector()
+	.set_contrast_threshold(0.01f)
+	.set_dev_threshold(0.5f);
+    }
+
+    template <typename T>
+    void
     bc2s_mdfl_gradient_cpu::match_particles(T& tr)
     {
       auto& pset = tr.pset();
       pset.before_matching();
 
-#pragma omp parallel for schedule(static, 100)
+      START_PROF(matcher);
+#pragma omp parallel for schedule(static, 300)
       for (unsigned i = 0; i < pset.dense_particles().size(); i++)
       {
-	const particle_p& part = pset.dense_particles()[i];
-	i_short2 pos = part.pos;
-	i_short2 pred = prediction(part, tr);
-	i_short2 match = gradient_descent_match(pred, pset.feature_at(pos), tr.feature());
-	pset.move(pos, match);
+        particle& part = pset.dense_particles()[i];
+        if (part.age > 0)
+        {
+          i_short2 pos = part.pos;
+          i_short2 pred = prediction(part, tr);
+	  if ((tr.domain() - border(7)).has(pred))
+	  {
+	    i_short2 match = gradient_descent_match(pred, pset.features()[i], tr.feature());
+	    if (tr.domain().has(match) and tr.detector().saliency()(match) > 0.f)
+	      pset.move(i, match);
+	    else
+	      pset.remove(i);
+	  }
+	  else
+	    pset.remove(i);
+        }
+
+	//assert(pset.dense_particles()[i].age == pset.sparse_particles()(part.pos).age);
+
+      }
+      END_PROF(matcher);
+
+      // pset.after_matching();
+
+      // for (unsigned i = 0; i < pset.dense_particles().size(); i++)
+      // 	if (pset.dense_particles()[i].age > 0)
+      // 	  merge_trajectories(pset, i);
+      // for (unsigned i = 0; i < pset.dense_particles().size(); i++)
+      // 	if (pset.dense_particles()[i].age > 0)
+      // 	  merge_trajectories(pset, i);
+
+      // ****** Filter bad particles.
+
+      START_PROF(filter_spacial_incoherences);
+#pragma omp parallel for schedule(static, 300)
+      for (unsigned i = 0; i < pset.dense_particles().size(); i++)
+      {
+        particle& part = pset[i];
+        if (part.age > 0 and is_spacial_incoherence(pset, part.pos))
+	  pset.remove(i);
       }
 
-      // FIXME merge_trajectories(pset);
-      pset.after_matching();
+      END_PROF(filter_spacial_incoherences);
+
+      pset.compact();
     }
+
 
     template <typename T>
     inline void
     bc2s_mdfl_gradient_cpu::new_particles(T& tr)
     {
-      tr.detector().new_particles(tr.feature(), tr.pset(), 0.5f, 0.001f);
+      tr.detector().new_particles(tr.feature(), tr.pset());
       tr.pset().after_new_particles();
     }
 
@@ -49,7 +98,7 @@ namespace cuimg
 
     template <typename T>
     inline i_short2
-    bc2s_mdfl_gradient_cpu::prediction(const particle_p& p, T& tr)
+    bc2s_mdfl_gradient_cpu::prediction(const particle& p, T& tr)
     {
       return motion_based_prediction(p, tr.prev_camera_motion(), tr.camera_motion());
     }
@@ -59,3 +108,4 @@ namespace cuimg
 }
 
 #endif
+

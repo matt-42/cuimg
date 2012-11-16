@@ -38,14 +38,19 @@ namespace cuimg
 
     bc2s_feature(const obox2d& o);
 
-    void update(const I<i_uchar1>& in);
+    inline const obox2d& domain() const { return s1_.domain(); }
+
+    void update(const I<gl8u>& in);
     float distance(const bc2s& a, const i_short2& n);
     bc2s operator()(const i_short2& p) const;
 
+    const I<gl01f>& s1() const { return s1_; }
+    const I<gl01f>& s2() const { return s2_; }
+
   public:
-    I<i_float1> s1_;
-    I<i_float1> s2_;
-    I<i_float1> tmp_;
+    I<gl01f> s1_;
+    I<gl01f> s2_;
+    I<gl01f> tmp_;
     int offsets_s1_[8];
     int offsets_s2_[8];
   };

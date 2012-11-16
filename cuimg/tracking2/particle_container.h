@@ -10,21 +10,10 @@ namespace cuimg
 
   struct particle
   {
-    __host__ __device__ particle();
-
-    particle(const particle& o);
-
-    i_float2 speed;
-    unsigned short vpos;
-    unsigned short age;
-  };
-
-  struct particle_p
-  {
     __host__ __device__
-    particle_p() : age(0), speed(0.f, 0.f) {}
+    particle() : age(0), speed(0.f, 0.f) {}
 
-    particle_p(const particle& o, i_short2 p)
+    particle(const particle& o, i_short2 p)
       : speed(o.speed),
         pos(p),
         age(o.age)
@@ -48,21 +37,31 @@ namespace cuimg
   class particle_container
   {
   public:
-    typedef std::vector<particle_p> V;
+    typedef std::vector<particle> V;
     typedef typename F::value_type feature_type;
+    typedef std::vector<feature_type> FV;
     particle_container(const obox2d& d);
 
-    const V& dense_particles();
-    const I<particle>& sparse_particles();
-    const I<feature_type>& features();
+    V& dense_particles();
+    I<unsigned short>& sparse_particles();
+    const FV& features();
     const I<i_short2>& matches();
 
     const feature_type& feature_at(i_short2 p);
 
+    const particle& operator()(i_short2 p) const;
+    particle& operator()(i_short2 p);
+    const particle& operator[](unsigned i) const;
+    particle& operator[](unsigned i);
+
+    bool is_coherent();
+
     void compact();
-    void move(i_int2 src, i_int2 dst);
+    void move(unsigned i, i_int2 dst);
     bool has(i_int2 p) const;
     void add(i_int2 p, const feature_type& f);
+    void remove(const i_short2& pos);
+    void remove(int i);
     void swap_buffers();
 
     void before_matching();
@@ -70,13 +69,9 @@ namespace cuimg
     void after_new_particles();
 
   private:
-    I<particle> particles_img1_;
-    I<particle> particles_img2_;
-    I<particle>* new_particles_img_, *cur_particles_img_;
+    I<unsigned short> sparse_buffer_;
     V particles_vec_;
-    I<feature_type> features1_;
-    I<feature_type> features2_;
-    I<feature_type>* new_features_, *cur_features_;
+    FV features_vec_;
     I<i_short2> matches_;
   };
 

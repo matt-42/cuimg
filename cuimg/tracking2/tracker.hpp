@@ -21,6 +21,8 @@ namespace cuimg
     upper_tracker_ = 0;
     if (nscales > 1)
       upper_tracker_ = new tracker<F>(d / 2, nscales - 1);
+
+    F::init(*this);
   }
 
   template <typename F>
@@ -35,6 +37,8 @@ namespace cuimg
     upper_tracker_ = 0;
     if (nscales > 1)
       upper_tracker_ = new tracker<F>(d / 2, nscales - 1);
+
+    F::init(*this);
   }
 
   template <typename F>
@@ -63,8 +67,14 @@ namespace cuimg
   template <typename F>
   void tracker<F>::run()
   {
+    if (upper_tracker_)
+      upper_tracker_->run();
+
     feature_.update(input_);
+
+    START_PROF(match_particles);
     F::match_particles(*this);
+    END_PROF(match_particles);
 
     detector_.update(input_);
     F::new_particles(*this);

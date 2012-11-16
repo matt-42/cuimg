@@ -14,7 +14,7 @@ namespace cuimg
     {
       float d = 0.f;
 
-      const i_float1* data = &o.s1_(n);
+      const gl01f* data = &o.s1_(n);
       for(int i = 0; i < 8; i ++)
       {
 	float v = data[o.offsets_s1_[i]].x * 255.f;
@@ -37,13 +37,13 @@ namespace cuimg
     {
       bc2s b;
 
-      const i_float1* data = &o.s1_(n);
+      const gl01f* data = &o.s1_(n);
       for(int i = 0; i < 8; i ++)
-	b[i] = data[o.offsets_s1_[i]].x;
+	b[i] = data[o.offsets_s1_[i]].x * 255;
 
       data = &o.s2_(n);
       for(int i = 0; i < 8; i ++)
-	b[i+8] = data[o.offsets_s2_[i]].x;
+	b[i+8] = data[o.offsets_s2_[i]].x * 255;
 
       return b;
     }
@@ -66,12 +66,15 @@ namespace cuimg
 
   template <template <class> class I>
   void
-  bc2s_feature<I>::update(const I<i_uchar1>& in)
+  bc2s_feature<I>::update(const I<gl8u>& in)
   {
-    dim3 dimblock = ::cuimg::dimblock<arch::cpu>(sizeof(i_float1) + sizeof(i_uchar1), in.domain());
+    dim3 dimblock = ::cuimg::dimblock(arch::cpu(), sizeof(i_float1) + sizeof(i_uchar1), in.domain());
 
     local_jet_static_<0, 0, 1, 1>::run(in, s1_, tmp_, 0, dimblock);
     local_jet_static_<0, 0, 2, 2>::run(in, s2_, tmp_, 0, dimblock);
+
+    s1_ = s1_ / 255;
+    s2_ = s2_ / 255;
   }
 
   template <template <class> class I>
