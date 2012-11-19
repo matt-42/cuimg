@@ -12,33 +12,34 @@ namespace cuimg
   tracker<F>::tracker(const obox2d& d, int nscales)
     : input_(d),
       pset_(d),
-      feature_(d),
-      detector_(d),
-      camera_motion_(0,0),
-      prev_camera_motion_(0,0)
+      strategy_(d)
   {
     lower_tracker_ = 0;
     upper_tracker_ = 0;
     if (nscales > 1)
-      upper_tracker_ = new tracker<F>(d / 2, nscales - 1);
+    {
+      upper_tracker_ = new tracker<F>(d / 2, this, nscales - 1);
+      strategy_.set_upper(&upper_tracker_->strategy_);
+    }
 
-    F::init(*this);
+    strategy_.init();
   }
 
   template <typename F>
   tracker<F>::tracker(const obox2d& d, tracker<F>* lower, int nscales)
     : input_(d),
-      feature_(d),
-      detector_(d),
-      camera_motion_(0,0),
-      prev_camera_motion_(0,0)
+      pset_(d),
+      strategy_(d)
   {
     lower_tracker_ = lower;
     upper_tracker_ = 0;
     if (nscales > 1)
-      upper_tracker_ = new tracker<F>(d / 2, nscales - 1);
+    {
+      upper_tracker_ = new tracker<F>(d / 2, this, nscales - 1);
+      strategy_.set_upper(&upper_tracker_->strategy_);
+    }
 
-    F::init(*this);
+    strategy_.init();
   }
 
   template <typename F>
@@ -70,23 +71,15 @@ namespace cuimg
     if (upper_tracker_)
       upper_tracker_->run();
 
-    feature_.update(input_);
-
-    START_PROF(match_particles);
-    F::match_particles(*this);
-    END_PROF(match_particles);
-
-    detector_.update(input_);
-    F::new_particles(*this);
-
-    if (lower_tracker_)
-    {
-      camera_motion_ = F::estimate_camera_motion(*this);
-      lower_tracker_->run();
-    }
+    strategy_.update(input_, pset_);
   }
 
 
 }
 
 #endif
+
+
+
+
+

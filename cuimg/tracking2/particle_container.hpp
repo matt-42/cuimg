@@ -37,6 +37,23 @@ namespace cuimg
     return sparse_buffer_;
   }
 
+
+  template <typename F,
+	    template <class> class I>
+  const typename particle_container<F, I>::V&
+  particle_container<F, I>::dense_particles() const
+  {
+    return particles_vec_;
+  }
+
+  template <typename F,
+	    template <class> class I>
+  const I<unsigned short>&
+  particle_container<F, I>::sparse_particles() const
+  {
+    return sparse_buffer_;
+  }
+
   template <typename F,
 	    template <class> class I>
   const typename particle_container<F, I>::FV&
@@ -126,6 +143,7 @@ namespace cuimg
   void
   particle_container<F, I>::compact()
   {
+    SCOPE_PROF(compation);
     auto pts_it = particles_vec_.begin();
     auto feat_it = features_vec_.begin();
     auto pts_res = particles_vec_.begin();
@@ -138,6 +156,7 @@ namespace cuimg
 	*pts_res++ = *pts_it;
 	*feat_res++ = *feat_it;
 	sparse_buffer_(pts_it->pos) = pts_res - particles_vec_.begin() - 1;
+	assert(particles_vec_[sparse_buffer_(pts_it->pos)].pos == pts_it->pos);
       }
 
       pts_it++;
@@ -194,7 +213,12 @@ namespace cuimg
     particle& p = particles_vec_[i];
     i_int2 src = p.pos;
     p.age++;
-    p.speed = dst - src;
+    i_int2 new_speed = dst - src;
+    if (p.age > 1)
+      p.acceleration = new_speed - p.speed;
+    else
+      p.acceleration = i_int2(0,0);
+    p.speed = new_speed;
     p.pos = dst;
 
     sparse_buffer_(dst) = i;

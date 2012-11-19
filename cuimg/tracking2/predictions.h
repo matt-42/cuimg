@@ -7,7 +7,8 @@ namespace cuimg
 {
 
   template <typename P>
-  inline i_int2 motion_based_prediction(const P& p, const i_short2& prev_cam_motion, const i_short2& cam_motion)
+    inline i_int2 motion_based_prediction(const P& p, const i_short2& prev_cam_motion = i_short2(0,0),
+					  const i_short2& cam_motion = i_short2(0,0))
   {
     assert(p.age > 0);
     if (p.age == 1)
@@ -19,3 +20,4 @@ namespace cuimg
 }
 
 #endif
+

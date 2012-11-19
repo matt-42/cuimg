@@ -9,6 +9,7 @@
 # include <cuimg/tracking2/bc2s_feature.h>
 # include <cuimg/tracking2/mdfl_detector.h>
 # include <cuimg/tracking2/particle_container.h>
+# include <cuimg/tracking2/dominant_speed_estimator.h>
 
 namespace cuimg
 {
@@ -18,26 +19,37 @@ namespace cuimg
     struct bc2s_mdfl_gradient_cpu
     {
     public:
-      typedef bc2s_feature<host_image2d> feature;
-      typedef mdfl_1s_detector detector;
-      typedef particle_container<feature> particles_type;
+      typedef bc2s_mdfl_gradient_cpu self;
+      typedef bc2s_feature<host_image2d> feature_t;
+      typedef mdfl_1s_detector detector_t;
+      typedef particle_container<feature_t> particles_type;
       typedef host_image2d<gl8u> input;
 
-      template <typename T>
-      static inline void init(T& tr);
+      inline bc2s_mdfl_gradient_cpu(const obox2d& o);
 
-      template <typename T>
-      static inline i_short2 prediction(const particle& p, T& tr);
+      inline void set_upper(self* s);
+      inline void init();
 
-      template <typename T>
-      static inline void match_particles(T& tr);
+      inline i_short2 prediction(const particle& p);
 
-      template <typename T>
-      static inline void new_particles(T& tr);
+      inline void match_particles(particles_type& pset);
 
-      template <typename T>
-      static inline i_short2 estimate_camera_motion(T& tr);
+      inline void new_particles(particles_type& pset);
 
+      inline void estimate_camera_motion(const particles_type& pset);
+
+      template <typename I>
+      inline void update(const I& in, particles_type& pset);
+
+    private:
+      feature_t feature_;
+      detector_t detector_;
+      dominant_speed_estimator dominant_speed_estimator_;
+      i_short2 camera_motion_;
+      i_short2 prev_camera_motion_;
+      self* upper_;
+      self* lower_;
+      int frame_cpt_;
     };
 
   }

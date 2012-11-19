@@ -29,6 +29,7 @@ namespace cuimg
 
     i_float2 speed;
     i_short2 pos;
+    i_short2 acceleration;
     unsigned short age;
   };
 
@@ -43,7 +44,9 @@ namespace cuimg
     particle_container(const obox2d& d);
 
     V& dense_particles();
+    const V& dense_particles() const;
     I<unsigned short>& sparse_particles();
+    const I<unsigned short>& sparse_particles() const;
     const FV& features();
     const I<i_short2>& matches();
 

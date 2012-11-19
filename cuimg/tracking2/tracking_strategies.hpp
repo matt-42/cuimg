@@ -12,20 +12,46 @@ namespace cuimg
   namespace tracking_strategies
   {
 
-    template <typename T>
-    void
-    bc2s_mdfl_gradient_cpu::init(T& tr)
+    bc2s_mdfl_gradient_cpu::bc2s_mdfl_gradient_cpu(const obox2d& d)
+      : feature_(d),
+	detector_(d),
+	dominant_speed_estimator_(d),
+	camera_motion_(0,0),
+	prev_camera_motion_(0,0),
+	upper_(0),
+	frame_cpt_(0)
     {
-      tr.detector()
-	.set_contrast_threshold(0.01f)
+    }
+
+    void
+    bc2s_mdfl_gradient_cpu::init()
+    {
+      detector_
+	.set_contrast_threshold(10)
 	.set_dev_threshold(0.5f);
     }
 
-    template <typename T>
+    template <typename I>
     void
-    bc2s_mdfl_gradient_cpu::match_particles(T& tr)
+    bc2s_mdfl_gradient_cpu::update(const I& in, particles_type& pset)
     {
-      auto& pset = tr.pset();
+      frame_cpt_++;
+
+      feature_.update(in);
+      match_particles(pset);
+
+      estimate_camera_motion(pset);
+
+      if (!(frame_cpt_ % 5))
+      {
+	detector_.update(in);
+	new_particles(pset);
+      }
+    }
+
+    void
+    bc2s_mdfl_gradient_cpu::match_particles(particles_type& pset)
+    {
       pset.before_matching();
 
       START_PROF(matcher);
@@ -36,11 +62,11 @@ namespace cuimg
         if (part.age > 0)
         {
           i_short2 pos = part.pos;
-          i_short2 pred = prediction(part, tr);
-	  if ((tr.domain() - border(7)).has(pred))
+          i_short2 pred = prediction(part);
+	  if ((feature_.domain() - border(7)).has(pred))
 	  {
-	    i_short2 match = gradient_descent_match(pred, pset.features()[i], tr.feature());
-	    if (tr.domain().has(match) and tr.detector().saliency()(match) > 0.f)
+	    i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_);
+	    if (feature_.domain().has(match) and detector_.saliency()(match) > 0.f)
 	      pset.move(i, match);
 	    else
 	      pset.remove(i);
@@ -54,54 +80,61 @@ namespace cuimg
       }
       END_PROF(matcher);
 
-      // pset.after_matching();
 
-      // for (unsigned i = 0; i < pset.dense_particles().size(); i++)
-      // 	if (pset.dense_particles()[i].age > 0)
-      // 	  merge_trajectories(pset, i);
-      // for (unsigned i = 0; i < pset.dense_particles().size(); i++)
-      // 	if (pset.dense_particles()[i].age > 0)
-      // 	  merge_trajectories(pset, i);
-
-      // ****** Filter bad particles.
-
-      START_PROF(filter_spacial_incoherences);
-#pragma omp parallel for schedule(static, 300)
-      for (unsigned i = 0; i < pset.dense_particles().size(); i++)
+      if (!(frame_cpt_ % 5))
       {
-        particle& part = pset[i];
-        if (part.age > 0 and is_spacial_incoherence(pset, part.pos))
-	  pset.remove(i);
+
+	for (unsigned i = 0; i < pset.dense_particles().size(); i++)
+	  if (pset[i].age > 0)
+	    merge_trajectories(pset, i);
+
+
+	// ****** Filter bad particles.
+
+	START_PROF(filter_spacial_incoherences);
+#pragma omp parallel for schedule(static, 300)
+	for (unsigned i = 0; i < pset.dense_particles().size(); i++)
+	{
+	  particle& part = pset[i];
+	  if (part.age > 0 and is_spacial_incoherence(pset, part.pos))
+	    pset.remove(i);
+	}
+
+	END_PROF(filter_spacial_incoherences);
       }
+    }
 
-      END_PROF(filter_spacial_incoherences);
-
+    inline void
+    bc2s_mdfl_gradient_cpu::new_particles(particles_type& pset)
+    {
+      detector_.new_particles(feature_, pset);
       pset.compact();
     }
 
-
-    template <typename T>
     inline void
-    bc2s_mdfl_gradient_cpu::new_particles(T& tr)
+    bc2s_mdfl_gradient_cpu::estimate_camera_motion(const particles_type& pset)
     {
-      tr.detector().new_particles(tr.feature(), tr.pset());
-      tr.pset().after_new_particles();
+      prev_camera_motion_ = camera_motion_;
+      camera_motion_ = dominant_speed_estimator_.estimate(pset, prev_camera_motion_);
+      // std::cout << camera_motion_ << std::endl;
     }
 
-    template <typename T>
     inline i_short2
-    bc2s_mdfl_gradient_cpu::estimate_camera_motion(T& tr)
+    bc2s_mdfl_gradient_cpu::prediction(const particle& p)
     {
-      //return estimate_dominent_motion(tr.pset());
-      return i_short2(0,0);
+      if (upper_)
+	return motion_based_prediction(p, upper_->prev_camera_motion_*2, upper_->camera_motion_*2);
+      else
+	return motion_based_prediction(p);
     }
 
-    template <typename T>
-    inline i_short2
-    bc2s_mdfl_gradient_cpu::prediction(const particle& p, T& tr)
+    void
+    bc2s_mdfl_gradient_cpu::set_upper(self* u)
     {
-      return motion_based_prediction(p, tr.prev_camera_motion(), tr.camera_motion());
+      u->lower_ = this;
+      upper_ = u;
     }
+
 
   }
 

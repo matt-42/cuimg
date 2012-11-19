@@ -36,21 +36,22 @@ namespace cuimg
   public:
     typedef bc2s value_type;
 
+    typedef gl8u V;
     bc2s_feature(const obox2d& o);
 
     inline const obox2d& domain() const { return s1_.domain(); }
 
     void update(const I<gl8u>& in);
-    float distance(const bc2s& a, const i_short2& n);
+    int distance(const bc2s& a, const i_short2& n);
     bc2s operator()(const i_short2& p) const;
 
-    const I<gl01f>& s1() const { return s1_; }
-    const I<gl01f>& s2() const { return s2_; }
+    const I<V>& s1() const { return s1_; }
+    const I<V>& s2() const { return s2_; }
 
   public:
-    I<gl01f> s1_;
-    I<gl01f> s2_;
-    I<gl01f> tmp_;
+    I<V> s1_;
+    I<V> s2_;
+    I<V> tmp_;
     int offsets_s1_[8];
     int offsets_s2_[8];
   };

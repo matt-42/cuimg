@@ -1,5 +1,5 @@
-#ifndef CUIMG_MERGE_TRAJECTORIES_H_
-# define CUIMG_MERGE_TRAJECTORIES_H_
+#ifndef CUIMG_DOMINANT_SPEED_H_
+# define CUIMG_DOMINANT_SPEED_H_
 
 # include <cuimg/improved_builtin.h>
 
@@ -8,9 +8,10 @@ namespace cuimg
 
   template <typename PI>
   inline __host__ __device__
-  void merge_trajectories(PI& pset, int i)
+  void dominant_speed(PI& pset)
   {
-    assert(i < pset.dense_particles().size());
+    SCOPE_PROF(dominant_speed);
+
     particle& part = pset[i];
 
     particle& buddy = pset(part.pos);
