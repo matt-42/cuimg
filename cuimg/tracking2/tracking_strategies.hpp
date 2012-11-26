@@ -13,6 +13,34 @@ namespace cuimg
   {
 
     bc2s_mdfl_gradient_cpu::bc2s_mdfl_gradient_cpu(const obox2d& d)
+      : super(d)
+    {
+    }
+
+    void
+    bc2s_mdfl_gradient_cpu::init()
+    {
+      detector_
+	.set_contrast_threshold(60)
+	.set_dev_threshold(0.5f);
+    }
+
+
+    bc2s_fast_gradient_cpu::bc2s_fast_gradient_cpu(const obox2d& d)
+      : super(d)
+    {
+    }
+
+    void
+    bc2s_fast_gradient_cpu::init()
+    {
+      detector_
+	.set_contrast_threshold(0)
+	.set_fast_threshold(60);
+    }
+
+    template<typename F, typename D, typename P, typename I>
+    generic_strategy<F, D, P, I>::generic_strategy(const obox2d& d)
       : feature_(d),
 	detector_(d),
 	dominant_speed_estimator_(d),
@@ -23,17 +51,9 @@ namespace cuimg
     {
     }
 
+    template<typename F, typename D, typename P, typename I>
     void
-    bc2s_mdfl_gradient_cpu::init()
-    {
-      detector_
-	.set_contrast_threshold(10)
-	.set_dev_threshold(0.5f);
-    }
-
-    template <typename I>
-    void
-    bc2s_mdfl_gradient_cpu::update(const I& in, particles_type& pset)
+    generic_strategy<F, D, P, I>::update(const I& in, particles_type& pset)
     {
       frame_cpt_++;
 
@@ -42,15 +62,16 @@ namespace cuimg
 
       estimate_camera_motion(pset);
 
-      if (!(frame_cpt_ % 5))
+      // if (!(frame_cpt_ % 5))
       {
 	detector_.update(in);
 	new_particles(pset);
       }
     }
 
+    template<typename F, typename D, typename P, typename I>
     void
-    bc2s_mdfl_gradient_cpu::match_particles(particles_type& pset)
+    generic_strategy<F, D, P, I>::match_particles(particles_type& pset)
     {
       pset.before_matching();
 
@@ -63,11 +84,15 @@ namespace cuimg
         {
           i_short2 pos = part.pos;
           i_short2 pred = prediction(part);
+	  float pos_distance = feature_.distance(pset.features()[i], pos);
 	  if ((feature_.domain() - border(7)).has(pred))
 	  {
-	    i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_);
-	    if (feature_.domain().has(match) and detector_.saliency()(match) > 0.f)
-	      pset.move(i, match);
+	    float distance;
+	    i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_, distance);
+	    if (feature_.domain().has(match) //and detector_.saliency()(match) > 0.f
+		and distance < 300 //and pos_distance >= distance
+		)
+	      pset.move(i, match, feature_(match));
 	    else
 	      pset.remove(i);
 	  }
@@ -81,12 +106,12 @@ namespace cuimg
       END_PROF(matcher);
 
 
-      if (!(frame_cpt_ % 5))
+      //if (false)
+      // if (!(frame_cpt_ % 5))
       {
-
-	for (unsigned i = 0; i < pset.dense_particles().size(); i++)
-	  if (pset[i].age > 0)
-	    merge_trajectories(pset, i);
+	START_PROF(merge_trajectories);
+	pset.for_each_particle_st([&pset] (particle& p) { merge_trajectories(pset, p); });
+	END_PROF(merge_trajectories);
 
 
 	// ****** Filter bad particles.
@@ -104,23 +129,25 @@ namespace cuimg
       }
     }
 
+    template<typename F, typename D, typename P, typename I>
     inline void
-    bc2s_mdfl_gradient_cpu::new_particles(particles_type& pset)
+    generic_strategy<F, D, P, I>::new_particles(particles_type& pset)
     {
       detector_.new_particles(feature_, pset);
       pset.compact();
     }
 
+    template<typename F, typename D, typename P, typename I>
     inline void
-    bc2s_mdfl_gradient_cpu::estimate_camera_motion(const particles_type& pset)
+    generic_strategy<F, D, P, I>::estimate_camera_motion(const particles_type& pset)
     {
       prev_camera_motion_ = camera_motion_;
       camera_motion_ = dominant_speed_estimator_.estimate(pset, prev_camera_motion_);
-      // std::cout << camera_motion_ << std::endl;
     }
 
+    template<typename F, typename D, typename P, typename I>
     inline i_short2
-    bc2s_mdfl_gradient_cpu::prediction(const particle& p)
+    generic_strategy<F, D, P, I>::prediction(const particle& p)
     {
       if (upper_)
 	return motion_based_prediction(p, upper_->prev_camera_motion_*2, upper_->camera_motion_*2);
@@ -128,8 +155,9 @@ namespace cuimg
 	return motion_based_prediction(p);
     }
 
+    template<typename F, typename D, typename P, typename I>
     void
-    bc2s_mdfl_gradient_cpu::set_upper(self* u)
+    generic_strategy<F, D, P, I>::set_upper(self* u)
     {
       u->lower_ = this;
       upper_ = u;

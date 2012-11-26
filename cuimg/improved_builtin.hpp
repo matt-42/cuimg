@@ -37,6 +37,18 @@ namespace cuimg
       }
     };
 
+
+    template <int I>
+    class builtin_comp_lambda
+    {
+    public:
+      template <typename U, unsigned N, typename F>
+      static __device__ __host__ inline void run(improved_builtin<U, N>& a, F& f)
+      {
+        f(bt_getter<I>::get(a));
+      }
+    };
+
     template <int I>
     class assign_array
     {
@@ -281,6 +293,15 @@ namespace cuimg
   }
 
   template <typename T, unsigned N>
+  template <typename F>
+  improved_builtin<T, N>&
+  improved_builtin<T, N>::for_each_comp(F f)
+  {
+    meta::loop<internal::builtin_comp_lambda, 0, size - 1>::iter(*this, f);
+    return *this;
+  }
+
+  template <typename T, unsigned N>
   template <typename U, unsigned US>
   improved_builtin<T, N>::improved_builtin(const improved_builtin<U, US>& bt)
   {
@@ -456,6 +477,16 @@ namespace cuimg
     make_bt(type_div(U, S), US) ret;
     meta::loop<internal::scalar_div, 0, US - 1>::iter(a, s, ret);
     return ret;
+  }
+
+
+  template <typename U, unsigned US, typename S>
+  __host__ __device__ inline
+  typename meta::try_<typename meta::equal_<boost::is_scalar<S>::value, true>::checktype,
+                      make_bt(type_mult(U, S), US)>::ret
+  operator*(const S& s, const improved_builtin<U, US>& a)
+  {
+    return a * s;
   }
 
   template <typename U, unsigned US>

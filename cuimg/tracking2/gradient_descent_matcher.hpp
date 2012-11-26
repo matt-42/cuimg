@@ -5,7 +5,7 @@ namespace cuimg
 {
 
   template <typename F, typename FI>
-  i_short2 gradient_descent_match(i_short2 prediction, F f, FI feature_img)
+  i_short2 gradient_descent_match(i_short2 prediction, F f, FI feature_img, float& distance)
   {
     i_short2 match = prediction;
     float match_distance = feature_img.distance(f, prediction);
@@ -53,6 +53,7 @@ namespace cuimg
 
     }
 
+    distance = match_distance;
     return match;
 
   }

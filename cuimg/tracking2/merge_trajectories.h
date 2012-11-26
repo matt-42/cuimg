@@ -8,14 +8,26 @@ namespace cuimg
 
   template <typename PI>
   inline __host__ __device__
-  void merge_trajectories(PI& pset, int i)
+  void merge_trajectories(PI& pset, particle& part)
   {
-    assert(i < pset.dense_particles().size());
-    particle& part = pset[i];
+    i_int2 p = part.pos;
+    for (int i = 0; i < 9; i++)
+    {
+      i_int2 n(p + i_int2(c9[i]));
+      if (pset.domain().has(n) and pset.has(n))
+      {
+    	particle& buddy = pset(n);
+    	if (buddy.age > part.age and norml2(part.speed - buddy.speed) < 2.f)
+    	{
+    	  part.age = 0;
+    	  break;
+    	}
+      }
+    }
 
-    particle& buddy = pset(part.pos);
-    if (buddy.age > part.age and norml2(part.speed - buddy.speed) < 2.f)
-      part.age = 0;
+    // particle& buddy = pset(part.pos);
+    // if (buddy.age > part.age and norml2(part.speed - buddy.speed) < 2.f)
+    //   part.age = 0;
   }
 
 }

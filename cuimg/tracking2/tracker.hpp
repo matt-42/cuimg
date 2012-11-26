@@ -75,6 +75,16 @@ namespace cuimg
   }
 
 
+  template <typename F>
+  void tracker<F>::clear()
+  {
+    if (upper_tracker_)
+      upper_tracker_->clear();
+
+    pset_.clear();
+  }
+
+
 }
 
 #endif

@@ -10,8 +10,8 @@ namespace cuimg
   inline __host__ __device__
   bool is_spacial_incoherence(const PS& pset, i_short2 p)
   {
-    assert(pset.has(p));
-    assert(pset(p).age > 0);
+    /* assert(pset.has(p)); */
+    /* assert(pset(p).age > 0); */
 
     int bad = 0;
     int good = 0;
@@ -29,8 +29,11 @@ namespace cuimg
         else good++;
       }
     }
-    assert((good + bad) > 0);
-    return (float(bad) / (good + bad)) > 0.6f;
+
+    if ((good + bad) > 0)
+      return (float(bad) / (good + bad)) > 0.6f;
+    else
+      return false;
   }
 
 }

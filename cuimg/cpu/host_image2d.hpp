@@ -113,7 +113,7 @@ namespace cuimg
   {
     m.addref();
     pitch_ = m.step;
-    data_ = PT((V*) m.data);
+    data_ = PT((V*) m.data, dummy_free<V>);
     buffer_ = (V*) m.data;
     domain_ = domain_type(m.rows, m.cols);
     // *this = static_cast<IplImage*>(&m);
@@ -159,7 +159,7 @@ namespace cuimg
   {
     m.addref();
     pitch_ = m.step;
-    data_ = PT((V*) m.data);
+    data_ = PT((V*) m.data, dummy_free<V>);
     buffer_ = (V*) m.data;
     domain_ = domain_type(m.rows, m.cols);
   }

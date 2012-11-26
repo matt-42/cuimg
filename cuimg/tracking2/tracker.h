@@ -25,7 +25,12 @@ namespace cuimg
     inline       particles_type& pset()     { return pset_; }
     inline const particles_type& pset() const { return pset_; }
 
+    inline F& strategy() { return strategy_; }
+
     tracker<F>& scale(unsigned s) { return s && upper_tracker_ ? upper_tracker_->scale(s-1) : *this; }
+
+    void clear();
+
   private:
     tracker(const obox2d& d, tracker<F>* lower, int nscales);
 

@@ -26,6 +26,7 @@ namespace cuimg
     float contrast_th_;
     float dev_th_;
     host_image2d<gl01f> saliency_;
+    host_image2d<char> new_points_;
   };
 
 }

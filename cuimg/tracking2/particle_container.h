@@ -57,22 +57,30 @@ namespace cuimg
     const particle& operator[](unsigned i) const;
     particle& operator[](unsigned i);
 
+    template <typename FC>
+    void for_each_particle_st(FC func);
+
+    template <typename FC>
+    void for_each_particle_mt(FC func);
+
     bool is_coherent();
 
     void compact();
-    void move(unsigned i, i_int2 dst);
+    void move(unsigned i, i_int2 dst, const feature_type& f);
     bool has(i_int2 p) const;
     void add(i_int2 p, const feature_type& f);
     void remove(const i_short2& pos);
     void remove(int i);
     void swap_buffers();
+    inline const obox2d& domain() { return sparse_buffer_.domain(); }
+    void clear();
 
     void before_matching();
     void after_matching();
     void after_new_particles();
 
   private:
-    I<unsigned short> sparse_buffer_;
+    I<unsigned int> sparse_buffer_;
     V particles_vec_;
     FV features_vec_;
     I<i_short2> matches_;

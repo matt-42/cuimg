@@ -86,6 +86,9 @@ class improved_builtin : public make_cuda_bt<T, N>::ret
   template <typename U, unsigned US>
   __host__ __device__ inline self& operator=(const improved_builtin<U, US>& bt);
 
+  template <typename F>
+  __host__ __device__ inline self& for_each_comp(F f);
+
 /*   template <typename U, int START_POS, int OUT_START_POS> */
 /*   __host__ __device__ inline self& assign(const improved_builtin<U, N>& bt); */
 
