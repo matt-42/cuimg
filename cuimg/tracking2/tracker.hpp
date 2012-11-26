@@ -50,11 +50,12 @@ namespace cuimg
   }
 
   template <typename F>
-  void tracker<F>::update_input(const I& in)
+  tracker<F>& tracker<F>::update_input(const I& in)
   {
     copy(in, input_);
     if (upper_tracker_)
       upper_tracker_->subsample_input(in);
+    return *this;
   }
 
   template <typename F>
@@ -66,12 +67,13 @@ namespace cuimg
   }
 
   template <typename F>
-  void tracker<F>::run()
+  tracker<F>& tracker<F>::run()
   {
     if (upper_tracker_)
       upper_tracker_->run();
 
     strategy_.update(input_, pset_);
+    return *this;
   }
 
 

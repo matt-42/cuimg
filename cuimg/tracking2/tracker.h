@@ -16,9 +16,9 @@ namespace cuimg
     ~tracker();
 
 
-    void update_input(const I& in);
+    tracker<F>& update_input(const I& in);
     void subsample_input(const I& in);
-    void run();
+    tracker<F>& run();
 
     inline const obox2d& domain() const     { return input_.domain(); }
     inline const I& input() const                { return input_; }
