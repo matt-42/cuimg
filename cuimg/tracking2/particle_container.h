@@ -33,12 +33,13 @@ namespace cuimg
     unsigned short age;
   };
 
-  template <typename F,
+  template <typename F, typename P = particle,
 	    template <class> class I = host_image2d>
   class particle_container
   {
   public:
-    typedef std::vector<particle> V;
+    typedef P particle_type;
+    typedef std::vector<particle_type> V;
     typedef typename F::value_type feature_type;
     typedef std::vector<feature_type> FV;
     particle_container(const obox2d& d);
@@ -52,10 +53,10 @@ namespace cuimg
 
     const feature_type& feature_at(i_short2 p);
 
-    const particle& operator()(i_short2 p) const;
-    particle& operator()(i_short2 p);
-    const particle& operator[](unsigned i) const;
-    particle& operator[](unsigned i);
+    const particle_type& operator()(i_short2 p) const;
+    particle_type& operator()(i_short2 p);
+    const particle_type& operator[](unsigned i) const;
+    particle_type& operator[](unsigned i);
 
     template <typename FC>
     void for_each_particle_st(FC func);

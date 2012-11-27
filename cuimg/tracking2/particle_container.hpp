@@ -11,9 +11,9 @@ namespace cuimg
   // ################### Particle container methods ############
   // ###########################################################
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
-  particle_container<F, I>::particle_container(const obox2d& d)
+  particle_container<F, P, I>::particle_container(const obox2d& d)
     : sparse_buffer_(d),
       matches_(d)
   {
@@ -21,149 +21,149 @@ namespace cuimg
     features_vec_.reserve((d.nrows() * d.ncols()) / 10);
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
-  typename particle_container<F, I>::V&
-  particle_container<F, I>::dense_particles()
+  typename particle_container<F, P, I>::V&
+  particle_container<F, P, I>::dense_particles()
   {
     return particles_vec_;
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   I<unsigned short>&
-  particle_container<F, I>::sparse_particles()
+  particle_container<F, P, I>::sparse_particles()
   {
     return sparse_buffer_;
   }
 
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
-  const typename particle_container<F, I>::V&
-  particle_container<F, I>::dense_particles() const
+  const typename particle_container<F, P, I>::V&
+  particle_container<F, P, I>::dense_particles() const
   {
     return particles_vec_;
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   const I<unsigned short>&
-  particle_container<F, I>::sparse_particles() const
+  particle_container<F, P, I>::sparse_particles() const
   {
     return sparse_buffer_;
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
-  const typename particle_container<F, I>::FV&
-  particle_container<F, I>::features()
+  const typename particle_container<F, P, I>::FV&
+  particle_container<F, P, I>::features()
   {
     return features_vec_;
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
-  const particle&
-  particle_container<F, I>::operator()(i_short2 p) const
+  const P&
+  particle_container<F, P, I>::operator()(i_short2 p) const
   {
     assert(has(p));
     return particles_vec_[sparse_buffer_(p)];
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
-  particle&
-  particle_container<F, I>::operator()(i_short2 p)
+  P&
+  particle_container<F, P, I>::operator()(i_short2 p)
   {
     assert(has(p));
     return particles_vec_[sparse_buffer_(p)];
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
-  const particle&
-  particle_container<F, I>::operator[](unsigned i) const
+  const P&
+  particle_container<F, P, I>::operator[](unsigned i) const
   {
     return particles_vec_[i];
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
-  particle&
-  particle_container<F, I>::operator[](unsigned i)
+  P&
+  particle_container<F, P, I>::operator[](unsigned i)
   {
     return particles_vec_[i];
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
-  const typename particle_container<F, I>::feature_type&
-  particle_container<F, I>::feature_at(i_short2 p)
+  const typename particle_container<F, P, I>::feature_type&
+  particle_container<F, P, I>::feature_at(i_short2 p)
   {
     assert(has(p));
     return features_vec_[sparse_buffer_(p)];
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   const I<i_short2>&
-  particle_container<F, I>::matches()
+  particle_container<F, P, I>::matches()
   {
     return matches_;
   }
 
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   template <typename FC>
   void
-  particle_container<F, I>::for_each_particle_st(FC func)
+  particle_container<F, P, I>::for_each_particle_st(FC func)
   {
-    for (auto& p : particles_vec_)
+    for (P& p : particles_vec_)
       if (p.age > 0) func(p);
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   template <typename FC>
   void
-  particle_container<F, I>::for_each_particle_mt(FC func)
+  particle_container<F, P, I>::for_each_particle_mt(FC func)
   {
 #pragma omp parallel for schedule (static, 300)
     for (unsigned i = 0; i < particles_vec_.size(); i++)
       if (particles_vec_[i].age > 0) func(particles_vec_[i]);
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   void
-  particle_container<F, I>::before_matching()
+  particle_container<F, P, I>::before_matching()
   {
     // Reset matches, new particles and features.
     memset(matches_, 0);
     memset(sparse_buffer_, 255);
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   void
-  particle_container<F, I>::after_matching()
+  particle_container<F, P, I>::after_matching()
   {
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   void
-  particle_container<F, I>::after_new_particles()
+  particle_container<F, P, I>::after_new_particles()
   {
     compact();
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   void
-  particle_container<F, I>::compact()
+  particle_container<F, P, I>::compact()
   {
     SCOPE_PROF(compation);
     auto pts_it = particles_vec_.begin();
@@ -193,10 +193,10 @@ namespace cuimg
     //compact_particles_image(*cur_particles_img_, particles_vec_);
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   void
-  particle_container<F, I>::add(i_int2 p, const typename F::value_type& feature)
+  particle_container<F, P, I>::add(i_int2 p, const typename F::value_type& feature)
   {
     particle pt;
     pt.age = 1;
@@ -208,30 +208,30 @@ namespace cuimg
     features_vec_.push_back(feature);
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   void
-  particle_container<F, I>::remove(int i)
+  particle_container<F, P, I>::remove(int i)
   {
-    particle& p = particles_vec_[i];
+    P& p = particles_vec_[i];
     p.age = 0;
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   void
-  particle_container<F, I>::remove(const i_short2& pos)
+  particle_container<F, P, I>::remove(const i_short2& pos)
   {
-    particle& p = particles_vec_[sparse_buffer_(p.pos)];
+    P& p = particles_vec_[sparse_buffer_(p.pos)];
     p.age = 0;
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   void
-  particle_container<F, I>::move(unsigned i, i_int2 dst, const feature_type& f)
+  particle_container<F, P, I>::move(unsigned i, i_int2 dst, const feature_type& f)
   {
-    particle& p = particles_vec_[i];
+    auto& p = particles_vec_[i];
     i_int2 src = p.pos;
     p.age++;
     i_int2 new_speed = dst - src;
@@ -249,20 +249,20 @@ namespace cuimg
     matches_(src) = dst;
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   bool
-  particle_container<F, I>::has(i_int2 p) const
+  particle_container<F, P, I>::has(i_int2 p) const
   {
     unsigned int r = -1;
     return sparse_buffer_(p) != r;
   }
 
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   void
-  particle_container<F, I>::clear()
+  particle_container<F, P, I>::clear()
   {
     memset(matches_, 0);
     memset(sparse_buffer_, 255);
@@ -270,10 +270,10 @@ namespace cuimg
     features_vec_.clear();
   }
 
-  template <typename F,
+  template <typename F, typename P,
 	    template <class> class I>
   bool
-  particle_container<F, I>::is_coherent()
+  particle_container<F, P, I>::is_coherent()
   {
     // for (unsigned i = 0; i < dense_particles().size(); i++)
     // {
