@@ -71,8 +71,8 @@ namespace cuimg
   {
     dim3 dimblock = ::cuimg::dimblock(arch::cpu(), sizeof(V) + sizeof(i_uchar1), in.domain());
 
-    local_jet_static_<0, 0, 1, 1>::run(in, s1_, tmp_, 0, dimblock);
-    local_jet_static_<0, 0, 2, 2>::run(in, s2_, tmp_, 0, dimblock);
+    local_jet_static_<0, 0, 2, 2>::run(in, s1_, tmp_, 0, dimblock);
+    local_jet_static_<0, 0, 3, 3>::run(in, s2_, tmp_, 0, dimblock);
   }
 
   template <template <class> class I>
