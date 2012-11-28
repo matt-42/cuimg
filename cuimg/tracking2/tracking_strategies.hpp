@@ -55,18 +55,18 @@ namespace cuimg
     void
     generic_strategy<F, D, P, I>::update(const I& in, particles_type& pset)
     {
-      frame_cpt_++;
-
       feature_.update(in);
       match_particles(pset);
 
       estimate_camera_motion(pset);
 
-      // if (!(frame_cpt_ % 5))
+      if (!(frame_cpt_ % 5))
       {
-	detector_.update(in);
-	new_particles(pset);
+        detector_.update(in);
+        new_particles(pset);
       }
+
+      frame_cpt_++;
     }
 
     template<typename F, typename D, typename P, typename I>
@@ -90,9 +90,12 @@ namespace cuimg
 	    float distance;
 	    i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_, distance);
 	    if (feature_.domain().has(match) //and detector_.saliency()(match) > 0.f
-		and distance < 300 //and pos_distance >= distance
+		and distance < 300 and part.fault < 10 //and pos_distance >= distance
 		)
+	    {
+	      if (detector_.saliency()(match) <= 5.f) part.fault++;
 	      pset.move(i, match, feature_(match));
+	    }
 	    else
 	      pset.remove(i);
 	  }
@@ -107,7 +110,7 @@ namespace cuimg
 
 
       //if (false)
-      // if (!(frame_cpt_ % 5))
+      if (!(frame_cpt_ % 5))
       {
 	START_PROF(merge_trajectories);
 	pset.for_each_particle_st([&pset] (particle& p) { merge_trajectories(pset, p); });

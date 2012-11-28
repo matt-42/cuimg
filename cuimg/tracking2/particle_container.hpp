@@ -14,8 +14,7 @@ namespace cuimg
   template <typename F, typename P,
 	    template <class> class I>
   particle_container<F, P, I>::particle_container(const obox2d& d)
-    : sparse_buffer_(d),
-      matches_(d)
+    : sparse_buffer_(d)
   {
     particles_vec_.reserve((d.nrows() * d.ncols()) / 10);
     features_vec_.reserve((d.nrows() * d.ncols()) / 10);
@@ -107,8 +106,8 @@ namespace cuimg
 
   template <typename F, typename P,
 	    template <class> class I>
-  const I<i_short2>&
-  particle_container<F, P, I>::matches()
+  const std::vector<unsigned int>&
+  particle_container<F, P, I>::matches() const
   {
     return matches_;
   }
@@ -141,8 +140,8 @@ namespace cuimg
   particle_container<F, P, I>::before_matching()
   {
     // Reset matches, new particles and features.
-    memset(matches_, 0);
     memset(sparse_buffer_, 255);
+    compact_has_run_ = false;
   }
 
   template <typename F, typename P,
@@ -166,6 +165,12 @@ namespace cuimg
   particle_container<F, P, I>::compact()
   {
     SCOPE_PROF(compation);
+
+    compact_has_run_ = true;
+
+    matches_.resize(particles_vec_.size());
+    std::fill(matches_.begin(), matches_.end(), -1);
+
     auto pts_it = particles_vec_.begin();
     auto feat_it = features_vec_.begin();
     auto pts_res = particles_vec_.begin();
@@ -175,10 +180,14 @@ namespace cuimg
     {
       if (pts_it->age != 0)
       {
-	*pts_res++ = *pts_it;
-	*feat_res++ = *feat_it;
-	sparse_buffer_(pts_it->pos) = pts_res - particles_vec_.begin() - 1;
-	assert(particles_vec_[sparse_buffer_(pts_it->pos)].pos == pts_it->pos);
+        *pts_res++ = *pts_it;
+        *feat_res++ = *feat_it;
+        //int prev_index = sparse_buffer_(pts_it->pos);
+        int prev_index = pts_it - particles_vec_.begin();
+        int new_index = pts_res - particles_vec_.begin() - 1;
+        sparse_buffer_(pts_it->pos) = new_index;
+        matches_[prev_index] = new_index;
+        assert(particles_vec_[sparse_buffer_(pts_it->pos)].pos == pts_it->pos);
       }
 
       pts_it++;
@@ -242,11 +251,10 @@ namespace cuimg
     p.speed = new_speed;
     p.pos = dst;
 
-    // if ((p.speed.y + p.speed.x) > 0)
-    features_vec_[i] = f;
+    if ((p.speed.y + p.speed.x) > 0)
+      features_vec_[i] = f;
 
     sparse_buffer_(dst) = i;
-    matches_(src) = dst;
   }
 
   template <typename F, typename P,
@@ -264,10 +272,10 @@ namespace cuimg
   void
   particle_container<F, P, I>::clear()
   {
-    memset(matches_, 0);
     memset(sparse_buffer_, 255);
     particles_vec_.clear();
     features_vec_.clear();
+    matches_.clear();
   }
 
   template <typename F, typename P,

@@ -11,12 +11,13 @@ namespace cuimg
   struct particle
   {
     __host__ __device__
-    particle() : age(0), speed(0.f, 0.f) {}
+    particle() : age(0), speed(0.f, 0.f), fault(0) {}
 
     particle(const particle& o, i_short2 p)
       : speed(o.speed),
         pos(p),
-        age(o.age)
+	age(o.age),
+	fault(0)
     {
     }
 
@@ -25,12 +26,14 @@ namespace cuimg
       speed = o.speed;
       age = o.age;
       pos = p;
+      fault = o.fault;
     }
 
     i_float2 speed;
     i_short2 pos;
     i_short2 acceleration;
     unsigned short age;
+    unsigned short fault;
   };
 
   template <typename F, typename P = particle,
@@ -49,7 +52,7 @@ namespace cuimg
     I<unsigned short>& sparse_particles();
     const I<unsigned short>& sparse_particles() const;
     const FV& features();
-    const I<i_short2>& matches();
+    const std::vector<unsigned int>& matches() const;
 
     const feature_type& feature_at(i_short2 p);
 
@@ -80,11 +83,13 @@ namespace cuimg
     void after_matching();
     void after_new_particles();
 
+    inline bool compact_has_run() const { return compact_has_run_; }
   private:
     I<unsigned int> sparse_buffer_;
     V particles_vec_;
     FV features_vec_;
-    I<i_short2> matches_;
+    std::vector<unsigned int> matches_;
+    bool compact_has_run_;
   };
 
 }

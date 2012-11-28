@@ -16,10 +16,10 @@ namespace cuimg
     int bad = 0;
     int good = 0;
 
-    for(int i = 0; i < 25; i++)
+    for(int i = 0; i < 49; i++)
     {
-      point2d<int> n(p.r() + c25[i][0],
-                     p.c() + c25[i][1]);
+      point2d<int> n(p.r() + c49[i][0],
+                     p.c() + c49[i][1]);
 
       if (pset.has(n) && pset(n).age >= 1)
       {
