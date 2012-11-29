@@ -23,8 +23,8 @@ namespace cuimg
         unsigned char v1 = in(p + i_int2(circle_r3_h[i]) * scale).x;
         unsigned char v2 = in(p + i_int2(circle_r3_h[i+8]) * scale).x;
 
-        float contrast = std::max(fabs(pv - v1), fabs(pv - v2));
-        // float contrast = fabs(pv - v1) + fabs(pv - v2);
+        //float contrast = std::max(fabs(pv - v1), fabs(pv - v2));
+        float contrast = (fabs(pv - v1) + fabs(pv - v2));
         if (max_contrast < contrast) max_contrast = contrast;
 
         unsigned dev = ::abs(pv - (v1 + v2) / 2);
@@ -44,7 +44,7 @@ namespace cuimg
         mean_diff = 0.f;
       }
 
-      return mean_diff_f;
+      return mean_diff_f * 255.f;
     }
 
 

@@ -74,6 +74,22 @@ namespace cuimg
       inline void init();
     };
 
+    struct bc2s_mdfl_gradient_multiscale_prediction_cpu
+      : public bc2s_mdfl_gradient_cpu
+    {
+    public:
+
+      inline bc2s_mdfl_gradient_multiscale_prediction_cpu(const obox2d& d)
+	: bc2s_mdfl_gradient_cpu(d), flow_(d / 8) {}
+
+      inline i_short2 prediction(const particle& p);
+      inline void match_particles(particles_type& pset);
+
+      inline const host_image2d<std::pair<int, i_float2> >& flow() const { return flow_; }
+    private:
+      const static unsigned flow_ratio = 8;
+      host_image2d<std::pair<int, i_float2> > flow_;
+    };
 
     struct bc2s_fast_gradient_cpu
       : public generic_strategy<bc2s_feature<host_image2d>, fast_detector,

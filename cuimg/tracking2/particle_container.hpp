@@ -30,7 +30,7 @@ namespace cuimg
 
   template <typename F, typename P,
 	    template <class> class I>
-  I<unsigned short>&
+  I<unsigned int>&
   particle_container<F, P, I>::sparse_particles()
   {
     return sparse_buffer_;
@@ -47,7 +47,7 @@ namespace cuimg
 
   template <typename F, typename P,
 	    template <class> class I>
-  const I<unsigned short>&
+  const I<unsigned int>&
   particle_container<F, P, I>::sparse_particles() const
   {
     return sparse_buffer_;

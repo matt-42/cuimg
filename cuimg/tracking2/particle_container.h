@@ -49,8 +49,8 @@ namespace cuimg
 
     V& dense_particles();
     const V& dense_particles() const;
-    I<unsigned short>& sparse_particles();
-    const I<unsigned short>& sparse_particles() const;
+    I<unsigned int>& sparse_particles();
+    const I<unsigned int>& sparse_particles() const;
     const FV& features();
     const std::vector<unsigned int>& matches() const;
 
