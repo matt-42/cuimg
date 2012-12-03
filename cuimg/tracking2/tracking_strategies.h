@@ -36,6 +36,9 @@ namespace cuimg
       inline void set_upper(self* s);
       inline void init();
 
+      inline self& set_detector_frequency(unsigned nframe);
+      inline self& set_filtering_frequency(unsigned nframe);
+
       inline i_short2 prediction(const particle& p);
 
       inline void match_particles(particles_type& pset);
@@ -57,6 +60,9 @@ namespace cuimg
       self* upper_;
       self* lower_;
       int frame_cpt_;
+
+      int detector_frequency_;
+      int filtering_frequency_;
     };
 
     struct bc2s_mdfl_gradient_cpu

@@ -22,8 +22,8 @@ namespace cuimg
     bc2s_mdfl_gradient_cpu::init()
     {
       detector_
-	.set_contrast_threshold(60)
-	.set_dev_threshold(0.5f);
+        .set_contrast_threshold(60)
+        .set_dev_threshold(0.5f);
     }
 
 
@@ -36,20 +36,38 @@ namespace cuimg
     bc2s_fast_gradient_cpu::init()
     {
       detector_
-	.set_contrast_threshold(0)
-	.set_fast_threshold(60);
+        .set_contrast_threshold(0)
+        .set_fast_threshold(60);
     }
 
     template<typename F, typename D, typename P, typename I>
     generic_strategy<F, D, P, I>::generic_strategy(const obox2d& d)
       : feature_(d),
-	detector_(d),
-	dominant_speed_estimator_(d),
-	camera_motion_(0,0),
-	prev_camera_motion_(0,0),
-	upper_(0),
-	frame_cpt_(0)
+        detector_(d),
+        dominant_speed_estimator_(d),
+        camera_motion_(0,0),
+        prev_camera_motion_(0,0),
+        upper_(0),
+        frame_cpt_(0),
+        detector_frequency_(1),
+        filtering_frequency_(1)
     {
+    }
+
+    template<typename F, typename D, typename P, typename I>
+    generic_strategy<F, D, P, I>&
+    generic_strategy<F, D, P, I>::set_detector_frequency(unsigned nframe)
+    {
+      detector_frequency_ = nframe;
+      return *this;
+    }
+
+    template<typename F, typename D, typename P, typename I>
+    generic_strategy<F, D, P, I>&
+    generic_strategy<F, D, P, I>::set_filtering_frequency(unsigned nframe)
+    {
+      filtering_frequency_ = nframe;
+      return *this;
     }
 
     template<typename F, typename D, typename P, typename I>
@@ -61,7 +79,7 @@ namespace cuimg
 
       estimate_camera_motion(pset);
 
-      //if (!(frame_cpt_ % 5))
+      if (!(frame_cpt_ % detector_frequency_))
       {
         detector_.update(in);
         new_particles(pset);
@@ -111,7 +129,7 @@ namespace cuimg
 
       
       //if (false)
-      //if (!(frame_cpt_ % 5))
+      if (!(frame_cpt_ % filtering_frequency_))
       {
 	START_PROF(merge_trajectories);
 	pset.for_each_particle_st([&pset] (particle& p) { merge_trajectories(pset, p); });
