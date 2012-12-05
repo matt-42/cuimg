@@ -1,6 +1,8 @@
 #ifndef CUIMG_GRADIENT_DESCENT_MATCHER_HPP_
 # define CUIMG_GRADIENT_DESCENT_MATCHER_HPP_
 
+#include <cuimg/neighb2d.h>
+
 namespace cuimg
 {
 

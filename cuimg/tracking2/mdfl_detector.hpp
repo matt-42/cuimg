@@ -2,6 +2,7 @@
 # define CUIMG_MDFL_DETECTOR_HPP_
 
 # include <cuimg/mt_apply.h>
+# include <cuimg/memset.h>
 
 namespace cuimg
 {
@@ -23,8 +24,8 @@ namespace cuimg
         unsigned char v1 = in(p + i_int2(circle_r3_h[i]) * scale).x;
         unsigned char v2 = in(p + i_int2(circle_r3_h[i+8]) * scale).x;
 
-        //float contrast = std::max(fabs(pv - v1), fabs(pv - v2));
-        float contrast = (fabs(pv - v1) + fabs(pv - v2));
+        float contrast = std::max(fabs(pv - v1), fabs(pv - v2));
+        // float contrast = (fabs(pv - v1) + fabs(pv - v2));
         if (max_contrast < contrast) max_contrast = contrast;
 
         unsigned dev = ::abs(pv - (v1 + v2) / 2);
@@ -49,54 +50,27 @@ namespace cuimg
 
 
     template <typename I>
-    inline float compute_saliency(i_short2 p, const I& in, int scale, int a, int b, int c, int d)
+    inline float compute_saliency2(i_short2 p, const I& in, int scale, float contrast_thresh)
     {
-      unsigned char v1 = in(p + i_int2(circle_r3_h[a]) * scale).x;
-      unsigned char v2 = in(p + i_int2(circle_r3_h[b]) * scale).x;
-      unsigned char v3 = in(p + i_int2(circle_r3_h[c]) * scale).x;
-      unsigned char v4 = in(p + i_int2(circle_r3_h[d]) * scale).x;
-
-      return std::min(fabs(v1 - v2), fabs(v3 - v4));
-    }
-
-    template <typename I>
-    inline float compute_saliency_test(i_short2 p, const I& in, int scale, float contrast_thresh)
-    {
-
       float min_diff = 9999999.f;
       unsigned mean_diff = 0.f;
       float mean_diff_f = 0.f;
       unsigned char pv = in(p).x;
       float max_contrast = 0.f;
-
-      for(int i = 0; i < 16; i++)
+      for(int i = 0; i < 8; i++)
       {
-	float contrast = fabs(pv - in(p + i_int2(circle_r3_h[i]) * scale).x);
-	if (max_contrast < contrast) max_contrast = contrast;
+        unsigned char v1 = in(p + i_int2(circle_r3_h[i]) * scale).x;
+        unsigned char v2 = in(p + i_int2(circle_r3_h[i+8]) * scale).x;
+
+        // float contrast = std::max(fabs(pv - v1), fabs(pv - v2));
+	float contrast = (fabs(pv - v1) + fabs(pv - v2));
+        if (max_contrast < contrast) max_contrast = contrast;
+
+        unsigned dev = ::abs(pv - (v1 + v2) / 2);
+        // unsigned dev = ::abs(pv - v1) + ::abs(pv - v2);
+
+        mean_diff += dev;
       }
-
-      for(int i = 2; i < 6; i++)
-      {
-        unsigned char v1 = in(p + i_int2(circle_r3_h[i+2]) * scale).x;
-        unsigned char v2 = in(p + i_int2(circle_r3_h[i+8-2]) * scale).x;
-
-        unsigned char v3 = in(p + i_int2(circle_r3_h[i-2]) * scale).x;
-        unsigned char v4 = in(p + i_int2(circle_r3_h[i+8+2]) * scale).x;
-
-        unsigned dev = compute_saliency(p, in, scale, i+2, i+8-2, i-2, i+8+2);
-	mean_diff += dev;
-	if (dev < min_diff) min_diff = dev;
-      }
-
-      unsigned dev;
-      dev = compute_saliency(p, in, scale, 14, 10, 2, 6); // 0
-      mean_diff += dev; if (dev < min_diff) min_diff = dev;
-      dev = compute_saliency(p, in, scale, 15, 11, 3, 7); // 1
-      mean_diff += dev; if (dev < min_diff) min_diff = dev;
-      dev = compute_saliency(p, in, scale,  8,  12, 4, 0); // 6
-      mean_diff += dev; if (dev < min_diff) min_diff = dev;
-      dev= compute_saliency(p, in, scale,  9,  13, 5, 1); // 7
-      mean_diff += dev; if (dev < min_diff) min_diff = dev;
 
       if (max_contrast >= contrast_thresh)
       {
@@ -109,8 +83,7 @@ namespace cuimg
         mean_diff = 0.f;
       }
 
-      return min_diff;
-      // return mean_diff_f / 8.f;
+      return mean_diff_f * 255.f;
     }
 
     template <typename I>
@@ -168,6 +141,7 @@ namespace cuimg
     return *this;
   }
 
+
   mdfl_1s_detector&
   mdfl_1s_detector::set_dev_threshold(float f)
   {
@@ -175,15 +149,32 @@ namespace cuimg
     return *this;
   }
 
+  mdfl_1s_detector&
+  mdfl_1s_detector::set_saliency_mode(saliency_mode m)
+  {
+    saliency_mode_ = m;
+    return *this;
+  }
+
   void
   mdfl_1s_detector::update(const host_image2d<gl8u>& input)
   {
     START_PROF(mdfl_compute_saliency);
-    mt_apply2d(sizeof(i_float1), input.domain() - border(8),
-               [this, &input] (i_int2 p)
-               {
-                 saliency_(p) = mdfl::compute_saliency(p, input, 1, contrast_th_);
-               }, arch::cpu());
+
+    if (saliency_mode_ == MAX)
+    {
+      mt_apply2d(sizeof(i_float1), input.domain() - border(8),
+		 [this, &input] (i_int2 p)
+		 {
+		   saliency_(p) = mdfl::compute_saliency(p, input, 1, contrast_th_);
+		 }, arch::cpu());
+    }
+    else
+      mt_apply2d(sizeof(i_float1), input.domain() - border(8),
+		 [this, &input] (i_int2 p)
+		 {
+		   saliency_(p) = mdfl::compute_saliency2(p, input, 1, contrast_th_);
+		 }, arch::cpu());
 
     END_PROF(mdfl_compute_saliency);
 

@@ -111,6 +111,8 @@ namespace cuimg
   template <typename V>
   host_image2d<V>::host_image2d(cv::Mat m)
   {
+    assert(m.rows > 0 && m.cols > 0);
+
     m.addref();
     pitch_ = m.step;
     data_ = PT((V*) m.data, dummy_free<V>);
@@ -157,6 +159,8 @@ namespace cuimg
   host_image2d<V>&
   host_image2d<V>::operator=(cv::Mat m)
   {
+    assert(m.rows && m.cols);
+
     m.addref();
     pitch_ = m.step;
     data_ = PT((V*) m.data, dummy_free<V>);

@@ -2,6 +2,7 @@
 # define CUIMG_MERGE_TRAJECTORIES_H_
 
 # include <cuimg/improved_builtin.h>
+# include <cuimg/builtin_math.h>
 
 namespace cuimg
 {

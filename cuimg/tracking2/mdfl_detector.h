@@ -10,6 +10,12 @@ namespace cuimg
   class mdfl_1s_detector
   {
   public:
+    enum saliency_mode
+    {
+      MAX = 1,
+      ADD = 2
+    };
+
     inline mdfl_1s_detector(const obox2d& d);
 
     inline void update(const host_image2d<gl8u>& input);
@@ -19,10 +25,12 @@ namespace cuimg
 
     inline mdfl_1s_detector& set_contrast_threshold(float f);
     inline mdfl_1s_detector& set_dev_threshold(float f);
+    inline mdfl_1s_detector& set_saliency_mode(saliency_mode m);
 
     inline const host_image2d<gl01f>& saliency() { return saliency_; }
 
   private:
+    saliency_mode saliency_mode_;
     float contrast_th_;
     float dev_th_;
     host_image2d<gl01f> saliency_;

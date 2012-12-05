@@ -2,6 +2,7 @@
 # define CUIMG_BC2S_FEATURE_HPP_
 
 # include <cuimg/architectures.h>
+# include <cuimg/neighb2d_data.h>
 
 namespace cuimg
 {

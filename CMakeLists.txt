@@ -9,6 +9,8 @@ find_package(OpenCV REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
+ADD_DEFINITIONS(-std=c++0x -DNDEBUG -O3 -fopenmp -march=native -funroll-loops)
+#add_definitions(-std=c++0x -g)
 
 IF (NOT CUDA_FOUND)
   add_definitions(-DNO_CUDA)
@@ -43,6 +45,7 @@ SET(SOURCES cuimg/video_capture.cpp
             cuimg/background_video_capture.cpp
             cuimg/load_image.cpp
             cuimg/save_image.cpp
+	    cuimg/tracking2/tracker.cpp
             )
 
 ADD_LIBRARY(cuimg ${SOURCES})

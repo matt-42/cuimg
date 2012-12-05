@@ -6,6 +6,8 @@
 
 # include <cuimg/cpu/host_image2d.h>
 
+# include <cuimg/gl.h>
+
 # include <cuimg/tracking2/bc2s_feature.h>
 # include <cuimg/tracking2/mdfl_detector.h>
 # include <cuimg/tracking2/fast_detector.h>

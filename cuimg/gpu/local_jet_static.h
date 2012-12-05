@@ -6,6 +6,7 @@
 # include <cuimg/gpu/meta_convolve2.h>
 # include <cuimg/meta_gaussian/meta_gaussian.h>
 # include <cuimg/util.h>
+# include <cuimg/profiler.h>
 
 namespace cuimg
 {

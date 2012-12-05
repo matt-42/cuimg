@@ -2,6 +2,7 @@
 # define CUIMG_TRACKER2_H_
 
 # include <cuimg/improved_builtin.h>
+# include <cuimg/obox2d.h>
 
 namespace cuimg
 {
@@ -44,5 +45,12 @@ namespace cuimg
 }
 
 # include <cuimg/tracking2/tracker.hpp>
+# include <cuimg/tracking2/tracking_strategies.h>
+
+namespace cuimg
+{
+  /* extern template class tracker<tracking_strategies::bc2s_fast_gradient_cpu>; */
+  /* extern template class tracker<tracking_strategies::bc2s_mdfl_gradient_cpu>; */
+}
 
 #endif

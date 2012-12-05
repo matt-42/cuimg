@@ -2,6 +2,7 @@
 # define CUIMG_DOMINANT_SPEED_HPP_
 
 # include <cuimg/improved_builtin.h>
+# include <cuimg/cpu/fill.h>
 
 namespace cuimg
 {
