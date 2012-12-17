@@ -36,7 +36,7 @@ namespace cuimg
       inline generic_strategy(const obox2d& o);
 
       inline void set_upper(self* s);
-      inline void init();
+      inline void init() {}
 
       inline self& set_detector_frequency(unsigned nframe);
       inline self& set_filtering_frequency(unsigned nframe);
@@ -82,6 +82,20 @@ namespace cuimg
       inline void init();
     };
 
+
+    struct bc2s64_mdfl_gradient_cpu
+      : public generic_strategy<bc2s64_feature<host_image2d>, mdfl_1s_detector,
+				particle_container<bc2s64_feature<host_image2d> >,
+				host_image2d<gl8u> >
+    {
+    public:
+      typedef generic_strategy<bc2s64_feature<host_image2d>, mdfl_1s_detector,
+			       particle_container<bc2s64_feature<host_image2d> >,
+			       host_image2d<gl8u> > super;
+
+      inline bc2s64_mdfl_gradient_cpu(const obox2d& o);
+    };
+
     struct bc2s_mdfl_gradient_multiscale_prediction_cpu
       : public bc2s_mdfl_gradient_cpu
     {
@@ -113,7 +127,6 @@ namespace cuimg
 
       inline void init();
     };
-
 
     struct bc2s_dense_gradient_cpu
       : public generic_strategy<bc2s_feature<host_image2d>, dense_detector,

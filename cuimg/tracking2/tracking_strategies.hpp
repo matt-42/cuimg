@@ -18,6 +18,11 @@ namespace cuimg
     {
     }
 
+    bc2s64_mdfl_gradient_cpu::bc2s64_mdfl_gradient_cpu(const obox2d& d)
+      : super(d)
+    {
+    }
+
     void
     bc2s_mdfl_gradient_cpu::init()
     {

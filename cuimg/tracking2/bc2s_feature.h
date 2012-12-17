@@ -30,6 +30,31 @@ namespace cuimg
 
   };
 
+
+  struct bc2s64
+  {
+    inline __host__ __device__ bc2s64();
+    //inline __host__ __device__ bc2s64(const float2& o);
+    inline __host__ __device__ bc2s64(const bc2s64& o);
+
+    inline __host__ __device__
+    bc2s64& operator=(const bc2s64& o);
+
+    inline __host__ __device__
+    const unsigned char& operator[](const unsigned i) const;
+
+    inline __host__ __device__
+    unsigned char& operator[](const unsigned i);
+
+    union
+    {
+      unsigned char distances[8];
+      double tex_float;
+      //float2 tex_float;
+    };
+
+  };
+
   template <template <class> class I>
   class bc2s_feature
   {
@@ -54,6 +79,20 @@ namespace cuimg
     I<V> tmp_;
     int offsets_s1_[8];
     int offsets_s2_[8];
+  };
+
+
+  template <template <class> class I>
+  class bc2s64_feature : public bc2s_feature<I>
+  {
+  public:
+    typedef bc2s64 value_type;
+
+    typedef gl8u V;
+    bc2s64_feature(const obox2d& o);
+
+    int distance(const bc2s64& a, const i_short2& n);
+    bc2s64 operator()(const i_short2& p) const;
   };
 
 }
