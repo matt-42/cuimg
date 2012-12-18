@@ -66,6 +66,28 @@ namespace cuimg
     }
   }
 
+  // template <template <class> class I>
+  // bc2s_feature<I>::bc2s_feature(const bc2s_feature& f)
+  // {
+  //   *this = f;
+  // }
+
+  // template <template <class> class I>
+  // bc2s_feature<I>&
+  // bc2s_feature<I>::operator=(const bc2s_feature& f)
+  // {
+  //   s1_ = clone(f.s1_);
+  //   s2_ = clone(f.s2_);
+  //   tmp_ = clone(f.tmp_);
+  //   for (unsigned i = 0; i < 8; i ++)
+  //   {
+  //     offsets_s1_[i] = f.offsets_s1_[i];
+  //     offsets_s2_[i] = f.offsets_s2_[i];
+  //   }
+
+  //   return *this;
+  // }
+
   template <template <class> class I>
   void
   bc2s_feature<I>::update(const I<gl8u>& in)

@@ -12,6 +12,19 @@ namespace cuimg
   {
   }
 
+  dominant_speed_estimator::dominant_speed_estimator(const dominant_speed_estimator& d)
+    : h(d.h.domain())
+  {
+    copy(d.h, h);
+  }
+
+  // dominant_speed_estimator&
+  // dominant_speed_estimator::operator=(const dominant_speed_estimator& d)
+  // {
+  //   h = host_image2d<unsigned short>(d.h.domain());
+  //   copy(d.h, h);
+  //   return *this;
+  // }
 
   template <typename PI>
   i_short2

@@ -8,7 +8,7 @@ namespace cuimg
 
   template <typename F, typename FI>
   inline __host__ __device__
-  i_short2 gradient_descent_match(i_short2 prediction, F f, FI feature_img);
+  i_short2 gradient_descent_match(i_short2 prediction, F f, FI& feature_img);
 
   template <typename S, typename FI>
   inline __host__ __device__

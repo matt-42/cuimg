@@ -59,6 +59,8 @@ namespace cuimg
     generic_strategy<F, D, P, I>::set_detector_frequency(unsigned nframe)
     {
       detector_frequency_ = nframe;
+      if (upper_)
+	upper_->set_detector_frequency(nframe);
       return *this;
     }
 
@@ -67,6 +69,8 @@ namespace cuimg
     generic_strategy<F, D, P, I>::set_filtering_frequency(unsigned nframe)
     {
       filtering_frequency_ = nframe;
+      if (upper_)
+	upper_->set_filtering_frequency(nframe);
       return *this;
     }
 
@@ -109,10 +113,15 @@ namespace cuimg
 	    float distance;
 	    i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_, distance);
 	    if (feature_.domain().has(match) //and detector_.saliency()(match) > 0.f
-		and distance < 300 and part.fault < 10 //and pos_distance >= distance
+		and part.fault < 10 //and pos_distance >= distance
 		)
 	    {
 	      if (detector_.saliency()(match) <= 5.f) part.fault++;
+	      if (distance > 300)
+	      {
+		part.fault++;
+		match = pred;
+	      }
 	      pset.move(i, match, feature_(match));
 	    }
 	    else
@@ -125,6 +134,7 @@ namespace cuimg
 	//assert(pset.dense_particles()[i].age == pset.sparse_particles()(part.pos).age);
 
       }
+
       END_PROF(matcher);
 
       
@@ -183,6 +193,13 @@ namespace cuimg
     {
       u->lower_ = this;
       upper_ = u;
+    }
+
+    template<typename F, typename D, typename P, typename I>
+    void
+    generic_strategy<F, D, P, I>::clear()
+    {
+      frame_cpt_ = 0;
     }
 
 

@@ -11,79 +11,81 @@ namespace cuimg
   {
 
     template <typename I>
-    inline float compute_saliency(i_short2 p, const I& in, int scale, float contrast_thresh)
+    inline int compute_saliency(i_short2 p, const I& in, int scale, float contrast_thresh)
     {
 
-      float min_diff = 9999999.f;
-      unsigned mean_diff = 0.f;
-      float mean_diff_f = 0.f;
-      unsigned char pv = in(p).x;
-      float max_contrast = 0.f;
+      int min_diff = 999999;
+      int mean_diff = 0.f;
+      int pv = in(p).x;
+      int max_contrast = 0;
       for(int i = 0; i < 8; i++)
       {
-        unsigned char v1 = in(p + i_int2(circle_r3_h[i]) * scale).x;
-        unsigned char v2 = in(p + i_int2(circle_r3_h[i+8]) * scale).x;
+        int v1 = in(p + i_int2(circle_r3_h[i]) * scale).x;
+        int v2 = in(p + i_int2(circle_r3_h[i+8]) * scale).x;
 
-        float contrast = std::max(fabs(pv - v1), fabs(pv - v2));
+        int contrast = std::max(::abs(pv - v1), ::abs(pv - v2));
         // float contrast = (fabs(pv - v1) + fabs(pv - v2));
         if (max_contrast < contrast) max_contrast = contrast;
 
-        unsigned dev = ::abs(pv - (v1 + v2) / 2);
+        int dev = ::abs(pv - (v1 + v2) / 2);
         // unsigned dev = ::abs(pv - v1) + ::abs(pv - v2);
 
+	min_diff = std::min(min_diff, dev);
         mean_diff += dev;
       }
 
       if (max_contrast >= contrast_thresh)
       {
-        min_diff = min_diff / max_contrast;
-        mean_diff_f = mean_diff / (8.f * max_contrast);
+        min_diff = 255 * min_diff / float(max_contrast);
+        mean_diff = 255*mean_diff / (8 * max_contrast);
       }
       else
       {
-        min_diff = 0.f;
-        mean_diff = 0.f;
+        min_diff = 0;
+        mean_diff = 0;
       }
 
-      return mean_diff_f * 255.f;
+      return min_diff;
+      // return mean_diff;
     }
 
 
     template <typename I>
-    inline float compute_saliency2(i_short2 p, const I& in, int scale, float contrast_thresh)
+    inline int compute_saliency2(i_short2 p, const I& in, int scale, float contrast_thresh)
     {
-      float min_diff = 9999999.f;
-      unsigned mean_diff = 0.f;
-      float mean_diff_f = 0.f;
-      unsigned char pv = in(p).x;
-      float max_contrast = 0.f;
+      int min_diff = 9999999;
+      int mean_diff = 0.f;
+      int pv = in(p).x;
+      int max_contrast = 0;
       for(int i = 0; i < 8; i++)
       {
-        unsigned char v1 = in(p + i_int2(circle_r3_h[i]) * scale).x;
-        unsigned char v2 = in(p + i_int2(circle_r3_h[i+8]) * scale).x;
+        const int& v1 = in(p + i_int2(circle_r3_h[i]) * scale).x;
+        const int& v2 = in(p + i_int2(circle_r3_h[i+8]) * scale).x;
 
         // float contrast = std::max(fabs(pv - v1), fabs(pv - v2));
-	float contrast = (fabs(pv - v1) + fabs(pv - v2));
+	int contrast = (::abs(pv - v1) + ::abs(pv - v2));
         if (max_contrast < contrast) max_contrast = contrast;
 
-        unsigned dev = ::abs(pv - (v1 + v2) / 2);
+        int dev = ::abs(pv - (v1 + v2) / 2);
         // unsigned dev = ::abs(pv - v1) + ::abs(pv - v2);
 
+	min_diff = std::min(min_diff, dev);
         mean_diff += dev;
       }
 
       if (max_contrast >= contrast_thresh)
       {
-        min_diff = min_diff / max_contrast;
-        mean_diff_f = mean_diff / (8.f * max_contrast);
+        min_diff = 255 * min_diff / max_contrast;
+        mean_diff = 255 * mean_diff / (8 * max_contrast);
       }
       else
       {
-        min_diff = 0.f;
-        mean_diff = 0.f;
+        min_diff = 0;
+        mean_diff = 0;
       }
 
-      return mean_diff_f * 255.f;
+      return min_diff;
+      // return mean_diff;
     }
 
     template <typename I>
@@ -133,6 +135,22 @@ namespace cuimg
       new_points_(d)
   {
   }
+
+
+  mdfl_1s_detector::mdfl_1s_detector(const mdfl_1s_detector& d)
+  {
+    *this = d;
+  }
+
+  // mdfl_1s_detector&
+  // mdfl_1s_detector::operator=(const mdfl_1s_detector& d)
+  // {
+  //   saliency_mode_ = d.saliency_mode_;
+  //   contrast_th_ = d.contrast_th_;
+  //   dev_th_ = d.dev_th_;
+  //   saliency_ = clone(d.saliency_);
+  //   new_points_ = clone(d.new_points_);
+  // }
 
   mdfl_1s_detector&
   mdfl_1s_detector::set_contrast_threshold(float f)

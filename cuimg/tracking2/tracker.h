@@ -16,7 +16,6 @@ namespace cuimg
     tracker(const obox2d& d, int nscales);
     ~tracker();
 
-
     tracker<F>& update_input(const I& in);
     void subsample_input(const I& in);
     tracker<F>& run();

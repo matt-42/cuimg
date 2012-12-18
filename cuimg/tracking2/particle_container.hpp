@@ -22,6 +22,34 @@ namespace cuimg
 
   template <typename F, typename P,
 	    template <class> class I>
+  particle_container<F, P, I>::particle_container(const particle_container<F, P, I>& d)
+    : sparse_buffer_(d.domain())
+  {
+    copy(d.sparse_buffer_, sparse_buffer_);
+    particles_vec_ = d.particles_vec_;
+    features_vec_ = d.features_vec_;
+    matches_ = d.matches_;
+    compact_has_run_ = d.compact_has_run_;
+  }
+
+  template <typename F, typename P,
+	    template <class> class I>
+  particle_container<F, P, I>&
+  particle_container<F, P, I>::operator=(const particle_container& d)
+  {
+    if (not (sparse_buffer_.domain() == d.domain()))
+      sparse_buffer_ = I<unsigned int>(d.domain());
+    copy(d.sparse_buffer_, sparse_buffer_);
+    particles_vec_ = d.particles_vec_;
+    features_vec_ = d.features_vec_;
+    matches_ = d.matches_;
+    compact_has_run_ = d.compact_has_run_;
+
+    return *this;
+  }
+
+  template <typename F, typename P,
+	    template <class> class I>
   typename particle_container<F, P, I>::V&
   particle_container<F, P, I>::dense_particles()
   {

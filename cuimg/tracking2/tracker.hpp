@@ -83,6 +83,7 @@ namespace cuimg
     if (upper_tracker_)
       upper_tracker_->clear();
 
+    strategy_.clear();
     pset_.clear();
   }
 

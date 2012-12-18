@@ -47,6 +47,10 @@ namespace cuimg
     typedef std::vector<feature_type> FV;
     particle_container(const obox2d& d);
 
+
+    particle_container(const particle_container& d);
+    particle_container& operator=(const particle_container& d);
+
     V& dense_particles();
     const V& dense_particles() const;
     I<unsigned int>& sparse_particles();
@@ -76,7 +80,7 @@ namespace cuimg
     void remove(const i_short2& pos);
     void remove(int i);
     void swap_buffers();
-    inline const obox2d& domain() { return sparse_buffer_.domain(); }
+    inline const obox2d& domain() const { return sparse_buffer_.domain(); }
     void clear();
 
     void before_matching();

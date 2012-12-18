@@ -52,6 +52,9 @@ namespace cuimg
       inline void update(const input& in, particles_type& pset);
 
       inline detector_t& detector() { return detector_; }
+      inline feature_t& feature() { return feature_; }
+
+      inline void clear();
 
     protected:
       feature_t feature_;

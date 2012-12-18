@@ -38,6 +38,8 @@ namespace cuimg
 
     typedef gl8u V;
     bc2s_feature(const obox2d& o);
+    bc2s_feature(const bc2s_feature& f);
+    bc2s_feature& operator=(const bc2s_feature& f);
 
     inline const obox2d& domain() const { return s1_.domain(); }
 

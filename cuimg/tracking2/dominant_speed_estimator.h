@@ -10,6 +10,9 @@ namespace cuimg
   {
     inline dominant_speed_estimator(const obox2d& d);
 
+    inline dominant_speed_estimator(const dominant_speed_estimator& d);
+    inline dominant_speed_estimator& operator=(const dominant_speed_estimator& d);
+
     template <typename PI>
     inline __host__ __device__ i_short2 estimate(const PI& pset, i_int2 prev_camera_motion);
 

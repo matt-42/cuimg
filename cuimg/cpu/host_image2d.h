@@ -93,6 +93,14 @@ namespace cuimg
   };
 
   template <typename T>
+  host_image2d<T> clone(const host_image2d<T>& i)
+  {
+    host_image2d<T> n(i.domain());
+    copy(i, n);
+    return n;
+  }
+
+  template <typename T>
   struct return_type;
 
   template <typename V>
