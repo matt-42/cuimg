@@ -115,6 +115,10 @@ namespace cuimg
   H_D_I gl01f::operator T() const { return x; }
   H_D_I gl01f::operator gl8u() const { return float(x) * 255.f; }
 
+
+# ifdef WITH_OPENCV
+  OPENCV_TYPEOF(gl8u, CV_8UC1);
+# endif
 }
 
 #endif

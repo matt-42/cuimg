@@ -10,6 +10,9 @@
    longlong2, ulonglong2, float1, float2, float3, float4, double1,
    double2 */
 
+# ifdef WITH_OPENCV
+#  include <opencv2/core/core.hpp>
+# endif
 #include <cuimg/gpu/cuda.h>
 
 #include <cuimg/literals.h>
@@ -262,6 +265,27 @@ DEF_MAKE_BT2(longlong);
 DEF_MAKE_BT2(ulonglong);
 DEF_MAKE_BT4(float);
 DEF_MAKE_BT2(double);
+
+
+#ifdef WITH_OPENCV
+
+template <typename T>
+struct opencv_typeof;
+
+#define OPENCV_TYPEOF(T, V)			\
+template <>					\
+struct opencv_typeof<T>				\
+{						\
+  enum { ret = V };				\
+};
+
+OPENCV_TYPEOF(unsigned char, CV_8UC1);
+OPENCV_TYPEOF(i_uchar1, CV_8UC1);
+OPENCV_TYPEOF(i_uchar2, CV_8UC2);
+OPENCV_TYPEOF(i_uchar3, CV_8UC3);
+OPENCV_TYPEOF(i_uchar4, CV_8UC4);
+
+#endif
 
 template <typename BT, typename V>
 struct bt_change_vtype

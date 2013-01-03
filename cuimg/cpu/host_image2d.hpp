@@ -220,7 +220,7 @@ namespace cuimg
   host_image2d<V>::operator cv::Mat() const
   {
     assert(buffer_);
-    return cv::Mat(nrows(), ncols(), sizeof(typename V::vtype)*8, (void*)data(), pitch());
+    return cv::Mat(nrows(), ncols(), opencv_typeof<V>::ret, (void*)data(), pitch());
   }
 
 #endif

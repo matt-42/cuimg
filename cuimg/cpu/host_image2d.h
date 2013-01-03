@@ -57,6 +57,8 @@ namespace cuimg
     inline V& eval(const point& p) { return (*this)(p); };
     inline const V& eval(const point& p) const { return (*this)(p); };
 
+    operator bool() const { return data_.get(); }
+
 #ifdef WITH_OPENCV
     operator cv::Mat() const;
     IplImage* getIplImage() const;
