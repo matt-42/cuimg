@@ -6,6 +6,7 @@
 # include <cuimg/tracking2/predictions.h>
 # include <cuimg/tracking2/filter_spacial_incoherences.h>
 # include <cuimg/tracking2/merge_trajectories.h>
+# include <cuimg/tracking2/rigid_transform_estimator.h>
 # include <cuimg/iterate.h>
 
 namespace cuimg
@@ -14,6 +15,11 @@ namespace cuimg
   {
 
     bc2s_mdfl_gradient_cpu::bc2s_mdfl_gradient_cpu(const obox2d& d)
+      : super(d)
+    {
+    }
+
+    bc2s64_mdfl_gradient_cpu::bc2s64_mdfl_gradient_cpu(const obox2d& d)
       : super(d)
     {
     }
@@ -113,15 +119,15 @@ namespace cuimg
 	    float distance;
 	    i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_, distance);
 	    if (feature_.domain().has(match) //and detector_.saliency()(match) > 0.f
-		and part.fault < 10 //and pos_distance >= distance
+		and distance < 300 and part.fault < 10 //and pos_distance >= distance
 		)
 	    {
 	      if (detector_.saliency()(match) <= 5.f) part.fault++;
-	      if (distance > 300)
-	      {
-		part.fault++;
-		match = pred;
-	      }
+	      // if (distance > 300)
+	      // {
+	      // 	part.fault++;
+	      // 	match = pred;
+	      // }
 	      pset.move(i, match, feature_(match));
 	    }
 	    else
@@ -207,21 +213,70 @@ namespace cuimg
     bc2s_mdfl_gradient_multiscale_prediction_cpu::prediction(const particle& p)
     {
       bc2s_mdfl_gradient_multiscale_prediction_cpu* upper = static_cast<bc2s_mdfl_gradient_multiscale_prediction_cpu*>(upper_);
-      if (p.age > 2)
+      if (p.age > 1)
 	if (upper_)
+	  //return p.pos + upper->get_flow_at(p.pos / 2);
+	  // if (upper->flow_(p.pos / (2 * flow_ratio)).first)
+	  //   return p.pos + upper->flow_(p.pos / (2 * flow_ratio)).second;
+	  // else
 	  return motion_based_prediction(p, upper->prev_camera_motion_*2, upper->camera_motion_*2);
 	else
 	  return motion_based_prediction(p);
       else
 	if (upper)
 	{
-	  if (upper->flow_(p.pos / (2 * flow_ratio)).first)
-	    return p.pos + upper->flow_(p.pos / 16).second;
-	  else
-	    return i_int2(-1, -1);
+	  return p.pos + 2 * upper->get_flow_at(p.pos / 2);
+	  // if (upper->flow_(p.pos / (2 * flow_ratio)).first)
+	  //   return p.pos + upper->flow_(p.pos / (2 * flow_ratio)).second;
+	  // else
+	  //   return p.pos;//i_int2(-1, -1);
 	}
 	else
 	  return p.pos;
+    }
+
+    i_int2
+    bc2s_mdfl_gradient_multiscale_prediction_cpu::get_flow_at(const i_int2& p)
+    {
+      if (flow_(p / flow_ratio).first)
+	return flow_(p / flow_ratio).second;
+      else
+      {
+	particle part;
+	part.age = 1;
+	part.pos = p;
+	i_short2 pred = prediction(part);
+	if ((feature_.domain() - border(7)).has(pred))
+	{
+	  float distance;
+	  i_short2 match = gradient_descent_match(pred, feature_(p), feature_, distance);
+	  if (feature_.domain().has(match))
+	  {
+	    flow_(p / flow_ratio).first = 1;
+	    flow_(p / flow_ratio).second = match - p;
+	    return match - p;
+	  }
+	}
+      }
+
+      return i_int2(0,0);
+    }
+
+    void
+    bc2s_mdfl_gradient_multiscale_prediction_cpu::update(const host_image2d<gl8u>& in, particles_type& pset)
+    {
+      feature_.update(in);
+      match_particles(pset);
+
+      estimate_camera_motion(pset);
+
+      if (!(frame_cpt_ % detector_frequency_))
+      {
+        detector_.update(in);
+        new_particles(pset);
+      }
+
+      frame_cpt_++;
     }
 
     void
@@ -246,7 +301,7 @@ namespace cuimg
 	    float distance;
 	    i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_, distance);
 	    if (feature_.domain().has(match) //and detector_.saliency()(match) > 0.f
-		and distance < 300 and part.fault < 10 //and pos_distance >= distance
+		and part.fault < 10 //and pos_distance >= distance
 		)
 	    {
 	      if (detector_.saliency()(match) <= 5.f) part.fault++;
@@ -279,12 +334,182 @@ namespace cuimg
       } >> iterate(flow_.domain());
 
       //if (false)
-      if (!(frame_cpt_ % 5))
+      if (!(frame_cpt_ % 1))
       {
 	START_PROF(merge_trajectories);
 	pset.for_each_particle_st([&pset] (particle& p) { merge_trajectories(pset, p); });
 	END_PROF(merge_trajectories);
 
+	// ****** Filter bad particles.
+
+	START_PROF(filter_spacial_incoherences);
+#pragma omp parallel for schedule(static, 300)
+	for (unsigned i = 0; i < pset.dense_particles().size(); i++)
+	{
+	  particle& part = pset[i];
+	  if (part.age > 0)
+	  {
+	    if (is_spacial_incoherence(pset, part.pos))
+	      pset.remove(i);
+	    else
+	    {
+	      if (upper)
+	      {
+		auto f = upper->flow_(part.pos / (2*flow_ratio));
+		if (f.first > 2 and norml2(part.speed - 2 * f.second) > 5.f)
+		  pset.remove(i);
+	      }
+	    }
+	  }
+	}
+
+	END_PROF(filter_spacial_incoherences);
+      }
+
+    }
+
+
+    i_short2
+    bc2s_mdfl_gradient_multiscale_prediction_cpu2::prediction(const particle& p)
+    {
+      bc2s_mdfl_gradient_multiscale_prediction_cpu2* upper = static_cast<bc2s_mdfl_gradient_multiscale_prediction_cpu2*>(upper_);
+      if (p.age > 1)
+	if (upper_)
+	{
+	  cv::Mat_<float> sp(2, 1); sp << p.speed.r(), p.speed.c();
+	  cv::Mat_<float> pos(3, 1); pos << p.pos.r() /2, p.pos.c()/2, 1;
+	  cv::Mat_<float> pos2(2, 1); pos2 << p.pos.r() /2, p.pos.c()/2;
+	  cv::Mat_<float> v = sp
+	    - (2 * ((upper->prev_global_transform_ * pos) - pos2))
+	    + (2 * ((upper->global_transform_ * pos) - pos2));
+	  // std::cout <<  (2 * ((upper->global_transform_ * pos - pos2))) << std::endl;
+	  return p.pos + i_int2(v(0,0), v(1,0));
+          //return motion_based_prediction(p, upper->prev_camera_motion_*2, upper->camera_motion_*2);
+	}
+	else
+	  return p.pos + p.speed;
+      else
+	if (upper)
+	{
+	  // if (flow_(p.pos / flow_ratio).first)
+	  //   return p.pos + flow_(p.pos / flow_ratio).second;
+	  // else
+	    return p.pos + 2 * upper->get_flow_at(p.pos / 2);
+	  // if (upper->flow_(p.pos / (2 * flow_ratio)).first)
+	  //   return p.pos + upper->flow_(p.pos / (2 * flow_ratio)).second;
+	  // else
+	  //   return p.pos;//i_int2(-1, -1);
+	}
+	else
+	  return p.pos;
+    }
+
+    i_int2
+    bc2s_mdfl_gradient_multiscale_prediction_cpu2::get_flow_at(const i_int2& p)
+    {
+      if (flow_(p / flow_ratio).first)
+	return flow_(p / flow_ratio).second;
+      else
+      {
+	particle part;
+	part.age = 1;
+	part.pos = p;
+	i_short2 pred = prediction(part);
+	if ((feature_.domain() - border(7)).has(pred))
+	{
+	  float distance;
+	  i_short2 match = gradient_descent_match(pred, feature_(p), feature_, distance);
+	  if (feature_.domain().has(match))
+	  {
+	    flow_(p / flow_ratio).first = 1;
+	    flow_(p / flow_ratio).second = match - p;
+	    return match - p;
+	  }
+	}
+      }
+
+      return i_int2(0,0);
+    }
+
+    void
+    bc2s_mdfl_gradient_multiscale_prediction_cpu2::update(const host_image2d<gl8u>& in, particles_type& pset)
+    {
+      feature_.update(in);
+      match_particles(pset);
+
+      estimate_camera_motion(pset);
+      prev_global_transform_ = global_transform_;
+      global_transform_ = global_transform_estimator_.estimate(pset, prev_global_transform_);
+      std::cout << global_transform_ << std::endl;
+      if (!(frame_cpt_ % detector_frequency_))
+      {
+        detector_.update(in);
+        new_particles(pset);
+      }
+
+      frame_cpt_++;
+    }
+
+    void
+    bc2s_mdfl_gradient_multiscale_prediction_cpu2::match_particles(particles_type& pset)
+    {
+      bc2s_mdfl_gradient_multiscale_prediction_cpu2* upper =
+	static_cast<bc2s_mdfl_gradient_multiscale_prediction_cpu2*>(upper_);
+      pset.before_matching();
+
+      START_PROF(matcher);
+#pragma omp parallel for schedule(static, 300)
+      for (unsigned i = 0; i < pset.dense_particles().size(); i++)
+      {
+        particle& part = pset.dense_particles()[i];
+        if (part.age > 0)
+        {
+          i_short2 pos = part.pos;
+          i_short2 pred = prediction(part);
+	  float pos_distance = feature_.distance(pset.features()[i], pos);
+	  if ((feature_.domain() - border(7)).has(pred))
+	  {
+	    float distance;
+	    i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_, distance);
+	    if (feature_.domain().has(match) //and detector_.saliency()(match) > 0.f
+		and part.fault < 10 //and pos_distance >= distance
+		)
+	    {
+	      if (detector_.saliency()(match) <= 5.f) part.fault++;
+	      pset.move(i, match, feature_(match));
+	    }
+	    else
+	      pset.remove(i);
+	  }
+	  else
+	    pset.remove(i);
+        }
+
+	//assert(pset.dense_particles()[i].age == pset.sparse_particles()(part.pos).age);
+
+      }
+      END_PROF(matcher);
+
+
+      memset(flow_, 0);
+      pset.for_each_particle_st
+      	([this] (const particle& p)
+      	 {
+      	   i_int2 bin = p.pos / flow_ratio;
+      	   flow_(bin).first++;
+      	   flow_(bin).second += p.speed;
+      	 });
+
+      [&] (i_int2 p) {
+	flow_(p).second /= flow_(p).first;
+      } >> iterate(flow_.domain());
+
+      //if (false)
+      if (!(frame_cpt_ % 1))
+      {
+	START_PROF(merge_trajectories);
+	pset.for_each_particle_st([&pset] (particle& p) { merge_trajectories(pset, p); });
+	END_PROF(merge_trajectories);
 
 	// ****** Filter bad particles.
 
@@ -315,6 +540,7 @@ namespace cuimg
     }
 
   }
+
 
 }
 

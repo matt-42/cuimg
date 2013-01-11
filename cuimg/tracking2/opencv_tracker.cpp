@@ -34,7 +34,7 @@ namespace cuimg
     //detector_->detect(in_cv, new_keypoints_);
     adapter_->detect(in_cv, new_keypoints_);
     int n = new_keypoints_.size();
-    int np = 1000;
+    int np = 10000;
     if (n < np)
       adapter_->tooFew(np, n);
     else

@@ -74,7 +74,7 @@ class improved_builtin : public make_cuda_bt<T, N>::ret
   __host__ __device__ inline improved_builtin(const vtype v[N]);
 
   __host__ __device__ inline improved_builtin<T, N>& operator=(vtype x_);
-  __host__ __device__ inline operator vtype();
+  __host__ __device__ inline explicit operator vtype();
 
   __host__ __device__ inline improved_builtin(const zero&);
   __host__ __device__ inline self& operator=(const zero&);
@@ -111,7 +111,25 @@ class improved_builtin : public make_cuda_bt<T, N>::ret
   __host__ __device__ inline const T& c() const;
   __host__ __device__ inline T& r();
   __host__ __device__ inline T& c();
+
+#ifdef WITH_OPENCV
+  template <typename U>
+  inline improved_builtin(const cv::Vec<U, 2>& bt);
+  template <typename U>
+  inline improved_builtin(const cv::Vec<U, 3>& bt);
+  template <typename U>
+  inline operator cv::Vec<U, 2>() const;
+  template <typename U>
+  inline operator cv::Vec<U, 3>() const;
+
+#endif
+
  };
+
+#ifdef WITH_OPENCV
+  // template <typename T, unsigned N>
+  // inline cv::Matx<T, N, 1> to_cv_mat() const;
+#endif
 
 template <typename NC, typename T, unsigned N>
 struct change_coord_type<NC, improved_builtin<T, N> >

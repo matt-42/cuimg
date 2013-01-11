@@ -195,15 +195,20 @@ namespace cuimg
 
   template <typename I>
   void subsample(const Image2d<I>& in,
-		 const Image2d<I>& out)
+		 Image2d<I>& out)
   {
     SCOPE_PROF(subsample);
-
     dim3 dimblock = dim3(exact(out).domain().ncols(), 1, 1);
     using namespace mipmap_internals;
     dim3 dimgrid = grid_dimension(exact(out).domain(), dimblock);
+
+    /* I tmp2(exact(in).domain()); */
+    /* cudaStream_t stream = 0; */
+    /* local_jet_static<I, I, I, 0, 0, 2, 2> */
+    /*   (exact(in), exact(tmp2), exact(tmp), stream, dimblock); */
+
     pw_call<mipmap_kernel_sig(I::target, typename I::value_type)>(flag<I::target>(), dimgrid, dimblock,
-								  exact(in), exact(out));
+    								  exact(in), exact(out));
   }
 
   template <typename I>

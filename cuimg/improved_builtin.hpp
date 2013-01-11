@@ -268,6 +268,44 @@ namespace cuimg
     meta::loop<internal::reset, 0, size - 1>::iter(*this);
   }
 
+#ifdef WITH_OPENCV
+
+  template <typename T, unsigned N>
+  template <typename U>
+  improved_builtin<T, N>::improved_builtin(const cv::Vec<U, 2>& bt)
+  {
+    meta::equal<meta::int_<size>, meta::int_<2> >::check(); // Member reserved for builtins of size 2.
+    this->x = bt.x;
+    this->y = bt.y;
+  }
+
+  template <typename T, unsigned N>
+  template <typename U>
+  improved_builtin<T, N>::improved_builtin(const cv::Vec<U, 3>& bt)
+  {
+    meta::equal<meta::int_<size>, meta::int_<3> >::check(); // Member reserved for builtins of size 3.
+    this->x = bt.x;
+    this->y = bt.y;
+    this->z = bt.z;
+  }
+
+  template <typename T, unsigned N>
+  template <typename U>
+  improved_builtin<T, N>::operator cv::Vec<U, 2>() const
+  {
+    meta::equal<meta::int_<size>, meta::int_<2> >::check(); // Member reserved for builtins of size 2.
+    return cv::Vec<U, 2>(this->x, this->y);
+  }
+
+  template <typename T, unsigned N>
+  template <typename U>
+  improved_builtin<T, N>::operator cv::Vec<U, 3>() const
+  {
+    meta::equal<meta::int_<size>, meta::int_<3> >::check(); // Member reserved for builtins of size 3.
+    return cv::Vec<U, 3>(this->x, this->y, this->z);
+  }
+#endif
+
   template <typename T, unsigned N>
   improved_builtin<T, N>&
   improved_builtin<T, N>::operator=(const zero&)
