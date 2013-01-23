@@ -1,4 +1,5 @@
 #include <cuimg/tracking2/opencv_tracker.h>
+#include <opencv2/core/core.hpp>
 
 namespace cuimg
 {

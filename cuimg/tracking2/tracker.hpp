@@ -66,6 +66,16 @@ namespace cuimg
       upper_tracker_->subsample_input(input_);
   }
 
+
+  template <typename F>
+  tracker<F>& tracker<F>::run(const I& in)
+  {
+    update_input(in);
+    run();
+    return *this;
+  }
+
+
   template <typename F>
   tracker<F>& tracker<F>::run()
   {

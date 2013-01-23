@@ -2,6 +2,7 @@
 # define CUIMG_RIGID_TRANSFORM_H_
 
 # include <cuimg/improved_builtin.h>
+# include <opencv2/core/core.hpp>
 
 namespace cuimg
 {

@@ -4,6 +4,7 @@
 # include <vector>
 # include <omp.h>
 # include <cuimg/cpu/host_image2d.h>
+# include <cuimg/profiler.h>
 
 namespace cuimg
 {

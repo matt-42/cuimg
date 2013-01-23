@@ -10,27 +10,42 @@ namespace cuimg
 
   struct particle
   {
+    typedef i_short2 coords_type;
     __host__ __device__
     particle() : age(0), speed(0.f, 0.f), fault(0) {}
 
-    particle(const particle& o, i_short2 p)
-      : speed(o.speed),
-        pos(p),
-	age(o.age),
-	fault(0)
-    {
-    }
+  //   particle(const particle& o, i_short2 p)
+  //     : speed(o.speed),
+  //       pos(p),
+	// age(o.age),
+	// fault(0)
+  //   {
+  //   }
 
-    inline void set(const particle& o, i_short2 p)
-    {
-      speed = o.speed;
-      age = o.age;
-      pos = p;
-      fault = o.fault;
-    }
+    // inline void set(const particle& o, i_short2 p)
+    // {
+    //   speed = o.speed;
+    //   age = o.age;
+    //   pos = p;
+    //   fault = o.fault;
+    // }
 
     i_float2 speed;
     i_short2 pos;
+    i_short2 acceleration;
+    unsigned short age;
+    unsigned short fault;
+  };
+
+  struct particle_f
+  {
+    typedef i_float2 coords_type;
+
+    __host__ __device__
+    particle_f() : age(0), speed(0.f, 0.f), fault(0) {}
+
+    i_float2 speed;
+    i_float2 pos;
     i_short2 acceleration;
     unsigned short age;
     unsigned short fault;
@@ -41,6 +56,7 @@ namespace cuimg
   class particle_container
   {
   public:
+    typedef typename P::coords_type particle_coords;
     typedef P particle_type;
     typedef std::vector<particle_type> V;
     typedef typename F::value_type feature_type;
@@ -74,7 +90,7 @@ namespace cuimg
     bool is_coherent();
 
     void compact();
-    void move(unsigned i, i_int2 dst, const feature_type& f);
+    void move(unsigned i, particle_coords dst, const feature_type& f);
     bool has(i_int2 p) const;
     void add(i_int2 p, const feature_type& f);
     void remove(const i_short2& pos);

@@ -193,7 +193,6 @@ namespace cuimg
   particle_container<F, P, I>::compact()
   {
     SCOPE_PROF(compation);
-
     compact_has_run_ = true;
 
     matches_.resize(particles_vec_.size());
@@ -222,8 +221,6 @@ namespace cuimg
       feat_it++;
     }
 
-    // std::cout << particles_vec_.size() << std::endl;
-    // std::cout << pts_res - particles_vec_.begin() << std::endl;
     particles_vec_.resize(pts_res - particles_vec_.begin());
     features_vec_.resize(feat_res - features_vec_.begin());
 
@@ -235,7 +232,7 @@ namespace cuimg
   void
   particle_container<F, P, I>::add(i_int2 p, const typename F::value_type& feature)
   {
-    particle pt;
+    P pt;
     pt.age = 1;
     pt.speed = i_int2(0,0);
     pt.pos = p;
@@ -266,10 +263,10 @@ namespace cuimg
   template <typename F, typename P,
 	    template <class> class I>
   void
-  particle_container<F, P, I>::move(unsigned i, i_int2 dst, const feature_type& f)
+  particle_container<F, P, I>::move(unsigned i, particle_coords dst, const feature_type& f)
   {
     auto& p = particles_vec_[i];
-    i_int2 src = p.pos;
+    particle_coords src = p.pos;
     p.age++;
     i_int2 new_speed = dst - src;
     if (p.age > 1)

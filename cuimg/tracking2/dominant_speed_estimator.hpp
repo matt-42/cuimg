@@ -41,15 +41,24 @@ namespace cuimg
     {
       const particle& part = pset[i];
       i_int2 bin = h_center + part.acceleration + prev_camera_motion;
-      if (part.age > 5 and h.has(bin))
+      if (part.age > 2 and h.has(bin))
       {
-	int c = ++h(bin);
-	if (c > max)
-	{
-	  max = c;
-	  max_bin = bin;
-	}
+        int c = ++h(bin);
+        if (c > max)
+        {
+          max = c;
+          max_bin = bin;
+        }
       }
+      // else if (part.age == 1)
+      // {
+      //   int c = ++h(h_center + part.speed);
+      //   if (c > max)
+      //   {
+      //     max = c;
+      //     max_bin = bin;
+      //   }
+      // }
     }
 
     return max_bin - h_center;

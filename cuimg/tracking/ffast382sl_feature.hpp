@@ -962,14 +962,14 @@ kernel_image2d<dffast382sl> in,                  \
     {
       gl8u v1 = s1_(n.row() + circle_r3[i*2][0],
   		   n.col() + circle_r3[i*2][1]);
-      d += ::abs(v1 - a[i]);
+      d += ::abs(v1.x - a[i]);
     }
 
     for(int i = 0; i < 8; i ++)
     {
       gl8u v = s2_(n.row() / 2 + circle_r3[i*2][0],
   		   n.col() / 2 + circle_r3[i*2][1]);
-      d += ::abs(v - a[8+i]);
+      d += ::abs(v.x - a[8+i]);
     }
     return normalize_ffast_distance<gl8u>(d);
   }

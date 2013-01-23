@@ -172,7 +172,7 @@ namespace cuimg
     generic_strategy<F, D, P, I>::new_particles(particles_type& pset)
     {
       detector_.new_particles(feature_, pset);
-      pset.compact();
+      pset.after_new_particles();
     }
 
     template<typename F, typename D, typename P, typename I>

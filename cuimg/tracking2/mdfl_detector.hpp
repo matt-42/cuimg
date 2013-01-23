@@ -132,7 +132,8 @@ namespace cuimg
 
   mdfl_1s_detector::mdfl_1s_detector(const obox2d& d)
     : saliency_(d),
-      new_points_(d)
+      new_points_(d),
+      saliency_mode_(MAX)
   {
   }
 
