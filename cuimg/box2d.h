@@ -22,8 +22,12 @@ namespace cuimg
 
     __host__ __device__ inline const i_int2& p1() const;
     __host__ __device__ inline const i_int2& p2() const;
+    __host__ __device__ inline const i_int2 center() const;
 
     __host__ __device__ inline bool has(const point2d<int>& p) const;
+
+    __host__ __device__ inline void extend(const point2d<int>& p);
+    __host__ __device__ inline void extend(const box2d& bb);
 
   private:
     i_int2 a_;

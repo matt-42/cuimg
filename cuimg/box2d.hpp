@@ -51,12 +51,39 @@ namespace cuimg
     return b_;
   }
 
+  const i_int2
+  box2d::center() const
+  {
+    return (a_ + b_) / 2;
+  }
+
   bool box2d::has(const point2d<int>& p) const
   {
     return p.row() >= a_.r() && p.row() <= b_.r() &&
       p.col() >= a_.c() && p.col() <= b_.c();
   }
 
+
+  void box2d::extend(const point2d<int>& p)
+  {
+    if (p.row() < a_.r()) a_.r() = p.row();
+    if (p.row() > b_.r()) b_.r() = p.row();
+
+    if (p.col() < a_.c()) a_.c() = p.col();
+    if (p.col() > b_.c()) b_.c() = p.col();
+  }
+
+
+  void box2d::extend(const box2d& bb)
+  {
+    extend(bb.a_);
+    extend(bb.b_);
+  }
+
 }
 
 #endif
+
+
+
+
