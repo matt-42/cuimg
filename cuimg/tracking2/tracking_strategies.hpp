@@ -301,11 +301,13 @@ namespace cuimg
 	    float distance;
 	    i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_, distance);
 	    if (feature_.domain().has(match) //and detector_.saliency()(match) > 0.f
-		and part.fault < 10 //and pos_distance >= distance
+		and part.fault < 5 //and pos_distance >= distance
 		)
 	    {
-	      if (detector_.saliency()(match) <= 5.f) part.fault++;
-	      pset.move(i, match, feature_(match));
+	      if (detector_.contrast()(match) <= 10.f) part.fault++;
+	      if (detector_.contrast()(match) <= 5.f) pset.remove(i);
+	      else
+		pset.move(i, match, feature_(match));
 	    }
 	    else
 	      pset.remove(i);
@@ -349,6 +351,7 @@ namespace cuimg
 	  particle& part = pset[i];
 	  if (part.age > 0)
 	  {
+	    //continue;
 	    if (is_spacial_incoherence(pset, part.pos))
 	      pset.remove(i);
 	    else

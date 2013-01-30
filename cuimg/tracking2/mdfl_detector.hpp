@@ -11,7 +11,7 @@ namespace cuimg
   {
 
     template <typename I>
-    inline int compute_saliency(i_short2 p, const I& in, int scale, float contrast_thresh)
+    inline std::pair<int, int> compute_saliency(i_short2 p, const I& in, int scale, float contrast_thresh)
     {
 
       int min_diff = 999999;
@@ -45,7 +45,7 @@ namespace cuimg
         mean_diff = 0;
       }
 
-      return min_diff;
+      return std::pair<int, int>(min_diff, max_contrast);
       // return mean_diff;
     }
 
@@ -132,6 +132,7 @@ namespace cuimg
 
   mdfl_1s_detector::mdfl_1s_detector(const obox2d& d)
     : saliency_(d),
+      contrast_(d),
       new_points_(d),
       saliency_mode_(MAX)
   {
@@ -180,20 +181,13 @@ namespace cuimg
   {
     START_PROF(mdfl_compute_saliency);
 
-    if (saliency_mode_ == MAX)
-    {
-      mt_apply2d(sizeof(i_float1), input.domain() - border(8),
-		 [this, &input] (i_int2 p)
-		 {
-		   saliency_(p) = mdfl::compute_saliency(p, input, 1, contrast_th_);
-		 }, arch::cpu());
-    }
-    else
-      mt_apply2d(sizeof(i_float1), input.domain() - border(8),
-		 [this, &input] (i_int2 p)
-		 {
-		   saliency_(p) = mdfl::compute_saliency2(p, input, 1, contrast_th_);
-		 }, arch::cpu());
+    mt_apply2d(sizeof(i_float1), input.domain() - border(8),
+	       [this, &input] (i_int2 p)
+	       {
+		 std::pair<int, int> r = mdfl::compute_saliency(p, input, 1, contrast_th_);
+		 saliency_(p) = r.first;
+		 contrast_(p) = r.second;
+	       }, arch::cpu());
 
     END_PROF(mdfl_compute_saliency);
 

@@ -30,12 +30,14 @@ namespace cuimg
     inline mdfl_1s_detector& set_saliency_mode(saliency_mode m);
 
     inline const host_image2d<int>& saliency() { return saliency_; }
+    inline const host_image2d<int>& contrast() { return contrast_; }
 
   private:
     saliency_mode saliency_mode_;
     float contrast_th_;
     float dev_th_;
     host_image2d<int> saliency_;
+    host_image2d<int> contrast_;
     host_image2d<char> new_points_;
   };
 
