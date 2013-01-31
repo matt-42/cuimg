@@ -69,7 +69,7 @@ namespace cuimg
     inline const obox2d& domain() const { return s1_.domain(); }
 
     void update(const I<gl8u>& in);
-    int distance(const bc2s& a, const i_short2& n);
+    int distance(const bc2s& a, const i_short2& n, unsigned scale = 1);
     bc2s operator()(const i_short2& p) const;
 
     const I<V>& s1() const { return s1_; }

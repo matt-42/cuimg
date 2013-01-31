@@ -100,6 +100,21 @@ namespace cuimg
       inline bc2s64_mdfl_gradient_cpu(const obox2d& o);
     };
 
+
+    struct bc2s_mdfl2s_gradient_cpu
+      : public generic_strategy<bc2s_feature<host_image2d>, mdfl_2s_detector,
+				particle_container<bc2s_feature<host_image2d> >,
+				host_image2d<gl8u> >
+    {
+    public:
+      typedef generic_strategy<bc2s_feature<host_image2d>, mdfl_2s_detector,
+			       particle_container<bc2s_feature<host_image2d> >,
+			       host_image2d<gl8u> > super;
+
+      inline bc2s_mdfl2s_gradient_cpu(const obox2d& o) : super(o) {}
+      inline void init() {};
+    };
+
     struct bc2s_mdfl_gradient_multiscale_prediction_cpu
       : public bc2s_mdfl_gradient_cpu
     {

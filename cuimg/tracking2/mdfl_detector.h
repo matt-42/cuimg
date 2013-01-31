@@ -18,7 +18,6 @@ namespace cuimg
 
     inline mdfl_1s_detector(const obox2d& d);
     inline mdfl_1s_detector(const mdfl_1s_detector& d);
-    inline mdfl_1s_detector& operator=(const mdfl_1s_detector& d);
 
     inline void update(const host_image2d<gl8u>& input);
 
@@ -32,14 +31,27 @@ namespace cuimg
     inline const host_image2d<int>& saliency() { return saliency_; }
     inline const host_image2d<int>& contrast() { return contrast_; }
 
-  private:
+  protected:
     saliency_mode saliency_mode_;
     float contrast_th_;
     float dev_th_;
     host_image2d<int> saliency_;
     host_image2d<int> contrast_;
     host_image2d<char> new_points_;
+    host_image2d<gl8u> input_s2_;
+    host_image2d<gl8u> tmp_;
   };
+
+
+  class mdfl_2s_detector : public mdfl_1s_detector
+  {
+  public:
+    inline mdfl_2s_detector(const obox2d& d);
+
+    inline void update(const host_image2d<gl8u>& input);
+
+  private:
+   };
 
 }
 

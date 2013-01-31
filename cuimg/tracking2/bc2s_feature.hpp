@@ -11,22 +11,28 @@ namespace cuimg
   {
     template <typename O>
     __host__ __device__ inline int
-    distance(const O& o, const bc2s& a, const i_short2& n)
+    distance(const O& o, const bc2s& a, const i_short2& n, const unsigned scale = 1)
     {
       int d = 0;
 
       const auto* data = &o.s1_(n);
-      for(int i = 0; i < 8; i ++)
-      {
-	int v = data[o.offsets_s1_[i]].x;
-	d += ::abs(v - a[i]);
-      }
 
-      data = &o.s2_(n);
-      for(int i = 0; i < 8; i ++)
+      if (scale == 1)
       {
-      	int v = data[o.offsets_s2_[i]].x;
-      	d += ::abs(v - a[8+i]);
+	for(int i = 0; i < 8; i ++)
+	{
+	  int v = data[o.offsets_s1_[i]].x;
+	  d += ::abs(v - a[i]);
+	}
+      }
+      //else
+      {
+	data = &o.s2_(n);
+	for(int i = 0; i < 8; i ++)
+	{
+	  int v = data[o.offsets_s2_[i]].x;
+	  d += ::abs(v - a[8+i]);
+	}
       }
 
       // return d / (255.f * 16.f);
@@ -148,15 +154,15 @@ namespace cuimg
     dim3 dimblock = ::cuimg::dimblock(arch::cpu(), sizeof(V) + sizeof(i_uchar1), in.domain());
 
     local_jet_static_<0, 0, 2, 2>::run(in, s1_, tmp_, 0, dimblock);
-    // local_jet_static_<0, 0, 3, 3>::run(in, s2_, tmp_, 0, dimblock);
-    local_jet_static_<0, 0, 1, 1>::run(s1_, s2_, tmp_, 0, dimblock);
+    local_jet_static_<0, 0, 3, 3>::run(in, s2_, tmp_, 0, dimblock);
+    //local_jet_static_<0, 0, 1, 1>::run(s1_, s2_, tmp_, 0, dimblock);
   }
 
   template <template <class> class I>
   int
-  bc2s_feature<I>::distance(const bc2s& a, const i_short2& n)
+  bc2s_feature<I>::distance(const bc2s& a, const i_short2& n, unsigned scale)
   {
-    return bc2s_internals::distance(*this, a, n);
+    return bc2s_internals::distance(*this, a, n, scale);
   }
 
   template <template <class> class I>

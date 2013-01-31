@@ -117,7 +117,9 @@ namespace cuimg
 	  if ((feature_.domain() - border(7)).has(pred))
 	  {
 	    float distance;
-	    i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_, distance);
+	    i_short2 match1 = gradient_descent_match(pred, pset.features()[i], feature_, distance, 2);
+	    i_short2 match = gradient_descent_match(match1, pset.features()[i], feature_, distance, 1);
+	    // i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_, distance);
 	    if (feature_.domain().has(match) //and detector_.saliency()(match) > 0.f
 		and distance < 300 and part.fault < 10 //and pos_distance >= distance
 		)
@@ -229,7 +231,7 @@ namespace cuimg
 	  // if (upper->flow_(p.pos / (2 * flow_ratio)).first)
 	  //   return p.pos + upper->flow_(p.pos / (2 * flow_ratio)).second;
 	  // else
-	  //   return p.pos;//i_int2(-1, -1);
+	  //return p.pos;//i_int2(-1, -1);
 	}
 	else
 	  return p.pos;
@@ -248,8 +250,9 @@ namespace cuimg
 	i_short2 pred = prediction(part);
 	if ((feature_.domain() - border(7)).has(pred))
 	{
-	  float distance;
-	  i_short2 match = gradient_descent_match(pred, feature_(p), feature_, distance);
+ 	  float distance;
+	  i_short2 match1 = gradient_descent_match(pred, feature_(p), feature_, distance, 2);
+	  i_short2 match = gradient_descent_match(match1, feature_(p), feature_, distance, 1);
 	  if (feature_.domain().has(match))
 	  {
 	    flow_(p / flow_ratio).first = 1;
@@ -295,17 +298,19 @@ namespace cuimg
         {
           i_short2 pos = part.pos;
           i_short2 pred = prediction(part);
-	  float pos_distance = feature_.distance(pset.features()[i], pos);
+	  float pos_distance = feature_.distance(pset.features()[i], pos, 2);
 	  if ((feature_.domain() - border(7)).has(pred))
 	  {
 	    float distance;
-	    i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_, distance);
+	    i_short2 match1 = gradient_descent_match(pred, pset.features()[i], feature_, distance, 2);
+	    i_short2 match = gradient_descent_match(match1, pset.features()[i], feature_, distance, 1);
 	    if (feature_.domain().has(match) //and detector_.saliency()(match) > 0.f
 		and part.fault < 5 //and pos_distance >= distance
 		)
 	    {
 	      if (detector_.contrast()(match) <= 10.f) part.fault++;
-	      if (detector_.contrast()(match) <= 5.f) pset.remove(i);
+	      if (detector_.contrast()(match) <= 5.f)
+	      	pset.remove(i);
 	      else
 		pset.move(i, match, feature_(match));
 	    }
@@ -326,17 +331,21 @@ namespace cuimg
       pset.for_each_particle_st
       	([this] (const particle& p)
       	 {
-      	   i_int2 bin = p.pos / flow_ratio;
-      	   flow_(bin).first++;
-      	   flow_(bin).second += p.speed;
+	   if (p.age > 1)
+	   {
+	     i_int2 bin = p.pos / flow_ratio;
+	     flow_(bin).first++;
+	     flow_(bin).second += p.speed;
+	   }
       	 });
 
       [&] (i_int2 p) {
-	flow_(p).second /= flow_(p).first;
+	if (flow_(p).first)
+	  flow_(p).second /= flow_(p).first;
       } >> iterate(flow_.domain());
 
       //if (false)
-      if (!(frame_cpt_ % 1))
+      if (!(frame_cpt_ % filtering_frequency_))
       {
 	START_PROF(merge_trajectories);
 	pset.for_each_particle_st([&pset] (particle& p) { merge_trajectories(pset, p); });
@@ -421,7 +430,7 @@ namespace cuimg
 	if ((feature_.domain() - border(7)).has(pred))
 	{
 	  float distance;
-	  i_short2 match = gradient_descent_match(pred, feature_(p), feature_, distance);
+	  i_short2 match = gradient_descent_match(pred, feature_(p), feature_, distance, 1);
 	  if (feature_.domain().has(match))
 	  {
 	    flow_(p / flow_ratio).first = 1;
