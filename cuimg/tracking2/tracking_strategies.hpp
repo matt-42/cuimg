@@ -42,7 +42,6 @@ namespace cuimg
     bc2s_fast_gradient_cpu::init()
     {
       detector_
-        .set_contrast_threshold(0)
         .set_fast_threshold(60);
     }
 
@@ -55,6 +54,7 @@ namespace cuimg
         prev_camera_motion_(0,0),
         upper_(0),
         frame_cpt_(0),
+	flow_(d / flow_ratio),
         detector_frequency_(1),
         filtering_frequency_(1)
     {
@@ -117,14 +117,16 @@ namespace cuimg
 	  if ((feature_.domain() - border(7)).has(pred))
 	  {
 	    float distance;
-	    i_short2 match1 = gradient_descent_match(pred, pset.features()[i], feature_, distance, 2);
-	    i_short2 match = gradient_descent_match(match1, pset.features()[i], feature_, distance, 1);
-	    // i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_, distance);
+	    i_short2 match = two_step_gradient_descent_match(pred, pset.features()[i], feature_, distance);
 	    if (feature_.domain().has(match) //and detector_.saliency()(match) > 0.f
 		and distance < 300 and part.fault < 10 //and pos_distance >= distance
 		)
 	    {
-	      if (detector_.saliency()(match) <= 5.f) part.fault++;
+	      if (detector_.contrast()(match) <= 10.f) part.fault++;
+	      if (detector_.contrast()(match) <= 5.f)
+	      	pset.remove(i);
+	      else
+	      //if (detector_.saliency()(match) <= 5.f) part.fault++;
 	      // if (distance > 300)
 	      // {
 	      // 	part.fault++;
@@ -145,14 +147,30 @@ namespace cuimg
 
       END_PROF(matcher);
 
-      
+      memset(flow_, 0);
+      pset.for_each_particle_st
+      	([this] (const particle& p)
+      	 {
+	   if (p.age > 1)
+	   {
+	     int r = flow_ratio;
+	     i_int2 bin = p.pos / r;
+	     flow_(bin).first++;
+	     flow_(bin).second += p.speed;
+	   }
+      	 });
+
+      [&] (i_int2 p) {
+	if (flow_(p).first)
+	  flow_(p).second /= flow_(p).first;
+      } >> iterate(flow_.domain());
+
       //if (false)
       if (!(frame_cpt_ % filtering_frequency_))
       {
 	START_PROF(merge_trajectories);
 	pset.for_each_particle_st([&pset] (particle& p) { merge_trajectories(pset, p); });
 	END_PROF(merge_trajectories);
-
 
 	// ****** Filter bad particles.
 
@@ -161,8 +179,20 @@ namespace cuimg
 	for (unsigned i = 0; i < pset.dense_particles().size(); i++)
 	{
 	  particle& part = pset[i];
-	  if (part.age > 0 and is_spacial_incoherence(pset, part.pos))
-	    pset.remove(i);
+	  if (part.age > 0)
+	  {
+	    if (is_spacial_incoherence(pset, part.pos))
+	      pset.remove(i);
+	    else
+	    {
+	      if (upper_)
+	      {
+		auto f = upper_->flow_(part.pos / (2*flow_ratio));
+		if (f.first > 2 and norml2(part.speed - 2 * f.second) > 5.f)
+		  pset.remove(i);
+	      }
+	    }
+	  }
 	}
 
 	END_PROF(filter_spacial_incoherences);
@@ -189,10 +219,12 @@ namespace cuimg
     inline i_short2
     generic_strategy<F, D, P, I>::prediction(const particle& p)
     {
-      if (upper_)
-	return motion_based_prediction(p, upper_->prev_camera_motion_*2, upper_->camera_motion_*2);
-      else
-	return motion_based_prediction(p);
+      // if (upper_)
+      // 	return motion_based_prediction(p, upper_->prev_camera_motion_*2, upper_->camera_motion_*2);
+      // else
+      // 	return motion_based_prediction(p);
+      //motion_based_prediction(*this, p);
+      return multiscale_prediction(*this, p);
     }
 
     template<typename F, typename D, typename P, typename I>
@@ -204,41 +236,22 @@ namespace cuimg
     }
 
     template<typename F, typename D, typename P, typename I>
+    generic_strategy<F, D, P, I>*
+    generic_strategy<F, D, P, I>::upper()
+    {
+      return upper_;
+    }
+
+    template<typename F, typename D, typename P, typename I>
     void
     generic_strategy<F, D, P, I>::clear()
     {
       frame_cpt_ = 0;
     }
 
-
-    i_short2
-    bc2s_mdfl_gradient_multiscale_prediction_cpu::prediction(const particle& p)
-    {
-      bc2s_mdfl_gradient_multiscale_prediction_cpu* upper = static_cast<bc2s_mdfl_gradient_multiscale_prediction_cpu*>(upper_);
-      if (p.age > 1)
-	if (upper_)
-	  //return p.pos + upper->get_flow_at(p.pos / 2);
-	  // if (upper->flow_(p.pos / (2 * flow_ratio)).first)
-	  //   return p.pos + upper->flow_(p.pos / (2 * flow_ratio)).second;
-	  // else
-	  return motion_based_prediction(p, upper->prev_camera_motion_*2, upper->camera_motion_*2);
-	else
-	  return motion_based_prediction(p);
-      else
-	if (upper)
-	{
-	  return p.pos + 2 * upper->get_flow_at(p.pos / 2);
-	  // if (upper->flow_(p.pos / (2 * flow_ratio)).first)
-	  //   return p.pos + upper->flow_(p.pos / (2 * flow_ratio)).second;
-	  // else
-	  //return p.pos;//i_int2(-1, -1);
-	}
-	else
-	  return p.pos;
-    }
-
+    template<typename F, typename D, typename P, typename I>
     i_int2
-    bc2s_mdfl_gradient_multiscale_prediction_cpu::get_flow_at(const i_int2& p)
+      generic_strategy<F, D, P, I>::get_flow_at(const i_int2& p)
     {
       if (flow_(p / flow_ratio).first)
 	return flow_(p / flow_ratio).second;
@@ -251,8 +264,7 @@ namespace cuimg
 	if ((feature_.domain() - border(7)).has(pred))
 	{
  	  float distance;
-	  i_short2 match1 = gradient_descent_match(pred, feature_(p), feature_, distance, 2);
-	  i_short2 match = gradient_descent_match(match1, feature_(p), feature_, distance, 1);
+	  i_short2 match = two_step_gradient_descent_match(pred, feature_(p), feature_, distance);
 	  if (feature_.domain().has(match))
 	  {
 	    flow_(p / flow_ratio).first = 1;
@@ -263,6 +275,13 @@ namespace cuimg
       }
 
       return i_int2(0,0);
+    }
+
+
+    i_short2
+    bc2s_mdfl_gradient_multiscale_prediction_cpu::prediction(const particle& p)
+    {
+      return multiscale_prediction(*this, p);
     }
 
     void
@@ -302,10 +321,10 @@ namespace cuimg
 	  if ((feature_.domain() - border(7)).has(pred))
 	  {
 	    float distance;
-	    i_short2 match1 = gradient_descent_match(pred, pset.features()[i], feature_, distance, 2);
-	    i_short2 match = gradient_descent_match(match1, pset.features()[i], feature_, distance, 1);
+	    i_short2 match = two_step_gradient_descent_match(pred, feature_(pos), feature_, distance);
 	    if (feature_.domain().has(match) //and detector_.saliency()(match) > 0.f
 		and part.fault < 5 //and pos_distance >= distance
+		and distance < 300
 		)
 	    {
 	      if (detector_.contrast()(match) <= 10.f) part.fault++;
@@ -344,7 +363,6 @@ namespace cuimg
 	  flow_(p).second /= flow_(p).first;
       } >> iterate(flow_.domain());
 
-      //if (false)
       if (!(frame_cpt_ % filtering_frequency_))
       {
 	START_PROF(merge_trajectories);
@@ -360,16 +378,15 @@ namespace cuimg
 	  particle& part = pset[i];
 	  if (part.age > 0)
 	  {
-	    //continue;
 	    if (is_spacial_incoherence(pset, part.pos))
 	      pset.remove(i);
 	    else
 	    {
 	      if (upper)
 	      {
-		auto f = upper->flow_(part.pos / (2*flow_ratio));
-		if (f.first > 2 and norml2(part.speed - 2 * f.second) > 5.f)
-		  pset.remove(i);
+	      	auto f = upper->flow_(part.pos / (2*flow_ratio));
+	      	if (f.first > 2 and norml2(part.speed - 2 * f.second) > 5.f)
+	      	  pset.remove(i);
 	      }
 	    }
 	  }
@@ -379,7 +396,6 @@ namespace cuimg
       }
 
     }
-
 
     i_short2
     bc2s_mdfl_gradient_multiscale_prediction_cpu2::prediction(const particle& p)

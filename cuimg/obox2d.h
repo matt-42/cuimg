@@ -22,6 +22,8 @@ namespace cuimg
 
     __host__ __device__ inline bool has(const point2d<int>& p) const;
 
+    __host__ __device__ inline point2d<int> mod(const point2d<int>& p) const;
+
   private:
     unsigned short nrows_;
     unsigned short ncols_;

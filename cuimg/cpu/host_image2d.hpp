@@ -18,6 +18,13 @@ namespace cuimg
   {
   }
 
+
+  template <typename V>
+  host_image2d<V>::~host_image2d()
+  {
+    data_.reset();
+  }
+
   template <typename V>
   host_image2d<V>::host_image2d(unsigned nrows, unsigned ncols, bool pinned)
     : domain_(nrows, ncols)
@@ -63,7 +70,14 @@ namespace cuimg
       if (pitch_ % 4)
       	pitch_ = pitch_ + 4 - (pitch_ & 3);
       ptr = (V*) new char[domain_.nrows() * pitch_ + 64];
-      data_ = boost::shared_ptr<V>(ptr, array_free<V>);
+      //data_ = boost::shared_ptr<V>(ptr, array_free<V>);
+      data_ = boost::shared_ptr<V>(ptr, [&] (V* ptr) {
+	  for (unsigned r = 0; r < this->nrows(); r++)
+	    for (unsigned c = 0; c < this->ncols(); c++)
+	      this->operator()(r, c).~V();
+	  delete [] (char*)ptr;
+	});
+
 
       buffer_ = data_.get();
       if (size_t(buffer_) % 4)
@@ -72,6 +86,10 @@ namespace cuimg
       // assert(!(size_t(buffer_) % 64));
       // assert(!(size_t(pitch_) % 64));
     }
+
+    for (unsigned r = 0; r < nrows(); r++)
+      for (unsigned c = 0; c < ncols(); c++)
+	new(&this->operator()(r, c)) V();
 
     assert(buffer_);
   }

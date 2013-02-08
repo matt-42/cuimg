@@ -45,6 +45,17 @@ namespace cuimg
       p.col() >= 0 && p.col() < point2d<int>::coord(ncols_);
   }
 
+  point2d<int> obox2d::mod(const point2d<int>& p) const
+  {
+    point2d<int> res = p;
+    while (res.r() < 0) res.r() += nrows();
+    while (res.c() < 0) res.c() += ncols();
+    res.r() = res.r() % nrows();
+    res.c() = res.c() % ncols();
+    assert(has(res));
+    return res;
+  }
+
 }
 
 #endif

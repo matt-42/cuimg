@@ -10,21 +10,65 @@ namespace cuimg
   {
 
     template <typename I>
-    inline gl8u compute_saliency(i_short2 p, const I& in, int scale, float contrast_thresh)
+    inline gl8u compute_saliency(i_short2 p, const I& input_, int scale, int n_, int fast_th_)
     {
-      unsigned char pv = in(p).x;
-      unsigned char max_contrast = 0.f;
-      for(int i = 0; i < 16; i++)
+      unsigned max_n = 0;
+      unsigned n = 0;
+      bool status = 2;
+      gl8u vp = input_(p);
+      unsigned sum_bright = 0;
+      unsigned sum_dark = 0;
+
+      for (int i = 0; i < 16; i++)
       {
-        unsigned char v1 = in(p + i_int2(circle_r3_h[i]) * scale).x;
-        unsigned char contrast = ::abs(pv - v1);
-        if (max_contrast < contrast) max_contrast = contrast;
+	gl8u vn = input_(p + i_int2(circle_r3_h[i]));
+	int sign = int(vn) > int(vp);
+	unsigned char dist = ::abs(int(vn) - int(vp));
+	if (dist > fast_th_)
+	{
+	  if (sign == status) n++;
+	  else
+	  {
+	    if (n > max_n)
+	      max_n = n;
+	    status = sign;
+	    n = 1;
+	  }
+
+	  if (vn < vp)
+	    sum_dark += dist;
+	  else
+	    sum_bright += dist;
+	}
+	else
+	  status = 2;
       }
 
-      if (max_contrast >= contrast_thresh)
-        return max_contrast;
+      if (n != 16 && status != 2)
+      {
+	int i = 0;
+	while (true)
+	{
+	  gl8u vn = input_(p + i_int2(circle_r3_h[i]));
+	  int sign = int(vn) > int(vp);
+	  unsigned char dist = ::abs(int(vn) - int(vp));
+
+	  if (dist <= fast_th_ || sign != status) break;
+
+	  n++;
+	  i++;
+	  assert(i < 16);
+	}
+
+      }
+
+      if (n > max_n)
+	max_n = n;
+
+      if (max_n < n_)
+	return 0;
       else
-        return 0;
+	return std::max(sum_bright, sum_dark);
     }
   }
 
@@ -33,13 +77,6 @@ namespace cuimg
       saliency_(d),
       new_points_(d)
   {
-  }
-
-  fast_detector&
-  fast_detector::set_contrast_threshold(float f)
-  {
-    contrast_th_ = f;
-    return *this;
   }
 
   fast_detector&
@@ -60,17 +97,12 @@ namespace cuimg
   fast_detector::update(const host_image2d<gl8u>& input)
   {
     input_ = input;
-    START_PROF(fast_compute_saliency);
+
     mt_apply2d(sizeof(i_float1), input.domain() - border(8),
-               [this, &input] (i_int2 p)
-               {
-                 saliency_(p) = fast::compute_saliency(p, input, 1, contrast_th_);
-               }, arch::cpu());
-
-    END_PROF(fast_compute_saliency);
-
-    // if (input.nrows() == 480)
-    //   DISPLAY(saliency_);
+	       [this, &input] (i_int2 p)
+	       {
+		 saliency_(p) = fast::compute_saliency(p, input, 1, n_, fast_th_);
+	       }, arch::cpu());
   }
 
   template <typename F, typename PS>
@@ -83,7 +115,7 @@ namespace cuimg
                [this, &feature, &pset] (i_int2 p)
                {
                  if (pset.has(p)) return;
-                 if (saliency_(p) < contrast_th_) return;
+                 if (saliency_(p) == 0) return;
 
                  for (int i = 0; i < 8; i++)
                  {
@@ -91,50 +123,6 @@ namespace cuimg
                    if (saliency_(p) < saliency_(n) || pset.has(n))
                      return;
                  }
-
-                 unsigned max_n = 0;
-                 unsigned n = 0;
-                 bool status = 2;
-                 gl8u vp = input_(p);
-                 for (int i = 0; i < 16; i++)
-                 {
-                   gl8u vn = input_(p + i_int2(circle_r3_h[i]));
-                   int sign = int(vn) > int(vp);
-                   unsigned char dist = ::abs(int(vn) - int(vp));
-                   if (dist > fast_th_)
-                   {
-                     if (sign == status) n++;
-                     else
-                     {
-                       if (n > max_n)
-                         max_n = n;
-                       status = sign;
-                       n = 1;
-                     }
-                   }
-                   else
-                     status = 2;
-                 }
-
-                 if (n != 16 && status != 2)
-                 {
-                   int i = 0;
-                   while (true)
-                   {
-                     gl8u vn = input_(p + i_int2(circle_r3_h[i]));
-                     int sign = int(vn) > int(vp);
-                     unsigned char dist = ::abs(int(vn) - int(vp));
-
-                     if (dist <= fast_th_ || sign != status) break;
-
-                     i++;
-                     assert(i < 16);
-                   }
-
-
-                 }
-
-                 if (n < n_) return;
 
                  new_points_(p) = 1;
                }, arch::cpu());

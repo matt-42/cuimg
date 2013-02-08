@@ -14,6 +14,7 @@ namespace cuimg
     unsigned match_i = 8;
     box2d domain = feature_img.domain() - border(7);
 
+    if (!domain.has(prediction)) return prediction;
     assert(domain.has(prediction));
     for (int search = 0; search < 7; search++)
     {
@@ -58,6 +59,13 @@ namespace cuimg
     distance = match_distance;
     return match;
 
+  }
+
+  template <typename F, typename FI>
+  i_short2 two_step_gradient_descent_match(i_short2 prediction, F f, FI& feature_img, float& distance)
+  {
+    i_short2 match1 = gradient_descent_match(prediction, f, feature_img, distance, 2);
+    return gradient_descent_match(match1, f, feature_img, distance, 1);
   }
 
   template <typename F, typename S>

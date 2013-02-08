@@ -17,6 +17,25 @@ namespace cuimg
       return p.pos + p.speed - prev_cam_motion + cam_motion;
   }
 
+  // Need S::get_flow_at
+  template <typename S, typename P>
+  inline i_int2 multiscale_prediction(S& s, const P& p)
+  {
+    S* upper = static_cast<S*>(s.upper());
+      if (p.age > 1)
+	if (upper)
+	  return motion_based_prediction(p, upper->prev_camera_motion()*2, upper->camera_motion()*2);
+	else
+	  return motion_based_prediction(p);
+      else
+	if (upper)
+	{
+	  return p.pos + 2 * upper->get_flow_at(p.pos / 2);
+	}
+	else
+	  return p.pos;
+  }
+
 }
 
 #endif

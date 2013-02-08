@@ -24,29 +24,14 @@ namespace cuimg
         int v2 = in(p + i_int2(circle_r3_h[i+8]) * scale).x;
 
         int contrast = std::max(::abs(pv - v1), ::abs(pv - v2));
-        // float contrast = (fabs(pv - v1) + fabs(pv - v2));
-        if (max_contrast < contrast) max_contrast = contrast;
-
         int dev = ::abs(pv - (v1 + v2) / 2);
         // unsigned dev = ::abs(pv - v1) + ::abs(pv - v2);
 
+	max_contrast = std::max(max_contrast, contrast);
 	min_diff = std::min(min_diff, dev);
-        mean_diff += dev;
-      }
-
-      if (max_contrast >= contrast_thresh)
-      {
-        min_diff = min_diff;
-        mean_diff = 255*mean_diff / (8 * max_contrast);
-      }
-      else
-      {
-        min_diff = 0;
-        mean_diff = 0;
       }
 
       return std::pair<int, int>(min_diff, max_contrast);
-      // return mean_diff;
     }
 
 
@@ -183,13 +168,17 @@ namespace cuimg
   {
     START_PROF(mdfl_compute_saliency);
 
+    dim3 dimblock = ::cuimg::dimblock(arch::cpu(), sizeof(i_uchar1), input.domain());
+    local_jet_static_<0, 0, 1, 1>::run(input, input_s2_, tmp_, 0, dimblock);
     mt_apply2d(sizeof(i_float1), input.domain() - border(8),
 	       [this, &input] (i_int2 p)
 	       {
-		 std::pair<int, int> r = mdfl::compute_saliency(p, input, 1, contrast_th_);
+		 std::pair<int, int> r = mdfl::compute_saliency(p, input_s2_, 1, contrast_th_);
 		 contrast_(p) = r.second;
 		 if (r.second > 0)
 		   saliency_(p) = 255 * r.first / r.second;
+		 else
+		   saliency_(p) = 0;
 	       }, arch::cpu());
 
     END_PROF(mdfl_compute_saliency);

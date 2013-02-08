@@ -17,7 +17,6 @@ namespace cuimg
     template <typename F, typename PS>
     inline void new_particles(const F& feature, PS& pset);
 
-    inline fast_detector& set_contrast_threshold(float f);
     inline fast_detector& set_fast_threshold(float f);
     inline fast_detector& set_n(unsigned n);
 

@@ -12,13 +12,13 @@ namespace cuimg
   void merge_trajectories(PI& pset, particle& part)
   {
     i_int2 p = part.pos;
-    for (int i = 0; i < 9; i++)
+    for (int i = 0; i < 8; i++)
     {
-      i_int2 n(p + i_int2(c9[i]));
+      i_int2 n(p + i_int2(c8[i]));
       if (pset.domain().has(n) and pset.has(n))
       {
     	particle& buddy = pset(n);
-    	if (buddy.age > part.age and norml2(part.speed - buddy.speed) < 2.f)
+    	if (buddy.age > (part.age + 2) and norml2(part.speed - buddy.speed) < 2.f)
     	{
     	  part.age = 0;
     	  break;

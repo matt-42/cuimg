@@ -40,6 +40,52 @@ namespace cuimg
     }
 
     template <typename O>
+    __host__ __device__ inline int
+    distance(const O& o, const bc2s_256& a, const i_short2& n, const unsigned scale = 1)
+    {
+      int d = 0;
+
+      const auto* data = &o.s1_(n);
+
+      if (scale == 1)
+      {
+	for(int i = 0; i < 16; i ++)
+	{
+	  int v = data[o.offsets_s1_[i]].x;
+	  d += ::abs(v - a[i]);
+	}
+      }
+      //else
+      {
+	data = &o.s2_(n);
+	for(int i = 0; i < 16; i ++)
+	{
+	  int v = data[o.offsets_s2_[i]].x;
+	  d += ::abs(v - a[16+i]);
+	}
+      }
+
+      return d;
+    }
+
+    template <typename O>
+    __host__ __device__ inline bc2s_256
+    compute_feature_256(const O& o, const i_int2& n)
+    {
+      bc2s_256 b;
+
+      const auto* data = &o.s1_(n);
+      for(int i = 0; i < 16; i ++)
+        b[i] = data[o.offsets_s1_[i]].x;
+
+      data = &o.s2_(n);
+      for(int i = 0; i < 16; i ++)
+        b[i+16] = data[o.offsets_s2_[i]].x;
+
+      return b;
+    }
+
+    template <typename O>
     __host__ __device__ inline bc2s
     compute_feature(const O& o, const i_int2& n)
     {
@@ -186,6 +232,49 @@ namespace cuimg
     return bc2s_internals::compute_feature64(*this, p);
   }
 
+
+  /// bc2s_256
+  /// ##################
+
+  template <template <class> class I>
+  bc2s_256_feature<I>::bc2s_256_feature(const obox2d& d)
+    : s1_(d),
+      s2_(d),
+      tmp_(d)
+  {
+    for (unsigned i = 0; i < 16; i ++)
+    {
+      point2d<int> p(10,10);
+      offsets_s1_[i] = (long(&s1_(p + i_int2(circle_r3[i]))) - long(&s1_(p))) / sizeof(V);
+      offsets_s2_[i] = (long(&s2_(p + i_int2(circle_r3[i])*2)) - long(&s2_(p))) / sizeof(V);
+    }
+  }
+
+  template <template <class> class I>
+  void
+  bc2s_256_feature<I>::update(const I<gl8u>& in)
+  {
+    dim3 dimblock = ::cuimg::dimblock(arch::cpu(), sizeof(V) + sizeof(i_uchar1), in.domain());
+
+    local_jet_static_<0, 0, 2, 2>::run(in, s1_, tmp_, 0, dimblock);
+    local_jet_static_<0, 0, 3, 3>::run(in, s2_, tmp_, 0, dimblock);
+    //local_jet_static_<0, 0, 1, 1>::run(s1_, s2_, tmp_, 0, dimblock);
+  }
+
+  template <template <class> class I>
+  int
+  bc2s_256_feature<I>::distance(const bc2s_256& a, const i_short2& n, unsigned scale)
+  {
+    return bc2s_internals::distance(*this, a, n, scale);
+  }
+
+  template <template <class> class I>
+  bc2s_256
+  bc2s_256_feature<I>::operator()(const i_short2& p) const
+  {
+    return bc2s_internals::compute_feature_256(*this, p);
+  }
+
   // ########## bc2s64 feature vector methods. ###########
   // ###################################################
 
@@ -223,6 +312,46 @@ namespace cuimg
     return distances[i];
   }
 
+
+
+
+  // ########## bc2s_256 feature vector methods. ###########
+  // ###################################################
+
+  bc2s_256::bc2s_256()
+  {}
+
+  // bc2s_256::bc2s_256(const float2& o)
+  // {
+  //   tex_float = o;
+  // }
+
+  bc2s_256::bc2s_256(const bc2s_256& o)
+  {
+    tex_float[0] = o.tex_float[0];
+    tex_float[1] = o.tex_float[1];
+  }
+
+  bc2s_256&
+  bc2s_256::operator=(const bc2s_256& o)
+  {
+    tex_float[0] = o.tex_float[0];
+    tex_float[1] = o.tex_float[1];
+    return *this;
+  }
+
+
+  const unsigned char&
+  bc2s_256::operator[](const unsigned i) const
+  {
+    return distances[i];
+  }
+
+  unsigned char&
+  bc2s_256::operator[](const unsigned i)
+  {
+    return distances[i];
+  }
 
 
   // ########## bc2s64 feature vector methods. ###########
