@@ -11,7 +11,7 @@ namespace cuimg
   {
 
     template <typename I>
-    inline std::pair<int, int> compute_saliency(i_short2 p, const I& in, int scale, float contrast_thresh)
+    inline std::pair<int, int> compute_saliency(i_short2 p, const I& in, float scale, float contrast_thresh)
     {
 
       int min_diff = 999999;
@@ -22,6 +22,30 @@ namespace cuimg
       {
         int v1 = in(p + i_int2(circle_r3_h[i]) * scale).x;
         int v2 = in(p + i_int2(circle_r3_h[i+8]) * scale).x;
+
+        int contrast = std::max(::abs(pv - v1), ::abs(pv - v2));
+        int dev = ::abs(pv - (v1 + v2) / 2);
+        // unsigned dev = ::abs(pv - v1) + ::abs(pv - v2);
+
+	max_contrast = std::max(max_contrast, contrast);
+	min_diff = std::min(min_diff, dev);
+      }
+
+      return std::pair<int, int>(min_diff, max_contrast);
+    }
+
+    template <typename I>
+    inline std::pair<int, int> compute_saliency_c8(i_short2 p, const I& in, float scale, float contrast_thresh)
+    {
+
+      int min_diff = 999999;
+      int mean_diff = 0.f;
+      int pv = in(p).x;
+      int max_contrast = 0;
+      for(int i = 0; i < 4; i++)
+      {
+        int v1 = in(p + i_int2(c8_h[i]) * scale).x;
+        int v2 = in(p + i_int2(c8_h[i+4]) * scale).x;
 
         int contrast = std::max(::abs(pv - v1), ::abs(pv - v2));
         int dev = ::abs(pv - (v1 + v2) / 2);
@@ -174,6 +198,7 @@ namespace cuimg
 	       [this, &input] (i_int2 p)
 	       {
 		 std::pair<int, int> r = mdfl::compute_saliency(p, input_s2_, 1, contrast_th_);
+		 //std::pair<int, int> r = mdfl::compute_saliency_c8(p, input_s2_, 2, contrast_th_);
 		 contrast_(p) = r.second;
 		 if (r.second > 0)
 		   saliency_(p) = 255 * r.first / r.second;
@@ -220,29 +245,42 @@ namespace cuimg
 
 
   mdfl_2s_detector::mdfl_2s_detector(const obox2d& d)
-    : mdfl_1s_detector(d)
+    : mdfl_1s_detector(d),
+      input_s1_(d)
   {
   }
 
   void
   mdfl_2s_detector::update(const host_image2d<gl8u>& input)
   {
-    START_PROF(mdfl_compute_saliency);
+    START_PROF(mdfl2s_compute_saliency);
 
     dim3 dimblock = ::cuimg::dimblock(arch::cpu(), sizeof(i_uchar1), input.domain());
+    local_jet_static_<0, 0, 1, 1>::run(input, input_s1_, tmp_, 0, dimblock);
     local_jet_static_<0, 0, 1, 1>::run(input, input_s2_, tmp_, 0, dimblock);
     mt_apply2d(sizeof(i_float1), input.domain() - border(8),
 	       [this, &input] (i_int2 p)
 	       {
+		 // std::pair<int, int> r1 = mdfl::compute_saliency(p, input, 1, contrast_th_);
+		 // std::pair<int, int> r2 = mdfl::compute_saliency(p, input_s2_, 2, contrast_th_);
+		 // int c = std::min(r1.second, r2.second);
+		 // contrast_(p) = c;
+		 // if (c > 0)
+		 //   saliency_(p) = 255 * std::min(r1.first, r2.first) / c;
+
 		 std::pair<int, int> r1 = mdfl::compute_saliency(p, input, 1, contrast_th_);
 		 std::pair<int, int> r2 = mdfl::compute_saliency(p, input_s2_, 2, contrast_th_);
-		 int c = std::min(r1.second, r2.second);
+		 int s1 = 0;
+		 if (r1.second > 0) s1 = 255 * r1.first / r1.second;
+		 int s2 = 0;
+		 if (r2.second > 0) s2 = 255 * r2.first / r2.second;
+		 int c = std::max(r1.second, r2.second);
 		 contrast_(p) = c;
 		 if (c > 0)
-		   saliency_(p) = 255 * std::min(r1.first, r2.first) / c;
+		   saliency_(p) = std::max(s1, s2);
 	       }, arch::cpu());
 
-    END_PROF(mdfl_compute_saliency);
+    END_PROF(mdfl2s_compute_saliency);
   }
 
 }

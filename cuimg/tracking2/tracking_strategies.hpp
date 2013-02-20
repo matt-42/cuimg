@@ -122,8 +122,8 @@ namespace cuimg
 		and distance < 300 and part.fault < 10 //and pos_distance >= distance
 		)
 	    {
-	      if (detector_.contrast()(match) <= 10.f) part.fault++;
-	      if (detector_.contrast()(match) <= 5.f)
+	      // if (detector_.contrast()(match) <= 10.f) part.fault++;
+	      if (!(frame_cpt_ % detector_frequency_) and detector_.contrast()(match) <= 5.f)
 	      	pset.remove(i);
 	      else
 	      //if (detector_.saliency()(match) <= 5.f) part.fault++;
@@ -165,7 +165,6 @@ namespace cuimg
 	  flow_(p).second /= flow_(p).first;
       } >> iterate(flow_.domain());
 
-      //if (false)
       if (!(frame_cpt_ % filtering_frequency_))
       {
 	START_PROF(merge_trajectories);
@@ -183,15 +182,6 @@ namespace cuimg
 	  {
 	    if (is_spacial_incoherence(pset, part.pos))
 	      pset.remove(i);
-	    else
-	    {
-	      if (upper_)
-	      {
-		auto f = upper_->flow_(part.pos / (2*flow_ratio));
-		if (f.first > 2 and norml2(part.speed - 2 * f.second) > 5.f)
-		  pset.remove(i);
-	      }
-	    }
 	  }
 	}
 

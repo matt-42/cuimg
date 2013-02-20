@@ -51,6 +51,7 @@ namespace cuimg
     inline void update(const host_image2d<gl8u>& input);
 
   private:
+    host_image2d<gl8u> input_s1_;
    };
 
 }
