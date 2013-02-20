@@ -73,7 +73,7 @@ namespace cuimg
       self* lower_;
       int frame_cpt_;
 
-      const int flow_ratio = 8;
+      static const int flow_ratio = 8;
       host_image2d<std::pair<int, i_float2> > flow_;
 
       int detector_frequency_;
@@ -179,7 +179,7 @@ namespace cuimg
       inline i_int2 get_flow_at(const i_int2& p);
 
     private:
-      const unsigned flow_ratio = 8;
+      static const unsigned flow_ratio = 8;
       host_image2d<std::pair<int, i_float2> > flow_;
       rigid_transform_estimator global_transform_estimator_;
       cv::Mat_<float> global_transform_;
