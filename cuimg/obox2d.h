@@ -7,9 +7,27 @@
 
 namespace cuimg
 {
+
+  class obox2d;
+  class obox2d_iterator : public std::iterator<std::input_iterator_tag, i_int2, i_int2>
+  {
+    unsigned short line_width_;
+    i_int2 p_;
+
+  public:
+    obox2d_iterator(i_int2 p, obox2d b);
+    obox2d_iterator(const obox2d_iterator& mit);
+    obox2d_iterator& operator++();
+    obox2d_iterator operator++(int);
+    bool operator==(const obox2d_iterator& rhs);
+    bool operator!=(const obox2d_iterator& rhs);
+    const i_int2& operator*();
+  };
+
   class obox2d
   {
   public:
+    typedef obox2d_iterator iterator;
 
     __host__ __device__ inline obox2d();
     __host__ __device__ inline obox2d(unsigned nrows, unsigned ncols);
@@ -19,10 +37,14 @@ namespace cuimg
 
     __host__ __device__ inline unsigned nrows() const;
     __host__ __device__ inline unsigned ncols() const;
+    __host__ __device__ inline unsigned size() const;
 
     __host__ __device__ inline bool has(const point2d<int>& p) const;
 
     __host__ __device__ inline point2d<int> mod(const point2d<int>& p) const;
+
+    __host__ __device__ inline iterator begin() const  { return obox2d_iterator(i_int2(0, 0), *this); }
+    __host__ __device__ inline iterator end() const { return obox2d_iterator(i_int2(nrows(), 0), *this); }
 
   private:
     unsigned short nrows_;
