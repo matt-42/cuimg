@@ -46,7 +46,7 @@ SET(SOURCES cuimg/video_capture.cpp
             cuimg/load_image.cpp
             cuimg/save_image.cpp
 	    cuimg/tracking2/tracker.cpp
-	    cuimg/tracking2/opencv_tracker.cpp
+#	    cuimg/tracking2/opencv_tracker.cpp
 	    cuimg/tracking2/opencv_klttracker.cpp
             )
 
