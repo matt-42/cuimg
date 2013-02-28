@@ -73,7 +73,7 @@ namespace cuimg
       self* lower_;
       int frame_cpt_;
 
-      const int flow_ratio = 8;
+      const int flow_ratio;
       host_image2d<std::pair<int, i_float2> > flow_;
 
       int detector_frequency_;
@@ -155,35 +155,6 @@ namespace cuimg
       inline const host_image2d<std::pair<int, i_float2> >& flow() const { return flow_; }
 
     private:
-    };
-
-    struct bc2s_mdfl_gradient_multiscale_prediction_cpu2
-      : public bc2s_mdfl_gradient_cpu
-    {
-    public:
-
-      inline bc2s_mdfl_gradient_multiscale_prediction_cpu2(const obox2d& d)
-	: bc2s_mdfl_gradient_cpu(d),
-	  flow_(d / flow_ratio),
-	  prev_global_transform_(2, 3)
-      {
-	prev_global_transform_ << 1,0,0,0,1,0;
-      }
-
-      inline i_short2 prediction(const particle& p);
-      inline void match_particles(particles_type& pset);
-      inline void update(const input& in, particles_type& pset);
-
-      inline const host_image2d<std::pair<int, i_float2> >& flow() const { return flow_; }
-
-      inline i_int2 get_flow_at(const i_int2& p);
-
-    private:
-      const unsigned flow_ratio = 8;
-      host_image2d<std::pair<int, i_float2> > flow_;
-      rigid_transform_estimator global_transform_estimator_;
-      cv::Mat_<float> global_transform_;
-      cv::Mat_<float> prev_global_transform_;
     };
 
     struct bc2s_fast_gradient_cpu

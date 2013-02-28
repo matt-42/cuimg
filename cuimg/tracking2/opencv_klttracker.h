@@ -2,7 +2,6 @@
 #ifndef OPENCV_KLTTRACKER_H_
 
 #include <opencv2/opencv.hpp>
-#include <opencv2/nonfree/features2d.hpp>
 #include <cuimg/cpu/host_image2d.h>
 #include <cuimg/gl.h>
 
