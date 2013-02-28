@@ -201,6 +201,7 @@ namespace cuimg
 		 //std::pair<int, int> r = mdfl::compute_saliency_c8(p, input_s2_, 2, contrast_th_);
 		 contrast_(p) = r.second;
 		 if (r.second > 0)
+		   //saliency_(p) = r.first;// / r.second;
 		   saliency_(p) = 255 * r.first / r.second;
 		 else
 		   saliency_(p) = 0;
@@ -272,12 +273,16 @@ namespace cuimg
 		 std::pair<int, int> r2 = mdfl::compute_saliency(p, input_s2_, 2, contrast_th_);
 		 int s1 = 0;
 		 if (r1.second > 0) s1 = 255 * r1.first / r1.second;
+		 //if (r1.second > 0) s1 = r1.first;
 		 int s2 = 0;
 		 if (r2.second > 0) s2 = 255 * r2.first / r2.second;
+		 //if (r2.second > 0) s2 = r2.first;
 		 int c = std::max(r1.second, r2.second);
 		 contrast_(p) = c;
 		 if (c > 0)
 		   saliency_(p) = std::max(s1, s2);
+		 else
+		   saliency_(p) = 0;
 	       }, arch::cpu());
 
     END_PROF(mdfl2s_compute_saliency);

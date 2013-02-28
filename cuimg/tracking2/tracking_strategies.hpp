@@ -41,8 +41,6 @@ namespace cuimg
     void
     bc2s_fast_gradient_cpu::init()
     {
-      detector_
-        .set_fast_threshold(60);
     }
 
     template<typename F, typename D, typename P, typename I>
@@ -118,14 +116,15 @@ namespace cuimg
 	  {
 	    float distance;
 	    i_short2 match = two_step_gradient_descent_match(pred, pset.features()[i], feature_, distance);
+	    //i_short2 match = gradient_descent_match(pred, pset.features()[i], feature_, distance);
 	    if (feature_.domain().has(match) //and detector_.saliency()(match) > 0.f
 		and distance < 300 and part.fault < 10 //and pos_distance >= distance
 		)
 	    {
-	      // if (detector_.contrast()(match) <= 10.f) part.fault++;
-	      if (!(frame_cpt_ % detector_frequency_) and detector_.contrast()(match) <= 5.f)
-	      	pset.remove(i);
-	      else
+	      // if (!(frame_cpt_ % detector_frequency_) and detector_.contrast()(match) <= 10.f) part.fault++;
+	      // if (!(frame_cpt_ % detector_frequency_) and detector_.contrast()(match) <= 1.f)
+	      // 	pset.remove(i);
+	      // else
 	      //if (detector_.saliency()(match) <= 5.f) part.fault++;
 	      // if (distance > 300)
 	      // {
@@ -312,6 +311,7 @@ namespace cuimg
 	  {
 	    float distance;
 	    i_short2 match = two_step_gradient_descent_match(pred, feature_(pos), feature_, distance);
+	    //i_short2 match = gradient_descent_match(pred, feature_(pos), feature_, distance, 1);
 	    if (feature_.domain().has(match) //and detector_.saliency()(match) > 0.f
 		and part.fault < 5 //and pos_distance >= distance
 		and distance < 300

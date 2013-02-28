@@ -14,7 +14,7 @@ namespace cuimg
     {
       unsigned max_n = 0;
       unsigned n = 0;
-      bool status = 2;
+      int status = 2;
       gl8u vp = input_(p);
       unsigned sum_bright = 0;
       unsigned sum_dark = 0;
@@ -26,7 +26,7 @@ namespace cuimg
 	unsigned char dist = ::abs(int(vn) - int(vp));
 	if (dist > fast_th_)
 	{
-	  if (sign == status) n++;
+ 	  if (sign == status) n++;
 	  else
 	  {
 	    if (n > max_n)

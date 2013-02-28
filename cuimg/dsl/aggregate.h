@@ -201,7 +201,7 @@ namespace cuimg
   };
 
 #define make_vec2(T, A, B) aggregate<T>::run(A, B);
-#define make_vec3(T, A, B, C) aggregate<T>::run(A, B, C, D);
+#define make_vec3(T, A, B, C) aggregate<T>::run(A, B, C);
 #define make_vec4(T, A, B, C, D) aggregate<T>::run(A, B, C, D);
 
 }

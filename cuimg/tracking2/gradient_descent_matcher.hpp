@@ -14,7 +14,11 @@ namespace cuimg
     unsigned match_i = 8;
     box2d domain = feature_img.domain() - border(7);
 
-    if (!domain.has(prediction)) return prediction;
+    if (!domain.has(prediction))
+    {
+      distance = 999999.f;
+      return prediction;
+    }
     assert(domain.has(prediction));
     for (int search = 0; search < 7; search++)
     {
@@ -38,6 +42,45 @@ namespace cuimg
       for(; i != end; i = (i + 1) & 7)
       {
         i_int2 n(prediction + i_int2(c8[i]));
+        {
+          float d = feature_img.distance(f, n, scale);
+          if (d < match_distance)
+          {
+            match = n;
+            match_i = i;
+            match_distance = d;
+          }
+        }
+      }
+
+      if (i_int2(prediction) == i_int2(match) || !domain.has(match))
+        break;
+      else
+        prediction = match;
+
+    }
+
+    distance = match_distance;
+    return match;
+
+  }
+
+
+  template <typename F, typename FI>
+  i_short2 gradient_descent_match2(i_short2 prediction, F f, FI& feature_img, float& distance, unsigned scale = 1)
+  {
+    i_short2 match = prediction;
+    float match_distance = feature_img.distance(f, prediction);
+    unsigned match_i = 8;
+    box2d domain = feature_img.domain() - border(7);
+
+    if (!domain.has(prediction)) return prediction;
+    assert(domain.has(prediction));
+    for (int search = 0; search < 7; search++)
+    {
+      for(int i = 0; i != 25; i++)
+      {
+        i_int2 n(prediction + i_int2(c25[i]));
         {
           float d = feature_img.distance(f, n, scale);
           if (d < match_distance)
