@@ -28,6 +28,8 @@ namespace cuimg
     inline mdfl_1s_detector& set_dev_threshold(float f);
     inline mdfl_1s_detector& set_saliency_mode(saliency_mode m);
 
+    inline float dev_threshold() const { return dev_th_; }
+
     inline const host_image2d<int>& saliency() { return saliency_; }
     inline const host_image2d<int>& contrast() { return contrast_; }
 

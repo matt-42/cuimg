@@ -112,7 +112,7 @@ namespace cuimg
           i_short2 pos = part.pos;
           i_short2 pred = prediction(part);
 	  float pos_distance = feature_.distance(pset.features()[i], pos);
-	  if ((feature_.domain() - border(7)).has(pred))
+	  if ((feature_.domain() - border(8)).has(pred))
 	  {
 	    float distance;
 	    i_short2 match = two_step_gradient_descent_match(pred, pset.features()[i], feature_, distance);
@@ -121,10 +121,10 @@ namespace cuimg
 		and distance < 300 and part.fault < 10 //and pos_distance >= distance
 		)
 	    {
-	      // if (!(frame_cpt_ % detector_frequency_) and detector_.contrast()(match) <= 10.f) part.fault++;
-	      // if (!(frame_cpt_ % detector_frequency_) and detector_.contrast()(match) <= 1.f)
-	      // 	pset.remove(i);
-	      // else
+	      if (!(frame_cpt_ % detector_frequency_) and detector_.contrast()(match) <= 10.f) part.fault++;
+	      if (!(frame_cpt_ % detector_frequency_) and detector_.contrast()(match) <= 1.f)
+	      	pset.remove(i);
+	      else
 	      //if (detector_.saliency()(match) <= 5.f) part.fault++;
 	      // if (distance > 300)
 	      // {

@@ -223,23 +223,22 @@ namespace cuimg
                [this, &feature, &pset] (i_int2 p)
                {
                  if (pset.has(p)) return;
-                 if (contrast_(p) < contrast_th_) return;
-                 if (saliency_(p) < dev_th_) return;
-
+                 if (this->contrast_(p) < this->contrast_th_) return;
+                 if (this->saliency_(p) < this->dev_th_) return;
                  for (int i = 0; i < 8; i++)
                  {
                    i_int2 n(p + i_int2(c8[i]));
-                   if (saliency_(p) < saliency_(n) || pset.has(n))
+                   if (this->saliency_(p) < this->saliency_(n) || pset.has(n))
                      return;
                  }
 
-                 new_points_(p) = 1;
+                 this->new_points_(p) = 1;
                }, arch::cpu());
 
     st_apply2d(sizeof(char), saliency_.domain() - border(8),
                [this, &feature, &pset] (i_int2 p)
                {
-                 if (new_points_(p)) pset.add(p, feature(p));
+                 if (this->new_points_(p)) pset.add(p, feature(p));
                }, arch::cpu());
 
   }
