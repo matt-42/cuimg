@@ -75,6 +75,7 @@ namespace cuimg
   fast_detector::fast_detector(const obox2d& d)
     : n_(9),
       saliency_(d),
+      contrast_(d),
       new_points_(d)
   {
   }
@@ -103,6 +104,16 @@ namespace cuimg
 	       {
 		 saliency_(p) = fast::compute_saliency(p, input, 1, n_, fast_th_);
 	       }, arch::cpu());
+
+    // contrast
+    mt_apply2d(sizeof(i_float1), input.domain() - border(5),
+	       [this, &input] (i_int2 p)
+	       {
+		 const int d = 5;
+		 contrast_(p) = ::abs(int(input(p + i_int2(0,d))) - int(input(p + i_int2(0,-d)))) +
+		   ::abs(int(input(p + i_int2(-d,0))) - int(input(p + i_int2(d,0))));
+	       }, arch::cpu());
+
   }
 
   template <typename F, typename PS>

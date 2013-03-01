@@ -21,13 +21,14 @@ namespace cuimg
     inline fast_detector& set_n(unsigned n);
 
     inline const host_image2d<gl8u>& saliency() { return saliency_; }
-    inline const host_image2d<gl8u>& contrast() { return saliency_; }
+    inline const host_image2d<gl8u>& contrast() { return contrast_; }
 
   private:
     float contrast_th_;
     float fast_th_;
     unsigned n_;
     host_image2d<gl8u> saliency_;
+    host_image2d<gl8u> contrast_;
     host_image2d<gl8u> input_;
     host_image2d<char> new_points_;
   };

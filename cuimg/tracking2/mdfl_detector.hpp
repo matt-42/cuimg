@@ -197,7 +197,7 @@ namespace cuimg
     mt_apply2d(sizeof(i_float1), input.domain() - border(8),
 	       [this, &input] (i_int2 p)
 	       {
-		 std::pair<int, int> r = mdfl::compute_saliency(p, input_s2_, 1, contrast_th_);
+		 std::pair<int, int> r = mdfl::compute_saliency(p, input, 1, contrast_th_);
 		 //std::pair<int, int> r = mdfl::compute_saliency_c8(p, input_s2_, 2, contrast_th_);
 		 contrast_(p) = r.second;
 		 if (r.second > 0)

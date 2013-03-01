@@ -159,12 +159,12 @@ namespace cuimg
       offsets_s2_[i/2] = (long(&s2_(p + i_int2(circle_r3[i])*2)) - long(&s2_(p))) / sizeof(V);
     }
 
-    for (unsigned i = 0; i < 8; i ++)
-    {
-      point2d<int> p(10,10);
-      offsets_s1_[i] = (long(&s1_(p + i_int2(c8[i])*2)) - long(&s1_(p))) / sizeof(V);
-      offsets_s2_[i] = (long(&s1_(p + i_int2(c8[i])*6)) - long(&s1_(p))) / sizeof(V);
-    }
+    // for (unsigned i = 0; i < 8; i ++)
+    // {
+    //   point2d<int> p(10,10);
+    //   offsets_s1_[i] = (long(&s1_(p + i_int2(c8[i])*2)) - long(&s1_(p))) / sizeof(V);
+    //   offsets_s2_[i] = (long(&s1_(p + i_int2(c8[i])*6)) - long(&s1_(p))) / sizeof(V);
+    // }
 
   }
 
