@@ -193,7 +193,7 @@ namespace cuimg
     START_PROF(mdfl_compute_saliency);
 
     dim3 dimblock = ::cuimg::dimblock(arch::cpu(), sizeof(i_uchar1), input.domain());
-    local_jet_static_<0, 0, 1, 1>::run(input, input_s2_, tmp_, 0, dimblock);
+    // local_jet_static_<0, 0, 1, 1>::run(input, input_s2_, tmp_, 0, dimblock);
     mt_apply2d(sizeof(i_float1), input.domain() - border(8),
 	       [this, &input] (i_int2 p)
 	       {

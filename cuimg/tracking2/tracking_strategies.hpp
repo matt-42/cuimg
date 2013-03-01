@@ -94,6 +94,7 @@ namespace cuimg
         new_particles(pset);
       }
 
+      pset.tick();
       frame_cpt_++;
     }
 
@@ -108,7 +109,8 @@ namespace cuimg
       for (unsigned i = 0; i < pset.dense_particles().size(); i++)
       {
         particle& part = pset.dense_particles()[i];
-        if (part.age > 0)
+        if (part.age > 0
+	    && part.next_match_time == frame_cpt_)
         {
           i_short2 pos = part.pos;
           i_short2 pred = prediction(part);
@@ -140,6 +142,8 @@ namespace cuimg
 	  else
 	    pset.remove(i);
         }
+	else if (part.age > 0)
+	  pset.touch(i);
 
 	//assert(pset.dense_particles()[i].age == pset.sparse_particles()(part.pos).age);
 
@@ -303,7 +307,9 @@ namespace cuimg
       for (unsigned i = 0; i < pset.dense_particles().size(); i++)
       {
         particle& part = pset.dense_particles()[i];
-        if (part.age > 0)
+        if (part.age > 0 
+	    && part.next_match_time == frame_cpt_
+	    )
         {
           i_short2 pos = part.pos;
           i_short2 pred = prediction(part);
@@ -330,6 +336,10 @@ namespace cuimg
 	  else
 	    pset.remove(i);
         }
+	else if (part.age > 0)
+	{
+	  part.age++;
+	}
 
 	//assert(pset.dense_particles()[i].age == pset.sparse_particles()(part.pos).age);
 

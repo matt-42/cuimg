@@ -35,6 +35,8 @@ namespace cuimg
     i_short2 acceleration;
     unsigned short age;
     unsigned short fault;
+    int prev_match_time;
+    int next_match_time;
   };
 
   struct particle_f
@@ -91,6 +93,7 @@ namespace cuimg
 
     void compact();
     void move(unsigned i, particle_coords dst, const feature_type& f);
+    void touch(unsigned i);
     bool has(i_int2 p) const;
     void add(i_int2 p, const feature_type& f);
     void remove(const i_short2& pos);
@@ -98,6 +101,7 @@ namespace cuimg
     void swap_buffers();
     inline const obox2d& domain() const { return sparse_buffer_.domain(); }
     void clear();
+    void tick();
 
     void before_matching();
     void after_matching();
@@ -110,6 +114,7 @@ namespace cuimg
     FV features_vec_;
     std::vector<unsigned int> matches_;
     bool compact_has_run_;
+    unsigned frame_cpt;
   };
 
 }

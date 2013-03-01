@@ -206,16 +206,18 @@ namespace cuimg
   void
   bc2s_feature<I>::update(const I<gl8u>& in)
   {
+    SCOPE_PROF(bc2s_feature::update);
     dim3 dimblock = ::cuimg::dimblock(arch::cpu(), sizeof(V) + sizeof(i_uchar1), in.domain());
 
-    // local_jet_static_<0, 0, 2, 2>::run(in, s1_, tmp_, 0, dimblock);
+    //local_jet_static_<0, 0, 2, 2>::run(in, s1_, tmp_, 0, dimblock);
     // local_jet_static_<0, 0, 3, 3>::run(in, s2_, tmp_, 0, dimblock);
+    //local_jet_static_<0, 0, 1, 1>::run(s1_, s2_, tmp_, 0, dimblock);
 
     cv::GaussianBlur(cv::Mat(in), cv::Mat(s1_), cv::Size(7, 7), 2, 2, cv::BORDER_REPLICATE);
-    cv::GaussianBlur(cv::Mat(in), cv::Mat(s2_), cv::Size(9, 9), 3, 3, cv::BORDER_REPLICATE);
+    cv::GaussianBlur(cv::Mat(s1_), cv::Mat(s2_), cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE);
+    //cv::GaussianBlur(cv::Mat(in), cv::Mat(s2_), cv::Size(9, 9), 3, 3, cv::BORDER_REPLICATE);
     // dg::widgets::ImageView("frame") << (*(host_image2d<i_uchar1>*)(&s2_)) << dg::widgets::show;
     // dg::pause();
-    //local_jet_static_<0, 0, 1, 1>::run(s1_, s2_, tmp_, 0, dimblock);
   }
 
   template <template <class> class I>

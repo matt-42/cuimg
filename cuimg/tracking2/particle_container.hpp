@@ -4,6 +4,7 @@
 # include <cuimg/memset.h>
 # include <cuimg/tracking2/compact_particles_image.h>
 # include <cuimg/mt_apply.h>
+# include <cuimg/builtin_math.h>
 
 namespace cuimg
 {
@@ -16,6 +17,7 @@ namespace cuimg
   particle_container<F, P, I>::particle_container(const obox2d& d)
     : sparse_buffer_(d)
   {
+    frame_cpt = 0;
     particles_vec_.reserve((d.nrows() * d.ncols()) / 10);
     features_vec_.reserve((d.nrows() * d.ncols()) / 10);
   }
@@ -30,6 +32,7 @@ namespace cuimg
     features_vec_ = d.features_vec_;
     matches_ = d.matches_;
     compact_has_run_ = d.compact_has_run_;
+    frame_cpt = d.frame_cpt;
   }
 
   template <typename F, typename P,
@@ -44,7 +47,7 @@ namespace cuimg
     features_vec_ = d.features_vec_;
     matches_ = d.matches_;
     compact_has_run_ = d.compact_has_run_;
-
+    frame_cpt = d.frame_cpt;
     return *this;
   }
 
@@ -62,6 +65,15 @@ namespace cuimg
   particle_container<F, P, I>::sparse_particles()
   {
     return sparse_buffer_;
+  }
+
+
+  template <typename F, typename P,
+	    template <class> class I>
+  void
+  particle_container<F, P, I>::tick()
+  {
+    frame_cpt++;
   }
 
 
@@ -177,6 +189,7 @@ namespace cuimg
   void
   particle_container<F, P, I>::after_matching()
   {
+    frame_cpt++;
   }
 
   template <typename F, typename P,
@@ -236,7 +249,8 @@ namespace cuimg
     pt.age = 1;
     pt.speed = i_int2(0,0);
     pt.pos = p;
-
+    pt.prev_match_time = frame_cpt;
+    pt.next_match_time = frame_cpt + 1;
     sparse_buffer_(p) = particles_vec_.size();
     particles_vec_.push_back(pt);
     features_vec_.push_back(feature);
@@ -270,16 +284,35 @@ namespace cuimg
     p.age++;
     i_int2 new_speed = dst - src;
     if (p.age > 1)
-      p.acceleration = new_speed - p.speed;
+      p.acceleration = (new_speed - p.speed);
     else
       p.acceleration = i_int2(0,0);
-    p.speed = new_speed;
+    p.speed = i_float2(new_speed) / (frame_cpt - p.prev_match_time);
     p.pos = dst;
-
+    p.prev_match_time = frame_cpt;
+    float period = 10.f;
+    i_float2 mesure = p.speed;
+    if (norml2(mesure) > 0.f)
+      period = std::min(10.f, 10.f / norml2(mesure));
+    if (period < 1)
+      period = 1;
+    // p.next_match_time = frame_cpt + period;
+    p.next_match_time = frame_cpt + 1;
     if ((p.speed.y + p.speed.x) > 0)
       features_vec_[i] = f;
 
     sparse_buffer_(dst) = i;
+  }
+
+  template <typename F, typename P,
+	    template <class> class I>
+  void
+  particle_container<F, P, I>::touch(unsigned i)
+  {
+    auto& p = particles_vec_[i];
+    particle_coords src = p.pos;
+    p.age++;
+    sparse_buffer_(p.pos) = i;
   }
 
   template <typename F, typename P,
