@@ -6,7 +6,8 @@
 namespace cuimg
 {
 
-  fast_detector::fast_detector(const obox2d& d)
+  template <typename A>
+  fast_detector<A>::fast_detector(const obox2d& d)
     : n_(9),
       saliency_(d),
       contrast_(d),
@@ -14,15 +15,17 @@ namespace cuimg
   {
   }
 
+  template <typename A>
   fast_detector&
-  fast_detector::set_fast_threshold(float f)
+  fast_detector<A>::set_fast_threshold(float f)
   {
     fast_th_ = f;
     return *this;
   }
 
+  template <typename A>
   fast_detector&
-  fast_detector::set_n(unsigned n)
+  fast_detector<A>::set_n(unsigned n)
   {
     n_ = n;
     return *this;
@@ -30,8 +33,9 @@ namespace cuimg
 
 
 #ifndef NO_CPP0X
+  template <typename A>
   void
-  fast_detector::update(const host_image2d<gl8u>& input)
+  fast_detector<A>::update(const host_image2d<gl8u>& input)
   {
     input_ = input;
 
@@ -51,9 +55,10 @@ namespace cuimg
   }
 
 
+  template <typename A>
   template <typename F, typename PS>
   void
-  fast_detector::new_particles(const F& feature, PS& pset)
+  fast_detector<A>::new_particles(const F& feature, PS& pset)
   {
     SCOPE_PROF(fast_new_particles_detector);
     memset(new_points_, 0);
@@ -86,7 +91,7 @@ namespace cuimg
 
 #ifndef NO_CUDA
 
-  template <typename F, typename PS, typename I, typename J>
+  template <typename PS, typename I, typename J>
   inline __global__
   void select_particles(PS& pset, const I& saliency, J& new_points)
   {
@@ -106,41 +111,20 @@ namespace cuimg
   }
 
 
+  template <typename A>
   template <typename F, typename PS>
   void
-  fast_detector::new_particles(const F& feature, PS& pset)
+  fast_detector<A>::new_particles(const F& feature, PS& pset)
   {
     SCOPE_PROF(fast_new_particles_detector);
     memset(new_points_, 0);
 
-    select_particles<<<dimgrid, dimblock>>>()
-    CUDA_ITERATE()
-    {
+    //dim3 dimblock = A::dimblock();
+    //dim3 dimgrid = ;
+    select_particles<<<A::dimgrid(saliency_.domain()), A::dimblock()>>>
+      (pset, saliency_, new_points_);
 
-    }
-
-    mt_apply2d(sizeof(i_float1), saliency_.domain() - border(8),
-               [this, &feature, &pset] (i_int2 p)
-               {
-                 if (pset.has(p)) return;
-                 if (saliency_(p) == 0) return;
-
-                 for (int i = 0; i < 8; i++)
-                 {
-                   i_int2 n(p + i_int2(c8[i]));
-                   if (saliency_(p) < saliency_(n) || pset.has(n))
-                     return;
-                 }
-
-                 new_points_(p) = 1;
-               }, arch::cpu());
-
-    st_apply2d(sizeof(i_float1), saliency_.domain() - border(8),
-               [this, &feature, &pset] (i_int2 p)
-               {
-                 if (new_points_(p)) pset.add(p, feature(p));
-               }, arch::cpu());
-
+    pset.append_new_points(new_points_);
   }
 
 
