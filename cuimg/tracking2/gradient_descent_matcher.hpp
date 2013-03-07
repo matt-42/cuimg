@@ -126,7 +126,7 @@ namespace cuimg
         float d = feature_img.distance_linear(sample, n);
         if (d < match_distance)
         {
-          match = n;
+          match = i_int2(n);
           match_distance = d;
         }
       }

@@ -139,10 +139,10 @@ namespace cuimg
 
     inline __device__ int distance(const bc2s& a, const i_short2& n, unsigned scale = 1);
     inline __device__ bc2s operator()(const i_short2& p) const;
-    inline __device__ int offsets_s1(int o) const;
-    inline __device__ int offsets_s2(int o) const;
-    inline __device__ const kernel_image2d<V>& s1() const { return s1_; }
-    inline __device__ const kernel_image2d<V>& s2() const { return s2_; }
+    inline __host__ __device__ int offsets_s1(int o) const;
+    inline __host__ __device__ int offsets_s2(int o) const;
+    inline __host__ __device__ const kernel_image2d<V>& s1() const { return s1_; }
+    inline __host__ __device__ const kernel_image2d<V>& s2() const { return s2_; }
 
   public:
     kernel_image2d<V> s1_;

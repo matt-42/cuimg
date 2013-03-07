@@ -176,8 +176,8 @@ namespace cuimg
 #ifndef NO_CUDA
 
   template <typename PS, typename I, typename J>
-  inline __global__
-  void select_particles(PS& pset, const I& saliency, J& new_points)
+  __global__
+  void select_particles(PS pset, const I saliency, J new_points)
   {
     i_int2 p = thread_pos2d();
 

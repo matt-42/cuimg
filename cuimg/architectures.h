@@ -35,11 +35,11 @@ namespace cuimg
     template <typename V> struct kernel_image2d { typedef kernel_image2d<V> ret; };
     template <typename V> struct vector { typedef thrust::device_vector<V> ret; };
 
-    dim3 dimblock1d() {             return dim3(256, 1, 1); }
-    dim3 dimgrid1d(unsigned size) { return dim3(idivup(size, 256), 1, 1); }
+    static dim3 dimblock1d() {             return dim3(256, 1, 1); }
+    static dim3 dimgrid1d(unsigned size) { return dim3(idivup(size, 256), 1, 1); }
 
-    dim3 dimblock2d() { return dim3(16, 16, 1); }
-    dim3 dimgrid2d(const obox2d& d) { return dim3(idivup(d.ncols(), 16), idivup(d.nrows(), 16), 1); }
+    static dim3 dimblock2d() { return dim3(16, 16, 1); }
+    static dim3 dimgrid2d(const obox2d& d) { return dim3(idivup(d.ncols(), 16), idivup(d.nrows(), 16), 1); }
   };
 #endif
 
