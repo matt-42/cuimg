@@ -187,12 +187,13 @@ namespace cuimg
     return *this;
   }
 
+#ifndef NO_CPP0X
   void
   mdfl_1s_detector::update(const host_image2d<gl8u>& input)
   {
     START_PROF(mdfl_compute_saliency);
 
-    dim3 dimblock = ::cuimg::dimblock(arch::cpu(), sizeof(i_uchar1), input.domain());
+    dim3 dimblock = ::cuimg::dimblock(cpu(), sizeof(i_uchar1), input.domain());
     // local_jet_static_<0, 0, 1, 1>::run(input, input_s2_, tmp_, 0, dimblock);
     mt_apply2d(sizeof(i_float1), input.domain() - border(8),
 	       [this, &input] (i_int2 p)
@@ -205,7 +206,7 @@ namespace cuimg
 		   saliency_(p) = 255 * r.first / r.second;
 		 else
 		   saliency_(p) = 0;
-	       }, arch::cpu());
+	       }, cpu());
 
     END_PROF(mdfl_compute_saliency);
 
@@ -233,13 +234,13 @@ namespace cuimg
                  }
 
                  this->new_points_(p) = 1;
-               }, arch::cpu());
+               }, cpu());
 
     st_apply2d(sizeof(char), saliency_.domain() - border(8),
                [this, &feature, &pset] (i_int2 p)
                {
                  if (this->new_points_(p)) pset.add(p, feature(p));
-               }, arch::cpu());
+               }, cpu());
 
   }
 
@@ -255,7 +256,7 @@ namespace cuimg
   {
     START_PROF(mdfl2s_compute_saliency);
 
-    dim3 dimblock = ::cuimg::dimblock(arch::cpu(), sizeof(i_uchar1), input.domain());
+    dim3 dimblock = ::cuimg::dimblock(cpu(), sizeof(i_uchar1), input.domain());
     local_jet_static_<0, 0, 1, 1>::run(input, input_s1_, tmp_, 0, dimblock);
     local_jet_static_<0, 0, 1, 1>::run(input, input_s2_, tmp_, 0, dimblock);
     mt_apply2d(sizeof(i_float1), input.domain() - border(8),
@@ -282,10 +283,12 @@ namespace cuimg
 		   saliency_(p) = std::max(s1, s2);
 		 else
 		   saliency_(p) = 0;
-	       }, arch::cpu());
+	       }, cpu());
 
     END_PROF(mdfl2s_compute_saliency);
   }
+
+#endif
 
 }
 

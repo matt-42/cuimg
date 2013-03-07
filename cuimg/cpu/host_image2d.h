@@ -9,6 +9,7 @@
 # include <cuimg/dsl/expr.h>
 # include <cuimg/point2d.h>
 # include <cuimg/obox2d.h>
+# include <cuimg/gpu/kernel_image2d.h>
 
 #ifdef WITH_OPENCV
 # include <opencv2/core/core.hpp>
@@ -28,6 +29,7 @@ namespace cuimg
     typedef point2d<int> point;
     typedef obox2d domain_type;
     typedef boost::shared_ptr<V> PT;
+    typedef kernel_image2d<V> kernel_type;
 
     host_image2d();
     ~host_image2d();
@@ -74,6 +76,8 @@ namespace cuimg
     const V* data() const;
 
     size_t buffer_size() const;
+
+    inline i_int2 index_to_point(unsigned int idx) const;
 
     template <typename E>
     host_image2d<V>& operator=(const expr<E>& e)

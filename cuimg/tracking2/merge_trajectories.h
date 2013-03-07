@@ -17,7 +17,7 @@ namespace cuimg
       i_int2 n(p + i_int2(c8[i]));
       if (pset.domain().has(n) and pset.has(n))
       {
-    	particle& buddy = pset(n);
+    	const particle& buddy = pset(n);
     	if (buddy.age > (part.age + 2) and norml2(part.speed - buddy.speed) < 2.f)
     	{
     	  part.age = 0;

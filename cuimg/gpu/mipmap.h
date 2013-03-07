@@ -9,16 +9,17 @@
 # include <cuimg/gpu/texture.h>
 
 # include <cuimg/meta_gaussian/meta_gaussian_coefs_1.h>
-# include <cuimg/gpu/local_jet_static.h>
+//# include <cuimg/gpu/local_jet_static.h>
+//#include <cuimg/gpu/gaussian_blur.h>
 
 namespace cuimg
 {
   namespace mipmap_internals
   {
 
-    template <typename T>
-    struct UNIT_STATIC(mipmap_input_tex);
-      REGISTER_TEXTURE2D_PROXY(mipmap_input_tex);
+    // template <typename T>
+    // struct UNIT_STATIC(mipmap_input_tex);
+    //   REGISTER_TEXTURE2D_PROXY(mipmap_input_tex);
 
     template <target T, typename I>
     __host__ __device__ void mipmap_kernel(thread_info<T> ti, kernel_image2d<I> in, kernel_image2d<I> out)
@@ -30,16 +31,23 @@ namespace cuimg
         return;
 
       i_int2 d(p[0] * 2, p[1] * 2);
-      out(p) = (I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1], d[0])) +
-                I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1] + 1, d[0])) +
-                I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1], d[0] + 1)) +
-                I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1] + 1, d[0] + 1))) / 4.f;
+      // out(p) = (I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1], d[0])) +
+      //           I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1] + 1, d[0])) +
+      //           I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1], d[0] + 1)) +
+      //           I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1] + 1, d[0] + 1))) / 4.f;
+
+      unsigned linesize = in.pitch()/sizeof(I);
+      I* data = &in(d);
+      out(p) = I(*(data) + *(data + 1) +
+		 *(data + linesize + *(data + linesize + 1))) / 4.f;
+
     }
 
 #define mipmap_kernel_sig(T, I) kernel_image2d<I>, kernel_image2d<I>, &mipmap_kernel<T, I>
 
   }
 
+#if 0
   template <typename D, typename S>
   std::vector<typename change_value_type<S, D>::ret>
   allocate_mipmap(const D&,
@@ -134,6 +142,23 @@ namespace cuimg
   }
   */
 
+  // cudaTextureObject_t∗ create_texture(device_image2d<>)
+  // {
+  //   resDesc.res.array.array = cuArray;
+  //   // Specify texture object parameters
+  //   struct cudaTextureDesc texDesc;
+  //   memset(&texDesc, 0, sizeof(texDesc));
+  //   texDesc.addressMode[0] = cudaAddressModeWrap;
+  //   texDesc.addressMode[1] = cudaAddressModeWrap;
+  //   texDesc.filterMode = cudaFilterModeLinear;
+  //   texDesc.readMode = cudaReadModeElementType;
+  //   texDesc.normalizedCoords = 1;
+  //   // Create texture object
+  //   cudaTextureObject texObj = 0;
+  //   cudaCreateTextureObject(&texObj, &resDesc, &texDesc, NULL);
+  //   // Allocate result of transformation in device memory
+  // }
+
   template <typename I>
   void update_mipmap(const Image2d<I>& in,
                      std::vector<I>& pyramid_out,
@@ -192,6 +217,8 @@ namespace cuimg
     }
 
   }
+
+#endif
 
   template <typename I>
   void subsample(const Image2d<I>& in,

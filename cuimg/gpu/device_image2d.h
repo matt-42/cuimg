@@ -13,6 +13,10 @@
 
 namespace cuimg
 {
+
+  template <typename V>
+  class kernel_image2d;
+
   template <typename V>
   class device_image2d : public Image2d<device_image2d<V> >
   {
@@ -24,6 +28,7 @@ namespace cuimg
     typedef V value_type;
     typedef point2d<int> point;
     typedef obox2d domain_type;
+    typedef kernel_image2d<V> kernel_type;
 
     inline device_image2d();
     inline device_image2d(unsigned nrows, unsigned ncols);
@@ -46,9 +51,12 @@ namespace cuimg
     __host__ inline void set_pixel(const point& p, const V& e);
 
     __host__ __device__ inline V* data() const;
+    __host__ __device__ inline V* begin() const;
+    __host__ __device__ inline V* end() const;
     //__host__ __device__ inline const V* data() const;
 
     __host__ __device__ inline bool has(const point& p) const;
+    __host__ __device__ inline i_int2 index_to_point(unsigned int idx) const;
 
     __host__ __device__ inline const PT data_sptr() const;
     __host__ __device__ inline PT data_sptr();

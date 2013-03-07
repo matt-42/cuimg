@@ -2,8 +2,14 @@
 # define CUIMG_BC2S_FEATURE_HPP_
 
 # include <opencv2/opencv.hpp>
+# include <cuimg/profiler.h>
 # include <cuimg/architectures.h>
 # include <cuimg/neighb2d_data.h>
+//# include <cuimg/gpu/local_jet_static.h>
+
+#ifndef NO_CUDA
+# include <cuimg/gpu/gaussian_blur.h>
+#endif
 
 namespace cuimg
 {
@@ -16,13 +22,13 @@ namespace cuimg
     {
       int d = 0;
 
-      const auto* data = &o.s1_(n);
+      const typename O::V* data = &o.s1_(n);
 
       if (scale == 1)
       {
 	for(int i = 0; i < 8; i ++)
 	{
-	  int v = data[o.offsets_s1_[i]].x;
+	  int v = data[o.offsets_s1(i)].x;
 	  d += ::abs(v - a[i]);
 	}
       }
@@ -31,7 +37,7 @@ namespace cuimg
 	data = &o.s2_(n);
 	for(int i = 0; i < 8; i ++)
 	{
-	  int v = data[o.offsets_s2_[i]].x;
+	  int v = data[o.offsets_s2(i)].x;
 	  d += ::abs(v - a[8+i]);
 	}
       }
@@ -46,13 +52,13 @@ namespace cuimg
     {
       int d = 0;
 
-      const auto* data = &o.s1_(n);
+      const typename O::V* data = &o.s1_(n);
 
       if (scale == 1)
       {
 	for(int i = 0; i < 16; i ++)
 	{
-	  int v = data[o.offsets_s1_[i]].x;
+	  int v = data[o.offsets_s1(i)].x;
 	  d += ::abs(v - a[i]);
 	}
       }
@@ -61,7 +67,7 @@ namespace cuimg
 	data = &o.s2_(n);
 	for(int i = 0; i < 16; i ++)
 	{
-	  int v = data[o.offsets_s2_[i]].x;
+	  int v = data[o.offsets_s2(i)].x;
 	  d += ::abs(v - a[16+i]);
 	}
       }
@@ -69,6 +75,24 @@ namespace cuimg
       return d;
     }
 
+    template <typename O>
+    __host__ __device__ inline bc2s
+    compute_feature(const O& o, const i_int2& n)
+    {
+      bc2s b;
+
+      const typename O::V* data = &o.s1_(n);
+      for(int i = 0; i < 8; i ++)
+        b[i] = data[o.offsets_s1_[i]].x;
+
+      data = &o.s2_(n);
+      for(int i = 0; i < 8; i ++)
+        b[i+8] = data[o.offsets_s2_[i]].x;
+
+      return b;
+    }
+
+#ifndef NO_CPP0X
     template <typename O>
     __host__ __device__ inline bc2s_256
     compute_feature_256(const O& o, const i_int2& n)
@@ -86,22 +110,6 @@ namespace cuimg
       return b;
     }
 
-    template <typename O>
-    __host__ __device__ inline bc2s
-    compute_feature(const O& o, const i_int2& n)
-    {
-      bc2s b;
-
-      const auto* data = &o.s1_(n);
-      for(int i = 0; i < 8; i ++)
-        b[i] = data[o.offsets_s1_[i]].x;
-
-      data = &o.s2_(n);
-      for(int i = 0; i < 8; i ++)
-        b[i+8] = data[o.offsets_s2_[i]].x;
-
-      return b;
-    }
 
     template <typename O>
     __host__ __device__ inline int
@@ -144,10 +152,12 @@ namespace cuimg
       return b;
     }
 
+#endif
+
   }
 
-  template <template <class> class I>
-  bc2s_feature<I>::bc2s_feature(const obox2d& d)
+  template <typename A>
+  bc2s_feature<A>::bc2s_feature(const obox2d& d)
     : s1_(d),
       s2_(d),
       tmp_(d)
@@ -169,14 +179,14 @@ namespace cuimg
   }
 
   // template <template <class> class I>
-  // bc2s_feature<I>::bc2s_feature(const bc2s_feature& f)
+  // bc2s_feature<A>::bc2s_feature(const bc2s_feature& f)
   // {
   //   *this = f;
   // }
 
   // template <template <class> class I>
-  // bc2s_feature<I>&
-  // bc2s_feature<I>::operator=(const bc2s_feature& f)
+  // bc2s_feature<A>&
+  // bc2s_feature<A>::operator=(const bc2s_feature& f)
   // {
   //   s1_ = clone(f.s1_);
   //   s2_ = clone(f.s2_);
@@ -190,9 +200,9 @@ namespace cuimg
   //   return *this;
   // }
 
-  template <template <class> class I>
-  bc2s64_feature<I>::bc2s64_feature(const obox2d& d)
-    : bc2s_feature<I>(d)
+  template <typename A>
+  bc2s64_feature<A>::bc2s64_feature(const obox2d& d)
+    : bc2s_feature<A>(d)
   {
     for (unsigned i = 0; i < 16; i += 4)
     {
@@ -202,12 +212,14 @@ namespace cuimg
     }
   }
 
-  template <template <class> class I>
+#ifndef NO_CUDA
+
+  template <typename A>
   void
-  bc2s_feature<I>::update(const I<gl8u>& in)
+  bc2s_feature<A>::update(const I& in, const cpu&)
   {
     SCOPE_PROF(bc2s_feature::update);
-    dim3 dimblock = ::cuimg::dimblock(arch::cpu(), sizeof(V) + sizeof(i_uchar1), in.domain());
+    dim3 dimblock = ::cuimg::dimblock(cpu(), sizeof(V) + sizeof(i_uchar1), in.domain());
 
     //local_jet_static_<0, 0, 2, 2>::run(in, s1_, tmp_, 0, dimblock);
     // local_jet_static_<0, 0, 3, 3>::run(in, s2_, tmp_, 0, dimblock);
@@ -220,34 +232,112 @@ namespace cuimg
     // dg::pause();
   }
 
-  template <template <class> class I>
+#endif
+
+  template <typename A>
+  void
+  bc2s_feature<A>::update(const I& in, const cuda_gpu&)
+  {
+    SCOPE_PROF(bc2s_feature::update);
+    //local_jet_static_<0, 0, 2, 2>::run(in, s1_, tmp_, 0, dimblock);
+    //local_jet_static_<0, 0, 3, 3>::run(in, s2_, tmp_, 0, dimblock);
+    //local_jet_static_<0, 0, 1, 1>::run(s1_, s2_, tmp_, 0, dimblock);
+    gaussian_blur(in, s1_, 2, 3);
+    gaussian_blur(s1_, s2_, 1, 1);
+    //cv::GaussianBlur(cv::Mat(in), cv::Mat(s2_), cv::Size(9, 9), 3, 3, cv::BORDER_REPLICATE);
+    // dg::widgets::ImageView("frame") << (*(host_image2d<i_uchar1>*)(&s2_)) << dg::widgets::show;
+    // dg::pause();
+  }
+
+  template <typename A>
   int
-  bc2s_feature<I>::distance(const bc2s& a, const i_short2& n, unsigned scale)
+  bc2s_feature<A>::distance(const bc2s& a, const i_short2& n, unsigned scale)
   {
     return bc2s_internals::distance(*this, a, n, scale);
   }
 
-  template <template <class> class I>
-  int
-  bc2s64_feature<I>::distance(const bc2s64& a, const i_short2& n)
-  {
-    return bc2s_internals::distance64(*this, a, n);
-  }
-
-  template <template <class> class I>
+  template <typename A>
   bc2s
-  bc2s_feature<I>::operator()(const i_short2& p) const
+  bc2s_feature<A>::operator()(const i_short2& p) const
   {
     return bc2s_internals::compute_feature(*this, p);
   }
 
-  template <template <class> class I>
+#ifndef NVCC
+
+  template <typename A>
+  int
+  bc2s64_feature<A>::distance(const bc2s64& a, const i_short2& n)
+  {
+    return bc2s_internals::distance64(*this, a, n);
+  }
+
+  template <typename A>
   bc2s64
-  bc2s64_feature<I>::operator()(const i_short2& p) const
+  bc2s64_feature<A>::operator()(const i_short2& p) const
   {
     return bc2s_internals::compute_feature64(*this, p);
   }
 
+#endif
+
+  template <typename A>
+  int
+  bc2s_feature<A>::offsets_s1(int o) const
+  {
+    return offsets_s1_[o];
+  }
+
+  template <typename A>
+  int
+  bc2s_feature<A>::offsets_s2(int o) const
+  {
+    return offsets_s2_[o];
+  }
+
+
+#ifndef NO_CUDA
+  /// cuda_bc2s_feature
+  /// ##################
+
+  cuda_bc2s_feature::cuda_bc2s_feature(bc2s_feature<cuda_gpu>& o)
+  {
+    s1_ = o.s1_;
+    s2_ = o.s2_;
+
+    if (not cuda_bc2s_offsets_loaded_)
+    {
+      cuda_bc2s_offsets_loaded_ = true;
+      cudaMemcpyToSymbol(cuda_bc2s_offsets_s1, o.offsets_s1_, sizeof(o.offsets_s1_));
+      cudaMemcpyToSymbol(cuda_bc2s_offsets_s2, o.offsets_s2_, sizeof(o.offsets_s2_));
+    }
+  }
+
+  __device__ int
+  cuda_bc2s_feature::distance(const bc2s& a, const i_short2& n, unsigned scale)
+  {
+    return bc2s_internals::distance(*this, a, n, scale);
+  }
+
+  __device__ bc2s
+  cuda_bc2s_feature::operator()(const i_short2& p) const
+  {
+    return bc2s_internals::compute_feature(*this, p);
+  }
+
+  __device__ int
+  cuda_bc2s_feature::offsets_s1(int o) const
+  {
+    return cuda_bc2s_offsets_s1[o];
+  }
+
+  __device__ int
+  cuda_bc2s_feature::offsets_s2(int o) const
+  {
+    return cuda_bc2s_offsets_s2[o];
+  }
+
+#endif
 
   /// bc2s_256
   /// ##################
@@ -270,10 +360,10 @@ namespace cuimg
   void
   bc2s_256_feature<I>::update(const I<gl8u>& in)
   {
-    dim3 dimblock = ::cuimg::dimblock(arch::cpu(), sizeof(V) + sizeof(i_uchar1), in.domain());
+    dim3 dimblock = ::cuimg::dimblock(cpu(), sizeof(V) + sizeof(i_uchar1), in.domain());
 
-    local_jet_static_<0, 0, 2, 2>::run(in, s1_, tmp_, 0, dimblock);
-    local_jet_static_<0, 0, 3, 3>::run(in, s2_, tmp_, 0, dimblock);
+    // local_jet_static_<0, 0, 2, 2>::run(in, s1_, tmp_, 0, dimblock);
+    // local_jet_static_<0, 0, 3, 3>::run(in, s2_, tmp_, 0, dimblock);
     //local_jet_static_<0, 0, 1, 1>::run(s1_, s2_, tmp_, 0, dimblock);
   }
 
@@ -288,7 +378,7 @@ namespace cuimg
   bc2s_256
   bc2s_256_feature<I>::operator()(const i_short2& p) const
   {
-    return bc2s_internals::compute_feature_256(*this, p);
+    //return bc2s_internals::compute_feature_256(*this, p);
   }
 
   // ########## bc2s64 feature vector methods. ###########

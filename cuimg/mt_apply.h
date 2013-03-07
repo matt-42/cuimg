@@ -9,7 +9,7 @@ namespace cuimg
 {
 
   template <typename ARCH, typename F>
-  inline void mt_apply2d(int elt_size, const obox2d& domain, const F& f, ARCH = arch::cpu())
+  inline void mt_apply2d(int elt_size, const obox2d& domain, const F& f, ARCH = cpu())
   {
     dim3 dimblock = ::cuimg::dimblock(ARCH(), elt_size, domain);
 #pragma omp parallel for schedule(static, dimblock.y)
@@ -20,7 +20,7 @@ namespace cuimg
 
 
   template <typename ARCH, typename F>
-  inline void mt_apply2d(int elt_size, const box2d& domain, const F& f, ARCH = arch::cpu())
+  inline void mt_apply2d(int elt_size, const box2d& domain, const F& f, ARCH = cpu())
   {
     dim3 dimblock = ::cuimg::dimblock(ARCH(), elt_size, domain);
 #pragma omp parallel for schedule(static, dimblock.y)
@@ -32,7 +32,7 @@ namespace cuimg
   
 
   template <typename ARCH, typename F>
-  inline void st_apply2d(int elt_size, const box2d& domain, const F& f, ARCH = arch::cpu())
+  inline void st_apply2d(int elt_size, const box2d& domain, const F& f, ARCH = cpu())
   {
     for (int r = domain.p1().r(); r <= domain.p2().r(); r++)
       for (int c = domain.p1().c(); c <= domain.p2().c(); c++)
@@ -43,7 +43,7 @@ namespace cuimg
   template <typename F, typename D>
   inline void mt_apply2d(const D& domain, const F& f)
   {
-    mt_apply2d(1, domain, f, arch::cpu());
+    mt_apply2d(1, domain, f, cpu());
   }
 
 }

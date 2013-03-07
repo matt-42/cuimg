@@ -9,7 +9,7 @@ find_package(OpenCV REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
-ADD_DEFINITIONS(-std=c++0x -DNDEBUG -O3 -fopenmp -march=native -funroll-loops -DWITH_OPENCV -DNO_CUDA)
+ADD_DEFINITIONS(-std=c++0x -DNDEBUG -O3 -fopenmp -march=native -funroll-loops -DWITH_OPENCV)
 #add_definitions(-std=c++0x -g  -DWITH_OPENCV -DNO_CUDA)
 
 IF (NOT CUDA_FOUND)
@@ -32,6 +32,7 @@ IF (NOT CUDA_FOUND)
 #  SET_TARGET_PROPERTIES(improved_builtin PROPERTIES LINKER_LANGUAGE C)
 
 ELSE (NOT CUDA_FOUND)
+  Message("CUDA_FOUND")
   CUDA_ADD_EXECUTABLE(image2d tests/image2d.cu)
   CUDA_ADD_EXECUTABLE(host_image3d tests/host_image3d.cpp)
   CUDA_ADD_EXECUTABLE(shared_ptr tests/shared_ptr.cu)
@@ -39,6 +40,10 @@ ELSE (NOT CUDA_FOUND)
   CUDA_ADD_EXECUTABLE(obox2d tests/obox2d.cu)
   CUDA_ADD_EXECUTABLE(make_meta_gaussian make_meta_gaussian.cpp)
   CUDA_ADD_EXECUTABLE(improved_builtin tests/improved_builtin.cu)
+
+  SET(CUDA_NVCC_FLAGS "--pre-include ${CMAKE_SOURCE_DIR}/cuimg/gpu/undef_atomics_int128.h;-Xcompiler -DNO_CPP0X")
+  CUDA_ADD_LIBRARY(cuda_cuimg cuimg/tracking2/bc2s_feature.cu)
+
 ENDIF (NOT CUDA_FOUND)
 
 SET(SOURCES cuimg/video_capture.cpp

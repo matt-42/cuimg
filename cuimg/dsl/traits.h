@@ -1,6 +1,7 @@
 #ifndef CUIMG_GPU_TRAITS_H_
 # define CUIMG_GPU_TRAITS_H_
 
+# include <cuimg/kernel_type.h>
 # include <cuimg/dsl/expr.h>
 # include <cuimg/gpu/device_image2d.h>
 # include <cuimg/cpu/host_image2d.h>
@@ -68,13 +69,6 @@ namespace cuimg
   struct align_member
   {
     typedef padded_member<T, __alignof(T) - ((2*__alignof(T) - 1 + OFFSET) % __alignof(T)) - 1> ret;
-  };
-
-
-  template <typename T>
-  struct kernel_type
-  {
-    typedef T ret;
   };
 
   template <typename I>  struct kernel_type<device_image2d<I> >       { typedef kernel_image2d<I> ret; };

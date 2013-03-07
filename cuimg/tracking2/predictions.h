@@ -7,8 +7,9 @@ namespace cuimg
 {
 
   template <typename P>
-    inline i_int2 motion_based_prediction(const P& p, const i_short2& prev_cam_motion = i_short2(0,0),
-					  const i_short2& cam_motion = i_short2(0,0))
+  inline __host__ __device__
+  i_int2 motion_based_prediction(const P& p, const i_short2& prev_cam_motion = i_short2(0,0),
+				 const i_short2& cam_motion = i_short2(0,0))
   {
     assert(p.age > 0);
     if (p.age == 1)
@@ -19,7 +20,8 @@ namespace cuimg
 
   // Need S::get_flow_at
   template <typename S, typename P>
-  inline i_int2 multiscale_prediction(S& s, const P& p)
+  inline __host__ __device__
+  i_int2 multiscale_prediction(S& s, const P& p)
   {
     S* upper = static_cast<S*>(s.upper());
       if (p.age > 1)

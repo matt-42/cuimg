@@ -15,13 +15,13 @@ namespace cuimg
     i_int2 p_;
 
   public:
-    inline obox2d_iterator(i_int2 p, obox2d b);
-    inline obox2d_iterator(const obox2d_iterator& mit);
-    inline obox2d_iterator& operator++();
-    inline obox2d_iterator operator++(int);
-    inline bool operator==(const obox2d_iterator& rhs);
-    inline bool operator!=(const obox2d_iterator& rhs);
-    inline const i_int2& operator*();
+    inline __host__ __device__ obox2d_iterator(i_int2 p, obox2d b);
+    inline __host__ __device__ obox2d_iterator(const obox2d_iterator& mit);
+    inline __host__ __device__ obox2d_iterator& operator++();
+    inline __host__ __device__ obox2d_iterator operator++(int);
+    inline __host__ __device__ bool operator==(const obox2d_iterator& rhs);
+    inline __host__ __device__ bool operator!=(const obox2d_iterator& rhs);
+    inline __host__ __device__ const i_int2& operator*();
   };
 
   class obox2d

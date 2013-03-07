@@ -50,6 +50,25 @@ namespace cuimg
   }
 
   template <typename V>
+  struct free_array_of_object
+  {
+    free_array_of_object(host_image2d<V>& i)
+      : img(i)
+    {}
+
+    void operator()(V* ptr)
+    {
+      for (unsigned r = 0; r < img.nrows(); r++)
+	for (unsigned c = 0; c < img.ncols(); c++)
+	  img(r, c).~V();
+      delete [] (char*)ptr;
+    }
+
+  private:
+    host_image2d<V>& img;
+  };
+
+  template <typename V>
   void
   host_image2d<V>::allocate(const domain_type& d, bool pinned)
   {
@@ -71,13 +90,13 @@ namespace cuimg
       	pitch_ = pitch_ + 4 - (pitch_ & 3);
       ptr = (V*) new char[domain_.nrows() * pitch_ + 64];
       //data_ = boost::shared_ptr<V>(ptr, array_free<V>);
-      data_ = boost::shared_ptr<V>(ptr, [&] (V* ptr) {
-	  for (unsigned r = 0; r < this->nrows(); r++)
-	    for (unsigned c = 0; c < this->ncols(); c++)
-	      this->operator()(r, c).~V();
-	  delete [] (char*)ptr;
-	});
-
+      // data_ = boost::shared_ptr<V>(ptr, [&] (V* ptr) {
+      // 	  for (unsigned r = 0; r < this->nrows(); r++)
+      // 	    for (unsigned c = 0; c < this->ncols(); c++)
+      // 	      this->operator()(r, c).~V();
+      // 	  delete [] (char*)ptr;
+      // 	});
+      data_ = boost::shared_ptr<V>(ptr, free_array_of_object<V>(*this));
 
       buffer_ = data_.get();
       if (size_t(buffer_) % 4)
@@ -184,6 +203,7 @@ namespace cuimg
     data_ = PT((V*) m.data, dummy_free<V>);
     buffer_ = (V*) m.data;
     domain_ = domain_type(m.rows, m.cols);
+    return *this;
   }
 
 #endif
@@ -304,6 +324,15 @@ namespace cuimg
     assert(buffer_);
     return operator()(point(r, c));
   }
+
+
+  template <typename V>
+  i_int2 host_image2d<V>::index_to_point(unsigned int idx) const
+  {
+    return i_int2((idx * sizeof(V)) / pitch_,
+		  (idx * sizeof(V)) % pitch_);
+  }
+
 }
 
 #endif

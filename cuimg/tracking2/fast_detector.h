@@ -11,8 +11,8 @@ namespace cuimg
   class fast_detector
   {
   public:
-    typedef typename A::image2d<gl8u>::ret image2d_gl8u;
-    typedef typename A::image2d<i_short2>::ret image2d_short2;
+    typedef typename A::template image2d<gl8u>::ret image2d_gl8u;
+    typedef typename A::template image2d<i_short2>::ret image2d_short2;
 
     inline fast_detector(const obox2d& d);
 
@@ -21,6 +21,13 @@ namespace cuimg
 
     template <typename F, typename PS>
     inline void new_particles(const F& feature, PS& pset);
+    template <typename F, typename PS>
+    inline void new_particles(const F& feature, PS& pset, const cpu&);
+
+#ifndef NO_CUDA
+    template <typename F, typename PS>
+    inline void new_particles(const F& feature, PS& pset, const cuda_gpu&);
+#endif
 
     inline fast_detector& set_fast_threshold(float f);
     inline fast_detector& set_n(unsigned n);

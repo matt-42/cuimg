@@ -162,9 +162,22 @@ namespace cuimg
   }
 
   template <typename V>
+  i_int2 device_image2d<V>::index_to_point(unsigned int idx) const
+  {
+    return i_int2((idx * sizeof(V)) / pitch_,
+		  (idx * sizeof(V)) % pitch_);
+  }
+
+  template <typename V>
   V* device_image2d<V>::data() const
   {
     return data_ptr_;
+  }
+
+  template <typename V>
+  V* device_image2d<V>::end() const
+  {
+    return data_ptr_ + (pitch_ * nrows()) / sizeof(V);
   }
 
   template <typename V>
@@ -184,7 +197,7 @@ namespace cuimg
   typename device_image2d<V>::PT
   device_image2d<V>::data_sptr()
   {
-    return data_;
+    return data_ + pitch_ * nrows();
   }
 
   template <typename V>

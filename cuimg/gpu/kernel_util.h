@@ -10,8 +10,6 @@
 
 namespace cuimg
 {
-  __host__ __device__ inline i_int2 thread_pos2d();
-  __host__ __device__ inline i_int3 thread_pos3d();
 
   template <target T>
   __host__ __device__ inline i_int2 thread_pos2d(const thread_info<T>& ti)
@@ -21,6 +19,11 @@ namespace cuimg
   }
 
 #ifdef NVCC
+  __host__ __device__ inline int thread_pos1d()
+  {
+    return blockIdx.x * blockDim.x + threadIdx.x;
+  }
+
   __host__ __device__ inline i_int2 thread_pos2d()
   {
     return i_int2(blockIdx.y * blockDim.y + threadIdx.y,

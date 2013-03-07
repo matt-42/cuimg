@@ -15,6 +15,7 @@ namespace cuimg
   {
   }
 
+#ifndef NO_CPP0X
   template <typename F, typename PS>
   void
   dense_detector::new_particles(const F& feature, PS& pset)
@@ -25,8 +26,9 @@ namespace cuimg
                {
                  if (!pset.has(p))
 		   pset.add(p, feature(p));
-               }, arch::cpu());
+               }, cpu());
   }
+#endif
 
 }
 

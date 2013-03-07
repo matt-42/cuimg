@@ -11,6 +11,7 @@
 namespace cuimg
 {
 
+#ifndef NO_CPP0X
   template <typename T, typename U, typename G>
   void gaussian_noise(const cuimg::host_image2d<T>& in, cuimg::host_image2d<U>& out,
                       G& generator)
@@ -33,6 +34,8 @@ namespace cuimg
 	out(r, c) = v;
       }
   }
+
+#endif
 
   template <typename T, typename U>
   void gaussian_noise(const cuimg::host_image2d<T>& in, cuimg::host_image2d<U>& out, float sigma,

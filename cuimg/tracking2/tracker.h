@@ -12,6 +12,7 @@ namespace cuimg
   public:
     typedef typename F::input I;
     typedef typename F::particles_type particles_type;
+    typedef typename F::particle_type particle_type;
 
     tracker(const obox2d& d, int nscales);
     ~tracker();

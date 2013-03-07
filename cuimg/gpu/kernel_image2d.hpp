@@ -43,8 +43,9 @@ namespace cuimg
   template <typename V>
   template <typename I>
   kernel_image2d<V>&
-  kernel_image2d<V>::operator=(const Image2d<I>& img)
+  kernel_image2d<V>::operator=(const Image2d<I>& img_)
   {
+    const I& img = exact(img_);
     domain_ = img.domain();
     pitch_ = img.pitch();
     data_ = const_cast<V*>(img.data());

@@ -32,8 +32,9 @@ namespace cuimg
       typedef FEATURE feature_t;
       typedef DETECTOR detector_t;
       typedef PARTICLE_SET particles_type;
+      typedef typename particles_type::particle_type particle_type;
       typedef INPUT input;
-
+      typedef typename particles_type::architecture architecture;
       inline generic_strategy(const obox2d& o);
 
       inline void set_upper(self* s);
@@ -66,7 +67,7 @@ namespace cuimg
     protected:
       feature_t feature_;
       detector_t detector_;
-      dominant_speed_estimator dominant_speed_estimator_;
+      dominant_speed_estimator<typename feature_t::architecture> dominant_speed_estimator_;
       i_short2 camera_motion_;
       i_short2 prev_camera_motion_;
       self* upper_;
@@ -74,20 +75,21 @@ namespace cuimg
       int frame_cpt_;
 
       const int flow_ratio;
-      host_image2d<std::pair<int, i_float2> > flow_;
+      typedef typename feature_t::architecture::template image2d<std::pair<int, i_float2> >::ret flow_image_t;
+      flow_image_t flow_;
 
       int detector_frequency_;
       int filtering_frequency_;
     };
 
     struct bc2s_mdfl_gradient_cpu
-      : public generic_strategy<bc2s_feature<host_image2d>, mdfl_1s_detector,
-    				particle_container<bc2s_feature<host_image2d> >,
+      : public generic_strategy<bc2s_feature<cpu>, mdfl_1s_detector,
+    				particle_container<bc2s_feature<cpu>, particle, cpu>,
     				host_image2d<gl8u> >
     {
     public:
-      typedef generic_strategy<bc2s_feature<host_image2d>, mdfl_1s_detector,
-    			       particle_container<bc2s_feature<host_image2d> >,
+      typedef generic_strategy<bc2s_feature<cpu>, mdfl_1s_detector,
+    			       particle_container<bc2s_feature<cpu>, particle, cpu>,
     			       host_image2d<gl8u> > super;
 
       inline bc2s_mdfl_gradient_cpu(const obox2d& o);
@@ -113,13 +115,13 @@ namespace cuimg
 
 
     struct bc2s64_mdfl_gradient_cpu
-      : public generic_strategy<bc2s64_feature<host_image2d>, mdfl_1s_detector,
-				particle_container<bc2s64_feature<host_image2d> >,
+      : public generic_strategy<bc2s64_feature<cpu>, mdfl_1s_detector,
+				particle_container<bc2s64_feature<cpu> >,
 				host_image2d<gl8u> >
     {
     public:
-      typedef generic_strategy<bc2s64_feature<host_image2d>, mdfl_1s_detector,
-			       particle_container<bc2s64_feature<host_image2d> >,
+      typedef generic_strategy<bc2s64_feature<cpu>, mdfl_1s_detector,
+			       particle_container<bc2s64_feature<cpu> >,
 			       host_image2d<gl8u> > super;
 
       inline bc2s64_mdfl_gradient_cpu(const obox2d& o);
@@ -127,13 +129,13 @@ namespace cuimg
 
 
     struct bc2s_mdfl2s_gradient_cpu
-      : public generic_strategy<bc2s_feature<host_image2d>, mdfl_2s_detector,
-				particle_container<bc2s_feature<host_image2d> >,
+      : public generic_strategy<bc2s_feature<cpu>, mdfl_2s_detector,
+				particle_container<bc2s_feature<cpu> >,
 				host_image2d<gl8u> >
     {
     public:
-      typedef generic_strategy<bc2s_feature<host_image2d>, mdfl_2s_detector,
-			       particle_container<bc2s_feature<host_image2d> >,
+      typedef generic_strategy<bc2s_feature<cpu>, mdfl_2s_detector,
+			       particle_container<bc2s_feature<cpu> >,
 			       host_image2d<gl8u> > super;
 
       inline bc2s_mdfl2s_gradient_cpu(const obox2d& o) : super(o) {}
@@ -158,13 +160,13 @@ namespace cuimg
     };
 
     struct bc2s_fast_gradient_cpu
-      : public generic_strategy<bc2s_feature<host_image2d>, fast_detector,
-				particle_container<bc2s_feature<host_image2d> >,
+      : public generic_strategy<bc2s_feature<cpu>, fast_detector<cpu>,
+				particle_container<bc2s_feature<cpu>, particle, cpu>,
 				host_image2d<gl8u> >
     {
     public:
-      typedef generic_strategy<bc2s_feature<host_image2d>, fast_detector,
-			       particle_container<bc2s_feature<host_image2d> >,
+      typedef generic_strategy<bc2s_feature<cpu>, fast_detector<cpu>,
+			       particle_container<bc2s_feature<cpu>, particle, cpu>,
 			       host_image2d<gl8u> > super;
 
       inline bc2s_fast_gradient_cpu(const obox2d& o);
@@ -173,13 +175,13 @@ namespace cuimg
     };
 
     struct bc2s_fast_gradient_multiscale_prediction_cpu
-      : public generic_strategy<bc2s_feature<host_image2d>, fast_detector,
-				particle_container<bc2s_feature<host_image2d> >,
+      : public generic_strategy<bc2s_feature<cpu>, fast_detector<cpu>,
+				particle_container<bc2s_feature<cpu> >,
 				host_image2d<gl8u> >
     {
     public:
-      typedef generic_strategy<bc2s_feature<host_image2d>, fast_detector,
-			       particle_container<bc2s_feature<host_image2d> >,
+      typedef generic_strategy<bc2s_feature<cpu>, fast_detector<cpu>,
+			       particle_container<bc2s_feature<cpu> >,
 			       host_image2d<gl8u> > super;
 
       inline bc2s_fast_gradient_multiscale_prediction_cpu(const obox2d& o);
@@ -188,13 +190,13 @@ namespace cuimg
     };
 
     struct bc2s_dense_gradient_cpu
-      : public generic_strategy<bc2s_feature<host_image2d>, dense_detector,
-				particle_container<bc2s_feature<host_image2d> >,
+      : public generic_strategy<bc2s_feature<cpu>, dense_detector,
+				particle_container<bc2s_feature<cpu> >,
 				host_image2d<gl8u> >
     {
     public:
-      typedef generic_strategy<bc2s_feature<host_image2d>, dense_detector,
-			       particle_container<bc2s_feature<host_image2d> >,
+      typedef generic_strategy<bc2s_feature<cpu>, dense_detector,
+			       particle_container<bc2s_feature<cpu> >,
 			       host_image2d<gl8u> > super;
 
       inline bc2s_dense_gradient_cpu(const obox2d& o) : super(o) {}
