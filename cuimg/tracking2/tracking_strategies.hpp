@@ -44,6 +44,16 @@ namespace cuimg
     {
     }
 
+    bc2s_fast_gradient_gpu::bc2s_fast_gradient_gpu(const obox2d& d)
+      : super(d)
+    {
+    }
+
+    void
+    bc2s_fast_gradient_gpu::init()
+    {
+    }
+
     template<typename F, typename D, typename P, typename I>
     generic_strategy<F, D, P, I>::generic_strategy(const obox2d& d)
       : feature_(d),
@@ -125,7 +135,7 @@ namespace cuimg
       {
       }
 
-      inline void
+      inline __host__ __device__ void
       operator()(int i)
       {
 	particle& part = pset.dense_particles()[i];
@@ -185,13 +195,15 @@ namespace cuimg
       }
 
 
-      inline void merge_trajectories(int i)
+      inline __host__ __device__
+      void merge_trajectories(int i)
       {
 	particle& p = pset.dense_particles()[i];
 	::cuimg::merge_trajectories(pset, p);
       }
 
-      inline void filter_bad_particles(int i)
+      inline __host__ __device__
+      void filter_bad_particles(int i)
       {
 	particle& part = pset.dense_particles()[i];
 	if (part.age > 0)

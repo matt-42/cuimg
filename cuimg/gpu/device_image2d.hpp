@@ -169,6 +169,12 @@ namespace cuimg
   }
 
   template <typename V>
+  V* device_image2d<V>::begin() const
+  {
+    return data_ptr_;
+  }
+
+  template <typename V>
   V* device_image2d<V>::data() const
   {
     return data_ptr_;

@@ -174,6 +174,22 @@ namespace cuimg
       inline void init();
     };
 
+
+    struct bc2s_fast_gradient_gpu
+      : public generic_strategy<bc2s_feature<cuda_gpu>, fast_detector<cuda_gpu>,
+				particle_container<bc2s_feature<cuda_gpu>, particle, cuda_gpu>,
+				device_image2d<gl8u> >
+    {
+    public:
+      typedef generic_strategy<bc2s_feature<cuda_gpu>, fast_detector<cuda_gpu>,
+			       particle_container<bc2s_feature<cuda_gpu>, particle, cuda_gpu>,
+			       device_image2d<gl8u> > super;
+
+      inline bc2s_fast_gradient_gpu(const obox2d& o);
+
+      inline void init();
+    };
+
     struct bc2s_fast_gradient_multiscale_prediction_cpu
       : public generic_strategy<bc2s_feature<cpu>, fast_detector<cpu>,
 				particle_container<bc2s_feature<cpu> >,

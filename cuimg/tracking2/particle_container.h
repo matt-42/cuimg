@@ -110,7 +110,7 @@ namespace cuimg
     void compact(const cpu&);
 
     void touch(unsigned i);
-    bool has(i_int2 p) const;
+    // bool has(i_int2 p) const;
     void add(i_int2 p, const feature_type& f);
     void remove(int i);
     void remove(const i_short2& pos);
@@ -127,6 +127,8 @@ namespace cuimg
     void append_new_points(const short2_image2d& new_points_, F& feature);
 
     inline bool compact_has_run() const { return compact_has_run_; }
+
+    int size() const { return particles_vec_.size(); }
 
   private:
     uint_image2d sparse_buffer_;
@@ -152,14 +154,14 @@ namespace cuimg
 
     kernel_particle_container(particle_container<F, P, A>& c);
 
-    void remove(int i);
-    particle_type* dense_particles() const;
-    feature_type* features();
-    void move(unsigned i, particle_coords dst, const feature_type& f);
-    void touch(unsigned i);
-    const particle_type& operator()(i_short2 p) const;
-    bool has(i_int2 p) const;
-    inline const obox2d& domain() const { return sparse_buffer_.domain(); }
+    inline __host__ __device__ void remove(int i);
+    inline __host__ __device__ particle_type* dense_particles() const;
+    inline __host__ __device__ feature_type* features();
+    inline __host__ __device__ void move(unsigned i, particle_coords dst, const feature_type& f);
+    inline __host__ __device__ void touch(unsigned i);
+    inline __host__ __device__ const particle_type& operator()(i_short2 p) const;
+    inline __host__ __device__ bool has(i_int2 p) const;
+    inline __host__ __device__ const obox2d& domain() const { return sparse_buffer_.domain(); }
 
   private:
     uint_image2d sparse_buffer_;

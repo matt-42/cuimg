@@ -2,6 +2,7 @@
 # define CUIMG_PARTICLE_CONTAINER_HP_
 
 # include <thrust/remove.h>
+# include <thrust/device_vector.h>
 
 # include <cuimg/memset.h>
 # include <cuimg/tracking2/compact_particles_image.h>
@@ -256,12 +257,12 @@ namespace cuimg
 
 #ifdef NVCC
 
-  template <typename T>
+  template <typename T, typename P, typename F>
   __global__ void compact_update(T* uint_tmp_,
-				 particle* particles_vec_,
-				 particle* particles_vec_tmp_,
-				 particle* features_vec_,
-				 particle* features_vec_tmp_,
+				 P* particles_vec_,
+				 P* particles_vec_tmp_,
+				 F* features_vec_,
+				 F* features_vec_tmp_,
 				 kernel_image2d<unsigned int> sparse_buffer_,
 				 unsigned nparticles)
   {
@@ -280,8 +281,9 @@ namespace cuimg
   {
     typedef unsigned int uint;
     // Thrust compaction.
-    thrust::detail::normal_iterator<thrust::device_ptr<unsigned int> > end
-      = thrust::remove_copy(sparse_buffer_.begin(), sparse_buffer_.end(), uint_tmp_.begin(), uint(-1));
+    uint_tmp_.resize(sparse_buffer_.end() - sparse_buffer_.begin());
+    unsigned int* end
+      = thrust::remove_copy(sparse_buffer_.begin(), sparse_buffer_.end(), thrust::raw_pointer_cast(uint_tmp_.data()), uint(-1));
 
     particles_vec_tmp_.resize(particles_vec_.size());
     features_vec_tmp_.resize(particles_vec_.size());
@@ -304,7 +306,7 @@ namespace cuimg
 				     P* particles,
 				     FP* features,
 				     kernel_image2d<unsigned int> sparse_buffer_,
-				     F feature,
+				     const F feature,
 				     unsigned size,
 				     unsigned old_size)
   {
@@ -325,7 +327,7 @@ namespace cuimg
   particle_container<F, P, A>::append_new_points(const short2_image2d& new_points_, F& feature)
   {
     // Compact new_points.
-    thrust::detail::normal_iterator<thrust::device_ptr<i_short2> > end =
+    i_short2* end =
       thrust::remove(new_points_.begin(), new_points_.end(), i_short2(0,0));
 
     unsigned old_size = particles_vec_.size();
@@ -335,9 +337,12 @@ namespace cuimg
     particles_vec_.resize(particles_vec_.size() + size);
 
     // init new particles
-    particle_type* new_particles = thrust::raw_pointer_cast(particles_vec_.data()) + particles_vec_.end();
+    typedef const typename ::cuimg::kernel_type<F>::ret kernel_feature;
+    particle_type* new_particles = thrust::raw_pointer_cast(&particles_vec_[old_size]);
     init_new_particles<<<A::dimgrid1d(size), A::dimblock1d()>>>
-      (new_points_, new_particles, features_vec_, sparse_buffer_, F::cuda_kernel_type(feature), size, old_size);
+      (new_points_.data(), new_particles, 
+       thrust::raw_pointer_cast(features_vec_.data()), mki(sparse_buffer_), 
+       kernel_feature(feature), size, old_size);
   }
 
 #endif
@@ -420,13 +425,13 @@ namespace cuimg
     sparse_buffer_(p.pos) = i;
   }
 
-  template <typename F, typename P, typename A>
-  bool
-  particle_container<F, P, A>::has(i_int2 p) const
-  {
-    unsigned int r = -1;
-    return sparse_buffer_(p) != r;
-  }
+  // template <typename F, typename P, typename A>
+  // bool
+  // particle_container<F, P, A>::has(i_int2 p) const
+  // {
+  //   unsigned int r = -1;
+  //   return sparse_buffer_(p) != r;
+  // }
 
   template <typename F, typename P, typename A>
   bool

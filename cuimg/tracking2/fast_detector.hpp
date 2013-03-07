@@ -1,7 +1,9 @@
 #ifndef CUIMG_FAST_DETECTOR_HPP_
 # define CUIMG_FAST_DETECTOR_HPP_
 
+
 # include <cuimg/mt_apply.h>
+# include <cuimg/run_kernel.h>
 # include <cuimg/gpu/cuda.h>
 
 namespace cuimg
@@ -32,7 +34,7 @@ namespace cuimg
 
       for (int i = 0; i < 16; i++)
       {
-	gl8u vn = input_(p + i_int2(circle_r3_h[i]));
+	gl8u vn = input_(p + i_int2(circle_r3[i]));
 	int sign = int(vn) > int(vp);
 	unsigned char dist = ::abs(int(vn) - int(vp));
 	if (dist > fast_th_)
@@ -60,7 +62,7 @@ namespace cuimg
 	int i = 0;
 	while (true)
 	{
-	  gl8u vn = input_(p + i_int2(circle_r3_h[i]));
+	  gl8u vn = input_(p + i_int2(circle_r3[i]));
 	  int sign = int(vn) > int(vp);
 	  unsigned char dist = ::abs(int(vn) - int(vp));
 
@@ -111,7 +113,7 @@ namespace cuimg
   template <typename A>
   template <typename F, typename PS>
   void
-  fast_detector<A>::new_particles(const F& feature, PS& pset)
+  fast_detector<A>::new_particles(F& feature, PS& pset)
   {
     new_particles(feature, pset, A());
   }
@@ -142,7 +144,7 @@ namespace cuimg
   template <typename A>
   template <typename F, typename PS>
   void
-  fast_detector<A>::new_particles(const F& feature, PS& pset, const cpu&)
+  fast_detector<A>::new_particles(F& feature, PS& pset, const cpu&)
   {
     SCOPE_PROF(fast_new_particles_detector);
     memset(new_points_, 0);
@@ -175,9 +177,53 @@ namespace cuimg
 
 #ifndef NO_CUDA
 
+  template <typename I>
+  struct fast_detector_kernels
+  {
+    fast_detector_kernels(const I& input, I& contrast, I& saliency, int n, float fast_th)
+      : input_(input),
+	contrast_(contrast),
+	saliency_(saliency),
+	n_(n),
+	fast_th_(fast_th)
+    {
+    }
+
+    inline __device__
+    void compute_saliency(i_int2 p)
+    {
+      saliency_(p) = fast::compute_saliency(p, input_, n_, fast_th_);
+    }
+
+    inline __device__
+    void compute_contrast(i_int2 p)
+    {
+      contrast_(p) = fast::compute_contrast(p, input_, contrast_);
+    }
+
+    kernel_image2d<gl8u> input_;
+    kernel_image2d<gl8u> contrast_;
+    kernel_image2d<gl8u> saliency_;
+    unsigned n_;
+    float fast_th_;
+  };
+
+  template <typename A>
+  void
+  fast_detector<A>::update(const device_image2d<gl8u>& input)
+  {
+    input_ = input;
+
+    typedef fast_detector_kernels<device_image2d<gl8u> > KS;
+    KS ks(input, contrast_, saliency_, n_, fast_th_);
+
+    run_kernel2d<KS, &KS::compute_saliency>(ks, input.domain(), cuda_gpu());
+    run_kernel2d<KS, &KS::compute_contrast>(ks, input.domain(), cuda_gpu());
+  }
+
   template <typename PS, typename I, typename J>
   __global__
-  void select_particles(PS pset, const I saliency, J new_points)
+  void select_particles(PS pset, const kernel_image2d<I> saliency, kernel_image2d<J> new_points)
   {
     i_int2 p = thread_pos2d();
 
@@ -199,15 +245,13 @@ namespace cuimg
   template <typename A>
   template <typename F, typename PS>
   void
-  fast_detector<A>::new_particles(const F& feature, PS& pset, const cuda_gpu&)
+  fast_detector<A>::new_particles(F& feature, PS& pset, const cuda_gpu&)
   {
     SCOPE_PROF(fast_new_particles_detector);
     memset(new_points_, 0);
 
-    //dim3 dimblock = A::dimblock();
-    //dim3 dimgrid = ;
-    select_particles<<<A::dimgrid(saliency_.domain()), A::dimblock()>>>
-      (pset, saliency_, new_points_);
+    select_particles<<<A::dimgrid2d(saliency_.domain()), A::dimblock2d()>>>
+      (typename PS::kernel_type(pset), mki(saliency_), mki(new_points_));
 
     pset.append_new_points(new_points_, feature);
   }

@@ -32,7 +32,7 @@ namespace cuimg
   struct cuda_gpu
   {
     template <typename V> struct image2d { typedef device_image2d<V> ret; };
-    template <typename V> struct kernel_image2d { typedef kernel_image2d<V> ret; };
+    template <typename V> struct kernel_image2d { typedef ::cuimg::kernel_image2d<V> ret; };
     template <typename V> struct vector { typedef thrust::device_vector<V> ret; };
 
     static dim3 dimblock1d() {             return dim3(256, 1, 1); }

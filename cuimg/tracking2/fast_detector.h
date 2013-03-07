@@ -20,13 +20,13 @@ namespace cuimg
     inline void update(const device_image2d<gl8u>& input);
 
     template <typename F, typename PS>
-    inline void new_particles(const F& feature, PS& pset);
+    inline void new_particles(F& feature, PS& pset);
     template <typename F, typename PS>
-    inline void new_particles(const F& feature, PS& pset, const cpu&);
+    inline void new_particles(F& feature, PS& pset, const cpu&);
 
 #ifndef NO_CUDA
     template <typename F, typename PS>
-    inline void new_particles(const F& feature, PS& pset, const cuda_gpu&);
+    inline void new_particles(F& feature, PS& pset, const cuda_gpu&);
 #endif
 
     inline fast_detector& set_fast_threshold(float f);

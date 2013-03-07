@@ -165,8 +165,12 @@ namespace cuimg
     for (unsigned i = 0; i < 16; i += 2)
     {
       point2d<int> p(10,10);
-      offsets_s1_[i/2] = (long(&s1_(p + i_int2(circle_r3[i]))) - long(&s1_(p))) / sizeof(V);
-      offsets_s2_[i/2] = (long(&s2_(p + i_int2(circle_r3[i])*2)) - long(&s2_(p))) / sizeof(V);
+      i_int2 d = circle_r3[i];
+
+      offsets_s1_[i/2] = (s1_.pitch() * d.r()) / sizeof(V) + d.c();
+      offsets_s2_[i/2] = (s2_.pitch() * d.r()) / sizeof(V) + d.c();
+      //offsets_s1_[i/2] = (long(&s1_(p + i_int2(circle_r3[i]))) - long(&s1_(p))) / sizeof(V);
+      //offsets_s2_[i/2] = (long(&s2_(p + i_int2(circle_r3[i])*2)) - long(&s2_(p))) / sizeof(V);
     }
 
     // for (unsigned i = 0; i < 8; i ++)
@@ -242,8 +246,8 @@ namespace cuimg
     //local_jet_static_<0, 0, 2, 2>::run(in, s1_, tmp_, 0, dimblock);
     //local_jet_static_<0, 0, 3, 3>::run(in, s2_, tmp_, 0, dimblock);
     //local_jet_static_<0, 0, 1, 1>::run(s1_, s2_, tmp_, 0, dimblock);
-    gaussian_blur(in, s1_, 2, 3);
-    gaussian_blur(s1_, s2_, 1, 1);
+    gaussian_blur(in, s1_, tmp_, 2, 3);
+    gaussian_blur(s1_, s2_, tmp_, 1, 1);
     //cv::GaussianBlur(cv::Mat(in), cv::Mat(s2_), cv::Size(9, 9), 3, 3, cv::BORDER_REPLICATE);
     // dg::widgets::ImageView("frame") << (*(host_image2d<i_uchar1>*)(&s2_)) << dg::widgets::show;
     // dg::pause();
