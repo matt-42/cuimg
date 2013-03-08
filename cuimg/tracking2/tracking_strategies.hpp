@@ -94,19 +94,27 @@ namespace cuimg
     void
     generic_strategy<F, D, P, I>::update(const I& in, particles_type& pset)
     {
+      std::cout << "strategy_update start" << std::endl;
+
       feature_.update(in, architecture());
+
+
       match_particles(pset);
+
 
       estimate_camera_motion(pset);
 
       if (!(frame_cpt_ % detector_frequency_))
       {
         detector_.update(in);
-        new_particles(pset);
+	new_particles(pset);
       }
 
       pset.tick();
       frame_cpt_++;
+
+      std::cout << "strategy_update done" << std::endl;
+
     }
 
     template<typename F, typename I, typename P>
@@ -150,6 +158,7 @@ namespace cuimg
 	  {
 	    float distance;
 	    i_short2 match = two_step_gradient_descent_match(pred, pset.features()[i], feature, distance);
+	    //i_short2 match = pred;
 	    //i_short2 match = gradient_descent_match(pred, pset.features()[i], feature, distance);
 	    if (feature.domain().has(match) //and detector_.saliency()(match) > 0.f
 		and distance < 300 and part.fault < 10 //and pos_distance >= distance
@@ -228,16 +237,35 @@ namespace cuimg
     void
     generic_strategy<F, D, P, I>::match_particles(particles_type& pset)
     {
+      cudaThreadSynchronize();
+      check_cuda_error();
+
+
       pset.before_matching();
+
+      std::cout << "match_particles start" << std::endl;
+
+      cudaThreadSynchronize();
+      check_cuda_error();
 
       // Matching
       START_PROF(matcher);
+      typename kernel_type<F>::ret feature_gpu = feature_;
+      // int offset[8];
+      // cudaMemcpyFromSymbol(offset, cuda_bc2s_offsets_s1, sizeof(offset));
+      // for (unsigned i = 0; i < 8; i++)
+      // 	std::cout << offset[i] << std::endl; 
+
       run_kernel1d_functor(match_particles_kernel<F, I, P>(pset, feature_, detector_.contrast(), frame_cpt_,
 							   camera_motion(), prev_camera_motion(), detector_frequency_),
 			   pset.dense_particles().size(),
 			   typename particles_type::architecture());
 
       END_PROF(matcher);
+      cudaThreadSynchronize();
+      check_cuda_error();
+
+      std::cout << "match_particles end" << std::endl;
 
       // Compute sparse flow.
 #if 0
@@ -262,25 +290,36 @@ namespace cuimg
       END_PROF(sparse_flow);
 #endif
 
+	cudaThreadSynchronize();
+	check_cuda_error();
 
       if (!(frame_cpt_ % filtering_frequency_))
       {
 	START_PROF(merge_trajectories);
 
+	std::cout << "merge_trajectories" << std::endl;
 	typedef other_match_kernels<flow_image_t, P> OM;
 	run_kernel1d<OM, &OM::merge_trajectories>(OM(pset, flow_, flow_ratio),
 						  pset.dense_particles().size(),
 						  typename particles_type::architecture());
 	END_PROF(merge_trajectories);
 
+	cudaThreadSynchronize();
+	check_cuda_error();
+
 	// ****** Filter bad particles.
 
+	std::cout << "filter_bad_particles" << std::endl;
 	START_PROF(filter_spacial_incoherences);
 
 	run_kernel1d<OM, &OM::filter_bad_particles> (OM(pset, flow_, flow_ratio),
 						   pset.dense_particles().size(),
 						   typename particles_type::architecture());
 
+	cudaThreadSynchronize();
+	check_cuda_error();
+
+	std::cout << "filter_bad_particles end" << std::endl;
 	END_PROF(filter_spacial_incoherences);
       }
     }

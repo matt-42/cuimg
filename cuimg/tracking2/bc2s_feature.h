@@ -148,8 +148,6 @@ namespace cuimg
   public:
     kernel_image2d<V> s1_;
     kernel_image2d<V> s2_;
-    int* offsets_s1_;
-    int* offsets_s2_;
     static bool cuda_bc2s_offsets_loaded_;
   };
 #endif

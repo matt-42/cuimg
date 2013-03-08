@@ -7,6 +7,7 @@ namespace cuimg
 {
 
   template <typename F, typename FI>
+  inline __host__ __device__ 
   i_short2 gradient_descent_match(i_short2 prediction, F f, FI& feature_img, float& distance, unsigned scale = 1)
   {
     i_short2 match = prediction;
@@ -67,6 +68,7 @@ namespace cuimg
 
 
   template <typename F, typename FI>
+  inline __host__ __device__ 
   i_short2 gradient_descent_match2(i_short2 prediction, F f, FI& feature_img, float& distance, unsigned scale = 1)
   {
     i_short2 match = prediction;
@@ -105,6 +107,7 @@ namespace cuimg
   }
 
   template <typename F, typename FI>
+  inline __host__ __device__ 
   i_short2 two_step_gradient_descent_match(i_short2 prediction, F f, FI& feature_img, float& distance)
   {
     i_short2 match1 = gradient_descent_match(prediction, f, feature_img, distance, 2);
@@ -112,6 +115,7 @@ namespace cuimg
   }
 
   template <typename F, typename S>
+  inline __host__ __device__ 
   i_int2 naive_local_match(i_short2 prediction,
                            const S& sample,
                            const F& feature_img)

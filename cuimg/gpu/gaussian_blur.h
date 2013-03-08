@@ -39,7 +39,7 @@ namespace cuimg
 				pKernel,
 				size, size - 1,
 				int(sum));
-
+    assert(s == NPP_SUCCESS);
     s = nppiFilterRow_8u_C1R((Npp8u*)tmp.data(), tmp.pitch(),
 				(Npp8u*)((unsigned long)dst.data() + half_width), 
 				dst.pitch(),
@@ -47,6 +47,7 @@ namespace cuimg
 				pKernel,
 				size, size - 1,
 				int(sum));
+    assert(s == NPP_SUCCESS);
 
     delete[] host_kernel;
     cudaFree(pKernel);

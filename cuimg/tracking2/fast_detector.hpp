@@ -1,6 +1,8 @@
 #ifndef CUIMG_FAST_DETECTOR_HPP_
 # define CUIMG_FAST_DETECTOR_HPP_
 
+//fixme
+# include <thrust/remove.h>
 
 # include <cuimg/mt_apply.h>
 # include <cuimg/run_kernel.h>
@@ -23,7 +25,7 @@ namespace cuimg
 
     template <typename I>
     inline __host__ __device__
-    gl8u compute_saliency(i_short2 p, const I& input_, int n_, int fast_th_)
+    gl8u compute_saliency(i_short2 p, I& input_, int n_, int fast_th_)
     {
       unsigned max_n = 0;
       unsigned n = 0;
@@ -75,13 +77,14 @@ namespace cuimg
 
       }
 
+
       if (n > max_n)
 	max_n = n;
 
       if (max_n < n_)
 	return 0;
       else
-	return std::max(sum_bright, sum_dark);
+	return max(sum_bright, sum_dark);
     }
   }
 
@@ -177,36 +180,25 @@ namespace cuimg
 
 #ifndef NO_CUDA
 
+
   template <typename I>
-  struct fast_detector_kernels
+  __global__
+  void compute_contrast(const I input, I contrast)
   {
-    fast_detector_kernels(const I& input, I& contrast, I& saliency, int n, float fast_th)
-      : input_(input),
-	contrast_(contrast),
-	saliency_(saliency),
-	n_(n),
-	fast_th_(fast_th)
-    {
-    }
+    i_int2 p = thread_pos2d();
+    if (!(input.domain() - border(6)).has(p)) return;
+    contrast(p) = fast::compute_contrast(p, input, contrast);
+  }
 
-    inline __device__
-    void compute_saliency(i_int2 p)
-    {
-      saliency_(p) = fast::compute_saliency(p, input_, n_, fast_th_);
-    }
-
-    inline __device__
-    void compute_contrast(i_int2 p)
-    {
-      contrast_(p) = fast::compute_contrast(p, input_, contrast_);
-    }
-
-    kernel_image2d<gl8u> input_;
-    kernel_image2d<gl8u> contrast_;
-    kernel_image2d<gl8u> saliency_;
-    unsigned n_;
-    float fast_th_;
-  };
+  template <typename I>
+  __global__
+  void compute_saliency(const I input, I saliency, int n, float fast_th)
+  {
+    i_int2 p = thread_pos2d();
+    if (!(input.domain() - border(4)).has(p)) return;
+    saliency(p) = fast::compute_saliency(p, input, n, fast_th);
+    //saliency(p) = 0;
+  }
 
   template <typename A>
   void
@@ -214,21 +206,38 @@ namespace cuimg
   {
     input_ = input;
 
-    typedef fast_detector_kernels<device_image2d<gl8u> > KS;
-    KS ks(input, contrast_, saliency_, n_, fast_th_);
+    std::cout << "fast update " << input.domain().nrows() << "x"  << input.domain().ncols() << std::endl;
+    dim3 dimgrid = cuda_gpu::dimgrid2d(input.domain());
+    std::cout << dimgrid.x << " " << dimgrid.y << std::endl;
+    compute_contrast<kernel_image2d<gl8u> ><<<cuda_gpu::dimgrid2d(input.domain()), cuda_gpu::dimblock2d()>>>
+      (input, contrast_);
 
-    run_kernel2d<KS, &KS::compute_saliency>(ks, input.domain(), cuda_gpu());
-    run_kernel2d<KS, &KS::compute_contrast>(ks, input.domain(), cuda_gpu());
+    cudaThreadSynchronize();
+    check_cuda_error();
+
+    std::cout << "fast contrast ok" << std::endl;
+
+    compute_saliency<kernel_image2d<gl8u> ><<<cuda_gpu::dimgrid2d(input.domain()), cuda_gpu::dimblock2d()>>>
+      (input, saliency_, n_, fast_th_);
+
+    cudaThreadSynchronize();
+    check_cuda_error();
+
+    std::cout << "fast update end" << std::endl;
+    check_cuda_error();
   }
 
   template <typename PS, typename I, typename J>
   __global__
-  void select_particles(PS pset, const kernel_image2d<I> saliency, kernel_image2d<J> new_points)
+  void select_particles(PS pset, const kernel_image2d<I> saliency, kernel_image2d<J> new_points, box2d domain)
   {
     i_int2 p = thread_pos2d();
 
+    if (!domain.has(p)) return;
+
     if (pset.has(p)) return;
     if (saliency(p) == 0) return;
+
 
     for (int i = 0; i < 8; i++)
     {
@@ -250,8 +259,16 @@ namespace cuimg
     SCOPE_PROF(fast_new_particles_detector);
     memset(new_points_, 0);
 
+    cudaThreadSynchronize();
+    check_cuda_error();
+
+    std::cout << "new_particles" << std::endl;
     select_particles<<<A::dimgrid2d(saliency_.domain()), A::dimblock2d()>>>
-      (typename PS::kernel_type(pset), mki(saliency_), mki(new_points_));
+      (typename PS::kernel_type(pset), mki(saliency_), mki(new_points_),
+       new_points_.domain() - border(8));
+
+    cudaThreadSynchronize();
+    check_cuda_error();
 
     pset.append_new_points(new_points_, feature);
   }

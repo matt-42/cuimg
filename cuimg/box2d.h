@@ -34,12 +34,14 @@ namespace cuimg
     i_int2 b_;
   };
 
-  inline bool operator==(const box2d& a, const box2d& b)
+  inline __host__ __device__
+  bool operator==(const box2d& a, const box2d& b)
   {
     return a.nrows() == b.nrows() && a.ncols() == b.ncols();
   }
 
-  inline box2d operator-(const obox2d& d, const border& bd)
+  inline __host__ __device__
+  box2d operator-(const obox2d& d, const border& bd)
   {
     int b = bd.thickness();
     return box2d(i_int2(b, b),
@@ -47,7 +49,8 @@ namespace cuimg
   }
 
 
-  inline box2d operator-(const box2d& d, const border& bd)
+  inline __host__ __device__
+  box2d operator-(const box2d& d, const border& bd)
   {
     int b = bd.thickness();
     return box2d(i_int2(d.p1().r() + b, d.p1().c() + b),

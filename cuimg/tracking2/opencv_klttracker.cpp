@@ -62,9 +62,10 @@ namespace cuimg
       cv::Mat err;
       new_keypoints_.clear();
       keypoints_.clear();
+      pset_type::kernel_type pset = pset_;
       for (unsigned i = 0; i < pset_.dense_particles().size(); i++)
       {
-        i_float2 pos = pset_.dense_particles()[i].pos;
+        i_float2 pos = pset.dense_particles()[i].pos;
         cv::Point2f pt(pos.y, pos.x);
         keypoints_.push_back(pt);
       }
@@ -78,18 +79,18 @@ namespace cuimg
       for (unsigned i = 0; i < matches_.size(); i++)
       {
         //if (status.at<int>(0,i))
-        if (status[i] && pset_.dense_particles()[i].age > 0 && in.has(i_int2(new_keypoints_[i].y, new_keypoints_[i].x)) && err.at<float>(i) < 20)
+        if (status[i] && pset.dense_particles()[i].age > 0 && in.has(i_int2(new_keypoints_[i].y, new_keypoints_[i].x)) && err.at<float>(i) < 20)
         {
           //std::cout << status.at<int>(0,i) << " " << new_keypoints_[i] << std::endl;
 	  // std::cout << int(err.at<float>(i)) << " " << keypoints_[i] << " " << new_keypoints_[i] << std::endl;
-          pset_.move(i, i_float2(new_keypoints_[i].y, new_keypoints_[i].x), 0);
+          pset.move(i, i_float2(new_keypoints_[i].y, new_keypoints_[i].x), 0);
           keypoints_.push_back(new_keypoints_[i]);
           matches_[i] = keypoints_.size() - 1;
         }
         else
           // std::cout << "NOT FOUND: "<< status.at<int>(0,i) << " " << new_keypoints_[i] << std::endl;
           //std::cout << "NOT FOUND: "<< int(status[i]) << " " << new_keypoints_[i] << std::endl;
-          pset_.remove(i);
+          pset.remove(i);
       }
       // std::cout << new_keypoints_.size() << " " << new_keypoints_.size();
       pset_.after_matching();

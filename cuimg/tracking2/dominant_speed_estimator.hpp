@@ -137,7 +137,7 @@ namespace cuimg
 
     // Vote
     vote_buffer_.resize(pset.size());
-    // particle_vote<<<A::dimgrid1d(pset.size()), A::dimblock1d()>>>(thrust::raw_pointer_cast(&pset.dense_particles()[0]),
+    // FIXME particle_vote<<<A::dimgrid1d(pset.size()), A::dimblock1d()>>>(thrust::raw_pointer_cast(&pset.dense_particles()[0]),
     // 								  thrust::raw_pointer_cast(&vote_buffer_[0]),
     // 								  pset.size(),
     // 								  h,
@@ -148,10 +148,11 @@ namespace cuimg
 
     // Get max.
     //int* max = thrust::max_element(histo_counts_.begin(), histo_counts_.end());
-    int max = thrust::max_element(histo_counts_.begin(), histo_counts_.end()) - histo_counts_.begin();
-    int max_bin = histo_values_[max];
+    // int max = thrust::max_element(histo_counts_.begin(), histo_counts_.end()) - histo_counts_.begin();
+    // int max_bin = histo_values_[max];
 
-    return h.index_to_point(max_bin);
+    return i_short2(0,0);
+    //return h.index_to_point(max_bin);
   }
 
 #endif

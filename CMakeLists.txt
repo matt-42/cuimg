@@ -1,6 +1,11 @@
 
 cmake_minimum_required (VERSION 2.8)
+SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake
+		      ${CMAKE_MODULE_PATH}
+                      )
+
 project (cuimg)
+
 
 find_package(CUDA)
 find_package(Boost REQUIRED)
@@ -33,6 +38,8 @@ IF (NOT CUDA_FOUND)
 
 ELSE (NOT CUDA_FOUND)
   Message("CUDA_FOUND")
+  SET(CUDA_VERBOSE_BUILD ON)
+  SET(BUILD_SHARED_LIBS OFF)
   CUDA_ADD_EXECUTABLE(image2d tests/image2d.cu)
   CUDA_ADD_EXECUTABLE(host_image3d tests/host_image3d.cpp)
   CUDA_ADD_EXECUTABLE(shared_ptr tests/shared_ptr.cu)
@@ -41,8 +48,10 @@ ELSE (NOT CUDA_FOUND)
   CUDA_ADD_EXECUTABLE(make_meta_gaussian make_meta_gaussian.cpp)
   CUDA_ADD_EXECUTABLE(improved_builtin tests/improved_builtin.cu)
 
+  set(CUDA_SEPARABLE_COMPILATION ON)
   SET(CUDA_NVCC_FLAGS "--pre-include ${CMAKE_SOURCE_DIR}/cuimg/gpu/undef_atomics_int128.h;-Xcompiler -DNO_CPP0X")
-  CUDA_ADD_LIBRARY(cuda_cuimg cuimg/tracking2/bc2s_feature.cu)
+
+  CUDA_ADD_LIBRARY(cuimg_cuda cuimg/tracking2/bc2s_feature.cu STATIC OPTIONS -arch sm_20)
 
 ENDIF (NOT CUDA_FOUND)
 
@@ -50,7 +59,7 @@ SET(SOURCES cuimg/video_capture.cpp
             cuimg/background_video_capture.cpp
             cuimg/load_image.cpp
             cuimg/save_image.cpp
-	    cuimg/tracking2/tracker.cpp
+#	    cuimg/tracking2/tracker.cpp
 #	    cuimg/tracking2/opencv_tracker.cpp
 	    cuimg/tracking2/opencv_klttracker.cpp
             )

@@ -24,6 +24,9 @@ namespace cuimg
 
       const typename O::V* data = &o.s1_(n);
 
+      // return 0;
+      // return o.s1_(n).x; // fixme
+
       if (scale == 1)
       {
 	for(int i = 0; i < 8; i ++)
@@ -83,11 +86,11 @@ namespace cuimg
 
       const typename O::V* data = &o.s1_(n);
       for(int i = 0; i < 8; i ++)
-        b[i] = data[o.offsets_s1_[i]].x;
+        b[i] = data[o.offsets_s1(i)].x;
 
       data = &o.s2_(n);
       for(int i = 0; i < 8; i ++)
-        b[i+8] = data[o.offsets_s2_[i]].x;
+        b[i+8] = data[o.offsets_s2(i)].x;
 
       return b;
     }
@@ -165,13 +168,21 @@ namespace cuimg
     for (unsigned i = 0; i < 16; i += 2)
     {
       point2d<int> p(10,10);
-      i_int2 d = circle_r3[i];
+      i_int2 o = circle_r3_h[i];
+      i_int2 o2 = o*2;
 
-      offsets_s1_[i/2] = (s1_.pitch() * d.r()) / sizeof(V) + d.c();
-      offsets_s2_[i/2] = (s2_.pitch() * d.r()) / sizeof(V) + d.c();
+      //std::cout << '-'<< o << std::endl;
+      offsets_s1_[i/2] = (int(s1_.pitch()) * o.r()) / sizeof(V) + o.c();
+      offsets_s2_[i/2] = (int(s2_.pitch()) * o2.r()) / sizeof(V) + o2.c();
+
+
       //offsets_s1_[i/2] = (long(&s1_(p + i_int2(circle_r3[i]))) - long(&s1_(p))) / sizeof(V);
       //offsets_s2_[i/2] = (long(&s2_(p + i_int2(circle_r3[i])*2)) - long(&s2_(p))) / sizeof(V);
     }
+
+    for (unsigned i = 0; i < 8; i ++)
+      std::cout << offsets_s1_[i] << "  " << offsets_s2_[i] << std::endl;
+    std::cout <<  " ------------- "  << std::endl;
 
     // for (unsigned i = 0; i < 8; i ++)
     // {
@@ -305,13 +316,16 @@ namespace cuimg
   /// ##################
 
   cuda_bc2s_feature::cuda_bc2s_feature(bc2s_feature<cuda_gpu>& o)
+    : s1_(o.s1_),
+      s2_(o.s2_)
   {
-    s1_ = o.s1_;
-    s2_ = o.s2_;
+    // s1_ = o.s1_;
+    // s2_ = o.s2_;
 
-    if (not cuda_bc2s_offsets_loaded_)
+    //if (not cuda_bc2s_offsets_loaded_)
     {
       cuda_bc2s_offsets_loaded_ = true;
+      std::cout << sizeof(o.offsets_s1_) << std::endl;
       cudaMemcpyToSymbol(cuda_bc2s_offsets_s1, o.offsets_s1_, sizeof(o.offsets_s1_));
       cudaMemcpyToSymbol(cuda_bc2s_offsets_s2, o.offsets_s2_, sizeof(o.offsets_s2_));
     }

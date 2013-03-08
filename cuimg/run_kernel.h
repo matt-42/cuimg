@@ -85,6 +85,8 @@ namespace cuimg
   template <typename F, void (F::*m)(int)>
   void run_kernel1d(const F& f_, unsigned size, const cuda_gpu&)
   {
+    if (size == 0) return;
+
     F& f = *const_cast<F*>(&f_);
     run_kernel1d_kernel<F, member_call_wrapper<int, F, m> ><<<cuda_gpu::dimgrid1d(size), cuda_gpu::dimblock1d()>>>(f, size);
   }
@@ -92,6 +94,8 @@ namespace cuimg
   template <typename F>
   void run_kernel1d_functor(const F& f_, unsigned size, const cuda_gpu&)
   {
+    if (size == 0) return;
+
     F& f = *const_cast<F*>(&f_);
     dim3 dg = cuda_gpu::dimgrid1d(size);
     dim3 db = cuda_gpu::dimblock1d();
@@ -101,6 +105,8 @@ namespace cuimg
   template <typename F, void (F::*m)(i_int2)>
   void run_kernel2d(const F& f_, const obox2d& domain, const cuda_gpu&)
   {
+    if (domain.size() == 0) return;
+
     F& f = *const_cast<F*>(&f_);
     run_kernel2d_kernel<F, member_call_wrapper<i_int2, F, m> ><<<cuda_gpu::dimgrid2d(domain), cuda_gpu::dimblock2d()>>>(f, domain);
   }
@@ -108,6 +114,8 @@ namespace cuimg
   template <typename F>
   void run_kernel2d_functor(const F& f_, const obox2d& domain, const cuda_gpu&)
   {
+    if (domain.size() == 0) return;
+
     F& f = *const_cast<F*>(&f_);
     dim3 dg = cuda_gpu::dimgrid2d(domain);
     dim3 db = cuda_gpu::dimblock2d();

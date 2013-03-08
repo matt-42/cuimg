@@ -2,6 +2,7 @@
 # define CUIMG_PARTICLE_CONTAINER_H_
 
 # include <vector>
+# include <cuimg/architectures.h>
 # include <cuimg/improved_builtin.h>
 # include <cuimg/cpu/host_image2d.h>
 
@@ -51,6 +52,8 @@ namespace cuimg
     i_short2 acceleration;
     unsigned short age;
     unsigned short fault;
+    int prev_match_time;
+    int next_match_time;
   };
 
   template <typename F, typename P, typename A>
@@ -86,10 +89,8 @@ namespace cuimg
     feature_vector& features() { return features_vec_; }
     const uint_vector& matches() const;
 
-    const feature_type& feature_at(i_short2 p);
+    //const feature_type& feature_at(i_short2 p);
 
-    const particle_type& operator()(i_short2 p) const;
-    particle_type& operator()(i_short2 p);
     const particle_type& operator[](unsigned i) const;
     particle_type& operator[](unsigned i);
 
@@ -110,7 +111,6 @@ namespace cuimg
     void compact(const cpu&);
 
     void touch(unsigned i);
-    // bool has(i_int2 p) const;
     void add(i_int2 p, const feature_type& f);
     void remove(int i);
     void remove(const i_short2& pos);
@@ -124,7 +124,7 @@ namespace cuimg
     void after_matching();
     void after_new_particles();
 
-    void append_new_points(const short2_image2d& new_points_, F& feature);
+    void append_new_points(short2_image2d& new_points_, F& feature);
 
     inline bool compact_has_run() const { return compact_has_run_; }
 
