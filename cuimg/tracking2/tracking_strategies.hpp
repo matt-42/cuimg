@@ -222,15 +222,45 @@ namespace cuimg
 	}
 
       }
+    };
 
-      // void compute_sparse_flow(int i)
-      // {
-      // 	particle& part = pset.dense_particles()[i];
-      // 	i_int2 bin = p.pos / flow_ratio;
-      // 	flow_(bin).second += p.speed;
-      // 	flow_(bin).first++;
-      // }
 
+    template<typename I, typename P>
+    struct merge_trajectories_kernel
+    {
+      typename P::kernel_type pset;
+
+      merge_trajectories_kernel(P& pset_)
+	: pset(pset_)
+      {}
+
+      inline __host__ __device__
+      void operator()(int i)
+      {
+	particle& p = pset.dense_particles()[i];
+	::cuimg::merge_trajectories(pset, p);
+      }
+    };
+
+    template<typename P>
+    struct filter_bad_particle_kernel
+    {
+      typename P::kernel_type pset;
+
+      filter_bad_particle_kernel(P& pset_)
+	: pset(pset_)
+      {}
+
+      inline __host__ __device__
+      void operator()(int i)
+      {
+	particle& part = pset.dense_particles()[i];
+	if (part.age > 0)
+	{
+	  if (is_spacial_incoherence(pset, part.pos))
+	    pset.remove(i);
+	}
+      }
     };
 
     template<typename F, typename D, typename P, typename I>
@@ -299,6 +329,12 @@ namespace cuimg
 
 	std::cout << "merge_trajectories" << std::endl;
 	typedef other_match_kernels<flow_image_t, P> OM;
+	merge_trajectories_call();
+
+	run_kernel1d_functor(merge_trajectories<I, P>(pset),
+			     pset.dense_particles().size(),
+			     typename particles_type::architecture());
+
 	run_kernel1d<OM, &OM::merge_trajectories>(OM(pset, flow_, flow_ratio),
 						  pset.dense_particles().size(),
 						  typename particles_type::architecture());

@@ -39,12 +39,12 @@ namespace cuimg
 
 
 #ifdef NVCC
-  template <typename P, typename T, void (T::*m)(P)>
-  inline __device__
-  void member_call_wrapper(T& o, P i)
-  {
-    (o.*m)(i);
-  }
+  /* template <typename P, typename T, void (T::*m)(P)> */
+  /* inline __device__ */
+  /* void member_call_wrapper(T& o, P i) */
+  /* { */
+  /*   (o.*m)(i); */
+  /* } */
 
   template <typename F>
   __global__ void
@@ -55,14 +55,14 @@ namespace cuimg
       f(i);
   }
 
-  template <typename F, void (&f)(F&, int)>
-  __global__ void
-  run_kernel1d_kernel(F o, unsigned size)
-  {
-    unsigned i = thread_pos1d();
-    if (i < size)
-      f(o, i);
-  }
+  /* template <typename F, void (&f)(F&, int)> */
+  /* __global__ void */
+  /* run_kernel1d_kernel(F o, unsigned size) */
+  /* { */
+  /*   unsigned i = thread_pos1d(); */
+  /*   if (i < size) */
+  /*     f(o, i); */
+  /* } */
 
   template <typename F>
   __global__ void
@@ -73,14 +73,14 @@ namespace cuimg
       f(i);
   }
 
-  template <typename F, void (&f)(F&, i_int2)>
-  __global__ void
-  run_kernel2d_kernel(F o, const obox2d domain)
-  {
-    i_int2 i = thread_pos2d();
-    if (domain.has(i))
-      f(o, i);
-  }
+  /* template <typename F, void (&f)(F&, i_int2)> */
+  /* __global__ void */
+  /* run_kernel2d_kernel(F o, const obox2d domain) */
+  /* { */
+  /*   i_int2 i = thread_pos2d(); */
+  /*   if (domain.has(i)) */
+  /*     f(o, i); */
+  /* } */
 
   template <typename F, void (F::*m)(int)>
   void run_kernel1d(const F& f_, unsigned size, const cuda_gpu&)
