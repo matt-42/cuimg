@@ -10,6 +10,7 @@ namespace cuimg
   inline __host__ __device__
   bool is_spacial_incoherence(const PS& pset, i_short2 p)
   {
+    typedef typename PS::architecture A;
     /* assert(pset.has(p)); */
     /* assert(pset(p).age > 0); */
 
@@ -18,8 +19,8 @@ namespace cuimg
 
     for(int i = 0; i < 49; i++)
     {
-      point2d<int> n(p.r() + c49[i][0],
-                     p.c() + c49[i][1]);
+      point2d<int> n(p.r() + arch_neighb2d<A>::get(c49_h, c49, i)[0],
+                     p.c() + arch_neighb2d<A>::get(c49_h, c49, i)[1]);
 
       if (pset.has(n) && pset(n).age >= 1)
       {

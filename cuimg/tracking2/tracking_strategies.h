@@ -11,6 +11,7 @@
 # include <cuimg/tracking2/bc2s_feature.h>
 # include <cuimg/tracking2/mdfl_detector.h>
 # include <cuimg/tracking2/fast_detector.h>
+# include <cuimg/tracking2/fastnc_detector.h>
 # include <cuimg/tracking2/dense_detector.h>
 # include <cuimg/tracking2/particle_container.h>
 # include <cuimg/tracking2/dominant_speed_estimator.h>
@@ -61,8 +62,8 @@ namespace cuimg
 
       inline i_int2 get_flow_at(const i_int2& p);
 
-      inline const i_short2 camera_motion() const { return camera_motion_; }
-      inline const i_short2 prev_camera_motion() const { return prev_camera_motion_; }
+      inline i_short2 camera_motion() const { return camera_motion_; }
+      inline i_short2 prev_camera_motion() const { return prev_camera_motion_; }
 
     protected:
       feature_t feature_;
@@ -174,7 +175,22 @@ namespace cuimg
       inline void init();
     };
 
+    struct bc2s_fastnc_gradient_cpu
+      : public generic_strategy<bc2s_feature<cpu>, fastnc_detector<cpu>,
+				particle_container<bc2s_feature<cpu> >,
+				host_image2d<gl8u> >
+    {
+    public:
+      typedef generic_strategy<bc2s_feature<cpu>, fastnc_detector<cpu>,
+			       particle_container<bc2s_feature<cpu> >,
+			       host_image2d<gl8u> > super;
 
+      inline bc2s_fastnc_gradient_cpu(const obox2d& o) :super(o) {}
+
+      inline void init() {}
+    };
+
+    #ifndef NO_CUDA
     struct bc2s_fast_gradient_gpu
       : public generic_strategy<bc2s_feature<cuda_gpu>, fast_detector<cuda_gpu>,
 				particle_container<bc2s_feature<cuda_gpu>, particle, cuda_gpu>,
@@ -185,11 +201,12 @@ namespace cuimg
 			       particle_container<bc2s_feature<cuda_gpu>, particle, cuda_gpu>,
 			       device_image2d<gl8u> > super;
 
-      inline bc2s_fast_gradient_gpu(const obox2d& o);
+      inline bc2s_fast_gradient_gpu(const obox2d& o) : super(d) {}
 
-      inline void init();
+      inline void init() {}
     };
-
+    #endif
+    
     struct bc2s_fast_gradient_multiscale_prediction_cpu
       : public generic_strategy<bc2s_feature<cpu>, fast_detector<cpu>,
 				particle_container<bc2s_feature<cpu> >,

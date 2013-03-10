@@ -44,16 +44,6 @@ namespace cuimg
     {
     }
 
-    bc2s_fast_gradient_gpu::bc2s_fast_gradient_gpu(const obox2d& d)
-      : super(d)
-    {
-    }
-
-    void
-    bc2s_fast_gradient_gpu::init()
-    {
-    }
-
     template<typename F, typename D, typename P, typename I>
     generic_strategy<F, D, P, I>::generic_strategy(const obox2d& d)
       : feature_(d),
@@ -94,7 +84,7 @@ namespace cuimg
     void
     generic_strategy<F, D, P, I>::update(const I& in, particles_type& pset)
     {
-      std::cout << "strategy_update start" << std::endl;
+      // std::cout << "strategy_update start" << std::endl;
 
       feature_.update(in, architecture());
 
@@ -113,7 +103,7 @@ namespace cuimg
       pset.tick();
       frame_cpt_++;
 
-      std::cout << "strategy_update done" << std::endl;
+      // std::cout << "strategy_update done" << std::endl;
 
     }
 
@@ -151,7 +141,7 @@ namespace cuimg
 	    && part.next_match_time == frame_cpt)
 	{
 	  i_short2 pos = part.pos;
-	  //i_short2 pred = multiscale_prediction(*this, p); // Prediction
+	  //i_short2 pred = multiscale_prediction(*this, part); // Prediction
 	  i_short2 pred = motion_based_prediction(part, prev_camera_motion, camera_motion); // Prediction
 	  float pos_distance = feature.distance(pset.features()[i], pos);
 	  if ((feature.domain() - border(8)).has(pred))
@@ -225,7 +215,7 @@ namespace cuimg
     };
 
 
-    template<typename I, typename P>
+    template<typename P>
     struct merge_trajectories_kernel
     {
       typename P::kernel_type pset;
@@ -263,20 +253,29 @@ namespace cuimg
       }
     };
 
+    template <typename F, typename I, typename P>
+    void test_k(P& pset_ ,F& feature_, const I& contrast_
+		//, int frame_cpt_,
+		// i_short2 camera_motion_, i_short2 prev_camera_motion_,
+		// int detector_frequency_
+		)
+    {
+    }
+
     template<typename F, typename D, typename P, typename I>
     void
     generic_strategy<F, D, P, I>::match_particles(particles_type& pset)
     {
-      cudaThreadSynchronize();
-      check_cuda_error();
+      // cudaThreadSynchronize();
+      // check_cuda_error();
 
 
       pset.before_matching();
 
-      std::cout << "match_particles start" << std::endl;
+      // std::cout << "match_particles start" << std::endl;
 
-      cudaThreadSynchronize();
-      check_cuda_error();
+      // cudaThreadSynchronize();
+      // check_cuda_error();
 
       // Matching
       START_PROF(matcher);
@@ -286,16 +285,17 @@ namespace cuimg
       // for (unsigned i = 0; i < 8; i++)
       // 	std::cout << offset[i] << std::endl; 
 
-      run_kernel1d_functor(match_particles_kernel<F, I, P>(pset, feature_, detector_.contrast(), frame_cpt_,
-							   camera_motion(), prev_camera_motion(), detector_frequency_),
-			   pset.dense_particles().size(),
-			   typename particles_type::architecture());
+      auto func = match_particles_kernel<F, I, P>(pset, feature_, detector_.contrast(), frame_cpt_,
+      						  camera_motion(), prev_camera_motion(), detector_frequency_);
+      run_kernel1d_functor(func,
+      			   pset.dense_particles().size(),
+      			   typename particles_type::architecture());
 
       END_PROF(matcher);
-      cudaThreadSynchronize();
-      check_cuda_error();
+      // cudaThreadSynchronize();
+      // check_cuda_error();
 
-      std::cout << "match_particles end" << std::endl;
+      // std::cout << "match_particles end" << std::endl;
 
       // Compute sparse flow.
 #if 0
@@ -320,42 +320,41 @@ namespace cuimg
       END_PROF(sparse_flow);
 #endif
 
-	cudaThreadSynchronize();
-	check_cuda_error();
+	// cudaThreadSynchronize();
+	// check_cuda_error();
 
       if (!(frame_cpt_ % filtering_frequency_))
       {
 	START_PROF(merge_trajectories);
 
-	std::cout << "merge_trajectories" << std::endl;
+	// std::cout << "merge_trajectories" << std::endl;
 	typedef other_match_kernels<flow_image_t, P> OM;
-	merge_trajectories_call();
 
-	run_kernel1d_functor(merge_trajectories<I, P>(pset),
+	run_kernel1d_functor(merge_trajectories_kernel<P>(pset),
 			     pset.dense_particles().size(),
 			     typename particles_type::architecture());
 
-	run_kernel1d<OM, &OM::merge_trajectories>(OM(pset, flow_, flow_ratio),
-						  pset.dense_particles().size(),
-						  typename particles_type::architecture());
+	// run_kernel1d<OM, &OM::merge_trajectories>(OM(pset, flow_, flow_ratio),
+	// 					  pset.dense_particles().size(),
+	// 					  typename particles_type::architecture());
 	END_PROF(merge_trajectories);
 
-	cudaThreadSynchronize();
-	check_cuda_error();
+	// cudaThreadSynchronize();
+	// check_cuda_error();
 
 	// ****** Filter bad particles.
 
-	std::cout << "filter_bad_particles" << std::endl;
+	// std::cout << "filter_bad_particles" << std::endl;
 	START_PROF(filter_spacial_incoherences);
 
 	run_kernel1d<OM, &OM::filter_bad_particles> (OM(pset, flow_, flow_ratio),
 						   pset.dense_particles().size(),
 						   typename particles_type::architecture());
 
-	cudaThreadSynchronize();
-	check_cuda_error();
+	// cudaThreadSynchronize();
+	// check_cuda_error();
 
-	std::cout << "filter_bad_particles end" << std::endl;
+	// std::cout << "filter_bad_particles end" << std::endl;
 	END_PROF(filter_spacial_incoherences);
       }
     }

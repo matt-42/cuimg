@@ -11,10 +11,11 @@ namespace cuimg
   inline __host__ __device__
   void merge_trajectories(PI& pset, particle& part)
   {
+    typedef typename PI::architecture A;
     i_int2 p = part.pos;
     for (int i = 0; i < 8; i++)
     {
-      i_int2 n(p + i_int2(c8[i]));
+      i_int2 n(p + i_int2(arch_neighb2d<A>::get(c8_h, c8, i)));
       if (pset.domain().has(n) and pset.has(n))
       {
     	const particle& buddy = pset(n);

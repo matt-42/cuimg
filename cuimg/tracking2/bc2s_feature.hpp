@@ -227,7 +227,6 @@ namespace cuimg
     }
   }
 
-#ifndef NO_CUDA
 
   template <typename A>
   void
@@ -247,7 +246,7 @@ namespace cuimg
     // dg::pause();
   }
 
-#endif
+#ifndef NO_CUDA
 
   template <typename A>
   void
@@ -263,6 +262,7 @@ namespace cuimg
     // dg::widgets::ImageView("frame") << (*(host_image2d<i_uchar1>*)(&s2_)) << dg::widgets::show;
     // dg::pause();
   }
+#endif
 
   template <typename A>
   int

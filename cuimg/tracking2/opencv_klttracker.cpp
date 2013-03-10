@@ -35,7 +35,7 @@ namespace cuimg
     for (auto p : keypoints_)
     {
       i_int2 pos(p.y, p.x);
-      for_all_in_static_neighb2d(pos, n, c25) if (mask.has(n))
+      for_all_in_static_neighb2d(pos, n, c25_h) if (mask.has(n))
         mask(n) = 0;
     }
 

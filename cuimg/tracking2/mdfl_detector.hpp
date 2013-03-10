@@ -216,10 +216,11 @@ namespace cuimg
 
   template <typename F, typename PS>
   void
-  mdfl_1s_detector::new_particles(const F& feature, PS& pset)
+  mdfl_1s_detector::new_particles(const F& feature, PS& pset_)
   {
     SCOPE_PROF(mdfl_new_particles_detector);
     memset(new_points_, 0);
+    typename PS::kernel_type pset = pset_;
     mt_apply2d(sizeof(i_float1), saliency_.domain() - border(8),
                [this, &feature, &pset] (i_int2 p)
                {
@@ -228,7 +229,7 @@ namespace cuimg
                  if (this->saliency_(p) < this->dev_th_) return;
                  for (int i = 0; i < 8; i++)
                  {
-                   i_int2 n(p + i_int2(c8[i]));
+                   i_int2 n(p + i_int2(c8_h[i]));
                    if (this->saliency_(p) < this->saliency_(n) || pset.has(n))
                      return;
                  }
@@ -237,9 +238,9 @@ namespace cuimg
                }, cpu());
 
     st_apply2d(sizeof(char), saliency_.domain() - border(8),
-               [this, &feature, &pset] (i_int2 p)
+               [this, &feature, &pset_] (i_int2 p)
                {
-                 if (this->new_points_(p)) pset.add(p, feature(p));
+                 if (this->new_points_(p)) pset_.add(p, feature(p));
                }, cpu());
 
   }
@@ -257,8 +258,8 @@ namespace cuimg
     START_PROF(mdfl2s_compute_saliency);
 
     dim3 dimblock = ::cuimg::dimblock(cpu(), sizeof(i_uchar1), input.domain());
-    local_jet_static_<0, 0, 1, 1>::run(input, input_s1_, tmp_, 0, dimblock);
-    local_jet_static_<0, 0, 1, 1>::run(input, input_s2_, tmp_, 0, dimblock);
+    //FIXME local_jet_static_<0, 0, 1, 1>::run(input, input_s1_, tmp_, 0, dimblock);
+    //local_jet_static_<0, 0, 1, 1>::run(input, input_s2_, tmp_, 0, dimblock);
     mt_apply2d(sizeof(i_float1), input.domain() - border(8),
 	       [this, &input] (i_int2 p)
 	       {

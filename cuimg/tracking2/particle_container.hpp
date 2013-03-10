@@ -1,8 +1,10 @@
 #ifndef CUIMG_PARTICLE_CONTAINER_HP_
 # define CUIMG_PARTICLE_CONTAINER_HP_
 
-# include <thrust/remove.h>
-# include <thrust/device_vector.h>
+# ifndef NO_CUDA
+#  include <thrust/remove.h>
+#  include <thrust/device_vector.h>
+# endif
 
 # include <cuimg/memset.h>
 # include <cuimg/tracking2/compact_particles_image.h>
@@ -400,7 +402,8 @@ namespace cuimg
       p.acceleration = (new_speed - p.speed);
     else
       p.acceleration = i_int2(0,0);
-    p.speed = i_float2(new_speed) / (frame_cpt_ - p.prev_match_time);
+    //p.speed = i_float2(new_speed) / (frame_cpt_ - p.prev_match_time);
+    p.speed = i_float2(new_speed);
     p.pos = dst;
     p.prev_match_time = frame_cpt_;
     float period = 10.f;

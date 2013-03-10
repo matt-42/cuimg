@@ -30,15 +30,15 @@ namespace cuimg
 
     inline float dev_threshold() const { return dev_th_; }
 
-    inline const host_image2d<int>& saliency() { return saliency_; }
-    inline const host_image2d<int>& contrast() { return contrast_; }
+    inline const host_image2d<gl8u>& saliency() { return saliency_; }
+    inline const host_image2d<gl8u>& contrast() { return contrast_; }
 
   protected:
     saliency_mode saliency_mode_;
     float contrast_th_;
     float dev_th_;
-    host_image2d<int> saliency_;
-    host_image2d<int> contrast_;
+    host_image2d<gl8u> saliency_;
+    host_image2d<gl8u> contrast_;
     host_image2d<char> new_points_;
     host_image2d<gl8u> input_s2_;
     host_image2d<gl8u> tmp_;

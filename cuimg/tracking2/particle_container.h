@@ -147,6 +147,7 @@ namespace cuimg
   class kernel_particle_container
   {
   public:
+    typedef A architecture;
     typedef typename P::coords_type particle_coords;
     typedef P particle_type;
     typedef typename F::value_type feature_type;

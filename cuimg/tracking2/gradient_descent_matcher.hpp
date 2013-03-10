@@ -10,6 +10,7 @@ namespace cuimg
   inline __host__ __device__ 
   i_short2 gradient_descent_match(i_short2 prediction, F f, FI& feature_img, float& distance, unsigned scale = 1)
   {
+    typedef typename FI::architecture A;
     i_short2 match = prediction;
     float match_distance = feature_img.distance(f, prediction);
     unsigned match_i = 8;
@@ -23,10 +24,10 @@ namespace cuimg
     assert(domain.has(prediction));
     for (int search = 0; search < 7; search++)
     {
-      int i = c8_it[match_i][0];
-      int end = c8_it[match_i][1];
+      int i = arch_neighb2d<A>::get(c8_it_h, c8_it, match_i)[0];
+      int end = arch_neighb2d<A>::get(c8_it_h, c8_it, match_i)[1];
       {
-        i_int2 n(prediction + i_int2(c8[i]));
+        i_int2 n(prediction + i_int2(arch_neighb2d<A>::get(c8_h, c8, i)));
         {
           float d = feature_img.distance(f, n, scale);
           if (d < match_distance)
@@ -42,7 +43,7 @@ namespace cuimg
 #pragma unroll 4
       for(; i != end; i = (i + 1) & 7)
       {
-        i_int2 n(prediction + i_int2(c8[i]));
+        i_int2 n(prediction + i_int2(arch_neighb2d<A>::get(c8_h, c8, i)));
         {
           float d = feature_img.distance(f, n, scale);
           if (d < match_distance)

@@ -46,7 +46,7 @@ namespace cuimg
   template <typename I, typename V>
     __host__ __device__ void draw_c8(I& out, const point2d<int>& p, const V& value)
   {
-    for_all_in_static_neighb2d(p, n, c8) if (out.has(n))
+    for_all_in_static_neighb2d(p, n, c8_h) if (out.has(n))
       out(n) = value;
   }
 

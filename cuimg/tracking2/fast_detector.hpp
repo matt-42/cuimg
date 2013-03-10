@@ -1,18 +1,25 @@
 #ifndef CUIMG_FAST_DETECTOR_HPP_
 # define CUIMG_FAST_DETECTOR_HPP_
 
-//fixme
-# include <thrust/remove.h>
 
 # include <cuimg/mt_apply.h>
 # include <cuimg/run_kernel.h>
 # include <cuimg/gpu/cuda.h>
+# include <cmath>
 
 namespace cuimg
 {
 
   namespace fast
   {
+
+    #ifdef NO_CUDA
+    template <typename T>
+    inline const T& max(T& a, T& b)
+    {
+      return std::max(a, b);
+    }
+    #endif
 
     template <typename I>
     inline __host__ __device__
@@ -23,9 +30,9 @@ namespace cuimg
 	::abs(int(input(p + i_int2(-d,0))) - int(input(p + i_int2(d,0))));
     }
 
-    template <typename I>
+    template <typename I, typename A>
     inline __host__ __device__
-    gl8u compute_saliency(i_short2 p, I& input_, int n_, int fast_th_)
+    gl8u compute_saliency(i_short2 p, I& input_, int n_, int fast_th_, const A&)
     {
       unsigned max_n = 0;
       unsigned n = 0;
@@ -36,7 +43,7 @@ namespace cuimg
 
       for (int i = 0; i < 16; i++)
       {
-	gl8u vn = input_(p + i_int2(circle_r3[i]));
+	gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, i)));
 	int sign = int(vn) > int(vp);
 	unsigned char dist = ::abs(int(vn) - int(vp));
 	if (dist > fast_th_)
@@ -64,7 +71,7 @@ namespace cuimg
 	int i = 0;
 	while (true)
 	{
-	  gl8u vn = input_(p + i_int2(circle_r3[i]));
+	  gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, i)));
 	  int sign = int(vn) > int(vp);
 	  unsigned char dist = ::abs(int(vn) - int(vp));
 
@@ -131,7 +138,7 @@ namespace cuimg
     mt_apply2d(sizeof(i_float1), input.domain() - border(8),
 	       [this, &input] (i_int2 p)
 	       {
-		 this->saliency_(p) = fast::compute_saliency(p, input, this->n_, this->fast_th_);
+		 this->saliency_(p) = fast::compute_saliency(p, input, this->n_, this->fast_th_, cpu());
 	       }, cpu());
 
     // contrast
@@ -151,16 +158,17 @@ namespace cuimg
   {
     SCOPE_PROF(fast_new_particles_detector);
     memset(new_points_, 0);
+    typename PS::kernel_type pset_ = pset;
     mt_apply2d(sizeof(i_float1), saliency_.domain() - border(8),
-               [this, &feature, &pset] (i_int2 p)
+               [this, &feature, &pset_] (i_int2 p)
                {
-                 if (pset.has(p)) return;
+                 if (pset_.has(p)) return;
                  if (saliency_(p) == 0) return;
 
                  for (int i = 0; i < 8; i++)
                  {
-                   i_int2 n(p + i_int2(c8[i]));
-                   if (saliency_(p) < saliency_(n) || pset.has(n))
+                   i_int2 n(p + i_int2(c8_h[i]));
+                   if (saliency_(p) < saliency_(n) || pset_.has(n))
                      return;
                  }
 
@@ -196,7 +204,7 @@ namespace cuimg
   {
     i_int2 p = thread_pos2d();
     if (!(input.domain() - border(4)).has(p)) return;
-    saliency(p) = fast::compute_saliency(p, input, n, fast_th);
+    saliency(p) = fast::compute_saliency(p, input, n, fast_th, cuda_gpu());
     //saliency(p) = 0;
   }
 
