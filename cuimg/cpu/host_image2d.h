@@ -18,11 +18,16 @@
 
 namespace cuimg
 {
+  struct cpu;
+  template <typename V>
+  class kernel_image2d;
+
   template <typename V>
   class host_image2d : public Image2d<host_image2d<V> >
   {
   public:
     static const cuimg::target target = CPU;
+    typedef cpu architecture;
 
     typedef int is_expr;
     typedef V value_type;

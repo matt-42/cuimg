@@ -36,6 +36,10 @@ namespace cuimg
       typedef typename particles_type::particle_type particle_type;
       typedef INPUT input;
       typedef typename particles_type::architecture architecture;
+      typedef typename feature_t::architecture::template image2d<std::pair<int, i_int2> >::ret flow_stats_t;
+      typedef typename feature_t::architecture::template image2d<i_float2>::ret flow_t;
+      typedef typename feature_t::architecture::template image2d<gl8u>::ret gl8u_image2d;
+
       inline generic_strategy(const obox2d& o);
 
       inline void set_upper(self* s);
@@ -61,6 +65,7 @@ namespace cuimg
       inline void clear();
 
       inline i_int2 get_flow_at(const i_int2& p);
+      inline const flow_t& flow() const { return flow_; }
 
       inline i_short2 camera_motion() const { return camera_motion_; }
       inline i_short2 prev_camera_motion() const { return prev_camera_motion_; }
@@ -75,9 +80,11 @@ namespace cuimg
       self* lower_;
       int frame_cpt_;
 
+      gl8u_image2d contrast_;
+      gl8u_image2d mask_;
       const int flow_ratio;
-      typedef typename feature_t::architecture::template image2d<std::pair<int, i_float2> >::ret flow_image_t;
-      flow_image_t flow_;
+      flow_stats_t flow_stats_;
+      flow_t flow_;
 
       int detector_frequency_;
       int filtering_frequency_;
@@ -154,10 +161,6 @@ namespace cuimg
       inline i_short2 prediction(const particle& p);
       inline void match_particles(particles_type& pset);
       inline void update(const input& in, particles_type& pset);
-
-      inline const host_image2d<std::pair<int, i_float2> >& flow() const { return flow_; }
-
-    private:
     };
 
     struct bc2s_fast_gradient_cpu
@@ -201,7 +204,7 @@ namespace cuimg
 			       particle_container<bc2s_feature<cuda_gpu>, particle, cuda_gpu>,
 			       device_image2d<gl8u> > super;
 
-      inline bc2s_fast_gradient_gpu(const obox2d& o) : super(d) {}
+      inline bc2s_fast_gradient_gpu(const obox2d& o) : super(o) {}
 
       inline void init() {}
     };

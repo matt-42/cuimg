@@ -8,8 +8,10 @@ namespace cuimg
 
   template <typename F, typename FI>
   inline __host__ __device__ 
-  i_short2 gradient_descent_match(i_short2 prediction, F f, FI& feature_img, float& distance, unsigned scale = 1)
+  std::pair<i_short2, float> gradient_descent_match(i_short2 prediction_, F f, FI& feature_img, unsigned scale = 1)
   {
+    typedef std::pair<i_short2, float> ret;
+    i_short2 prediction = prediction_;
     typedef typename FI::architecture A;
     i_short2 match = prediction;
     float match_distance = feature_img.distance(f, prediction);
@@ -18,9 +20,9 @@ namespace cuimg
 
     if (!domain.has(prediction))
     {
-      distance = 999999.f;
-      return prediction;
+      return ret(prediction, 999999.f);
     }
+
     assert(domain.has(prediction));
     for (int search = 0; search < 7; search++)
     {
@@ -39,6 +41,8 @@ namespace cuimg
         }
         i = (i + 1) & 7;
       }
+
+
 
 #pragma unroll 4
       for(; i != end; i = (i + 1) & 7)
@@ -62,9 +66,7 @@ namespace cuimg
 
     }
 
-    distance = match_distance;
-    return match;
-
+    return ret(match, match_distance);
   }
 
 
@@ -109,10 +111,10 @@ namespace cuimg
 
   template <typename F, typename FI>
   inline __host__ __device__ 
-  i_short2 two_step_gradient_descent_match(i_short2 prediction, F f, FI& feature_img, float& distance)
+  std::pair<i_short2, float> two_step_gradient_descent_match(i_short2 prediction, F f, FI& feature_img)
   {
-    i_short2 match1 = gradient_descent_match(prediction, f, feature_img, distance, 2);
-    return gradient_descent_match(match1, f, feature_img, distance, 1);
+    std::pair<i_short2, float> match1 = gradient_descent_match(prediction, f, feature_img, 2);
+    return gradient_descent_match(match1.first, f, feature_img, 1);
   }
 
   template <typename F, typename S>

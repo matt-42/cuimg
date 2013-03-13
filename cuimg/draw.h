@@ -50,6 +50,13 @@ namespace cuimg
       out(n) = value;
   }
 
+  template <typename I, typename V>
+    __host__ __device__ void draw_c8_cuda(I& out, const point2d<int>& p, const V& value)
+  {
+    for_all_in_static_neighb2d(p, n, c8) if (out.has(n))
+      out(n) = value;
+  }
+
   template <typename I>
     __device__ __host__ void fill_rect(I out, point2d<int> a, unsigned nr, unsigned nc,
 				       typename I::value_type color)

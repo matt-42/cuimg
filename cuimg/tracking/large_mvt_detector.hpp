@@ -26,6 +26,7 @@
 # include <cuimg/neighb_iterator2d.h>
 # include <cuimg/static_neighb2d.h>
 # include <cuimg/point2d.h>
+# include <cuimg/gpu/kernel_util.h>
 
 # include <cuimg/tracking/fast_tools.h>
 
@@ -38,6 +39,7 @@ namespace cuimg
   {
   }
 
+#ifdef NVCC
   template <typename V>
   __global__ void relative_diff(const kernel_image2d<V> a,
                                 const kernel_image2d<V> b,
@@ -59,6 +61,8 @@ namespace cuimg
     else
       out(p) = 0.f;
   }
+
+#endif
 
   template <typename V>
   template <typename A>

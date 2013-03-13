@@ -21,15 +21,6 @@ namespace cuimg
     }
     #endif
 
-    template <typename I>
-    inline __host__ __device__
-    gl8u compute_contrast(i_short2 p, const I& input, I& contrast_)
-    {
-      const int d = 5;
-      contrast_(p) = ::abs(int(input(p + i_int2(0,d))) - int(input(p + i_int2(0,-d)))) +
-	::abs(int(input(p + i_int2(-d,0))) - int(input(p + i_int2(d,0))));
-    }
-
     template <typename I, typename A>
     inline __host__ __device__
     gl8u compute_saliency(i_short2 p, I& input_, int n_, int fast_th_, const A&)
@@ -99,7 +90,6 @@ namespace cuimg
   fast_detector<A>::fast_detector(const obox2d& d)
     : n_(9),
       saliency_(d),
-      contrast_(d),
       new_points_(d)
   {
   }
@@ -129,27 +119,18 @@ namespace cuimg
   }
 
 #ifndef NO_CPP0X
-  template <typename A>
-  void
-  fast_detector<A>::update(const host_image2d<gl8u>& input)
-  {
-    input_ = input;
+  // template <typename A>
+  // void
+  // fast_detector<A>::update(const host_image2d<gl8u>& input)
+  // {
+  //   input_ = input;
 
-    mt_apply2d(sizeof(i_float1), input.domain() - border(8),
-	       [this, &input] (i_int2 p)
-	       {
-		 this->saliency_(p) = fast::compute_saliency(p, input, this->n_, this->fast_th_, cpu());
-	       }, cpu());
-
-    // contrast
-    mt_apply2d(sizeof(i_float1), input.domain() - border(5),
-	       [this, &input] (i_int2 p)
-	       {
-		 contrast_(p) = fast::compute_contrast(p, input, contrast_);
-	       }, cpu());
-
-  }
-
+  //   mt_apply2d(sizeof(i_float1), input.domain() - border(8),
+  // 	       [this, &input] (i_int2 p)
+  // 	       {
+  // 		 this->saliency_(p) = fast::compute_saliency(p, input, this->n_, this->fast_th_, cpu());
+  // 	       }, cpu());
+  // }
 
   template <typename A>
   template <typename F, typename PS>
@@ -186,54 +167,46 @@ namespace cuimg
 
 #endif
 
-#ifndef NO_CUDA
-
-
-  template <typename I>
-  __global__
-  void compute_contrast(const I input, I contrast)
+  template <typename I, typename J>
+  struct compute_saliency_kernel
   {
-    i_int2 p = thread_pos2d();
-    if (!(input.domain() - border(6)).has(p)) return;
-    contrast(p) = fast::compute_contrast(p, input, contrast);
-  }
+    typedef typename I::architecture architecture;
+    const typename I::kernel_type input_;
+    const typename J::kernel_type mask_;
+    typename I::kernel_type saliency_;
+    int n_;
+    float fast_th_;
 
-  template <typename I>
-  __global__
-  void compute_saliency(const I input, I saliency, int n, float fast_th)
-  {
-    i_int2 p = thread_pos2d();
-    if (!(input.domain() - border(4)).has(p)) return;
-    saliency(p) = fast::compute_saliency(p, input, n, fast_th, cuda_gpu());
-    //saliency(p) = 0;
-  }
+    compute_saliency_kernel(const I input, const I mask, I saliency, int n, float fast_th)
+      : input_(input),
+	mask_(mask),
+	saliency_(saliency),
+	n_(n),
+	fast_th_(fast_th)
+    {
+    }
+
+    __host__ __device__ inline
+    void operator()(i_int2 p)
+    {
+      if (!mask_(p))
+	saliency_(p) = fast::compute_saliency(p, input_, n_, fast_th_, architecture());
+    }
+
+  };
 
   template <typename A>
+  template <typename J>
   void
-  fast_detector<A>::update(const device_image2d<gl8u>& input)
+  fast_detector<A>::update(const image2d_gl8u& input, const J& mask)
   {
     input_ = input;
-
-    std::cout << "fast update " << input.domain().nrows() << "x"  << input.domain().ncols() << std::endl;
-    dim3 dimgrid = cuda_gpu::dimgrid2d(input.domain());
-    std::cout << dimgrid.x << " " << dimgrid.y << std::endl;
-    compute_contrast<kernel_image2d<gl8u> ><<<cuda_gpu::dimgrid2d(input.domain()), cuda_gpu::dimblock2d()>>>
-      (input, contrast_);
-
-    cudaThreadSynchronize();
-    check_cuda_error();
-
-    std::cout << "fast contrast ok" << std::endl;
-
-    compute_saliency<kernel_image2d<gl8u> ><<<cuda_gpu::dimgrid2d(input.domain()), cuda_gpu::dimblock2d()>>>
-      (input, saliency_, n_, fast_th_);
-
-    cudaThreadSynchronize();
-    check_cuda_error();
-
-    std::cout << "fast update end" << std::endl;
-    check_cuda_error();
+    memset(saliency_, 0);
+    run_kernel2d_functor(compute_saliency_kernel<image2d_gl8u, J>(input, mask, saliency_, n_, fast_th_),
+			 input.domain() - border(4), A());
   }
+
+#ifndef NO_CUDA
 
   template <typename PS, typename I, typename J>
   __global__
@@ -267,16 +240,10 @@ namespace cuimg
     SCOPE_PROF(fast_new_particles_detector);
     memset(new_points_, 0);
 
-    cudaThreadSynchronize();
-    check_cuda_error();
 
-    std::cout << "new_particles" << std::endl;
     select_particles<<<A::dimgrid2d(saliency_.domain()), A::dimblock2d()>>>
       (typename PS::kernel_type(pset), mki(saliency_), mki(new_points_),
-       new_points_.domain() - border(8));
-
-    cudaThreadSynchronize();
-    check_cuda_error();
+       new_points_.domain() - border(6));
 
     pset.append_new_points(new_points_, feature);
   }

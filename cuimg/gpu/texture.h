@@ -17,6 +17,36 @@ struct texture
 namespace cuimg
 {
 
+#ifndef NO_CUDA
+  template <typename V>
+  cudaTextureObject_t create_texture(const device_image2d<V>& in)
+  {
+    cudaTextureObject_t         texInput;
+    cudaResourceDesc            texRes;
+    memset(&texRes,0,sizeof(cudaResourceDesc));
+
+    texRes.resType            = cudaResourceTypePitch2D;
+    texRes.res.pitch2D.devPtr = in.data();
+    texRes.res.pitch2D.desc   = cudaCreateChannelDesc<typename V::cuda_bt>();
+    texRes.res.pitch2D.pitchInBytes = in.pitch();
+    texRes.res.pitch2D.width = in.ncols();
+    texRes.res.pitch2D.height = in.nrows();
+
+    cudaTextureDesc             texDescr;
+    memset(&texDescr,0,sizeof(cudaTextureDesc));
+
+    texDescr.normalizedCoords = 0;
+    texDescr.filterMode       = cudaFilterModePoint;
+    texDescr.addressMode[0] = cudaAddressModeClamp;
+    texDescr.addressMode[1] = cudaAddressModeClamp;
+    texDescr.addressMode[2] = cudaAddressModeClamp;
+
+    texDescr.readMode = cudaReadModeElementType;
+    cudaCreateTextureObject(&texInput, &texRes, &texDescr, NULL);
+    return texInput;
+  }
+#endif
+
   inline void cudaUnbindTexture(int t)
   {
     return;
@@ -163,7 +193,7 @@ REGISTER_TEXTURE2D_TYPE_(P, ulong4)                                     \
   struct P<improved_builtin<T, N> >                                     \
 {                                                                       \
   typedef typename improved_builtin<T, N>::cuda_bt cuda_bt;             \
-  static __host__ __device__ inline ::texture<cuda_bt, 2, cudaReadModeElementType>& tex() { return P<cuda_bt>::tex(); } \
+  static __device__ inline ::texture<cuda_bt, 2, cudaReadModeElementType>& tex() { return P<cuda_bt>::tex(); } \
 };
 
 #define REGISTER_TEXTURE2D_PROXY_1(P) REGISTER_TEXTURE2D_PROXY_2(P)

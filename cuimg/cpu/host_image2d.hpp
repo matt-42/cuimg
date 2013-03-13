@@ -329,8 +329,9 @@ namespace cuimg
   template <typename V>
   i_int2 host_image2d<V>::index_to_point(unsigned int idx) const
   {
-    return i_int2((idx * sizeof(V)) / pitch_,
-		  (idx * sizeof(V)) % pitch_);
+    int r = (idx * sizeof(V)) / pitch_;
+    int c = idx - r * (pitch_ / sizeof(V));
+    return i_int2(r, c);
   }
 
 }

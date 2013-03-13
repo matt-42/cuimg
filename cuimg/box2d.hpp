@@ -51,6 +51,12 @@ namespace cuimg
     return b_;
   }
 
+  int
+  box2d::size() const
+  {
+    return nrows() * ncols();
+  }
+
   const i_int2
   box2d::center() const
   {

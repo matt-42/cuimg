@@ -13,9 +13,12 @@ namespace cuimg
   {
     typedef typename PI::architecture A;
     i_int2 p = part.pos;
+    if (part.age == 0) return;
+    assert(pset.domain().has(p));
     for (int i = 0; i < 8; i++)
     {
       i_int2 n(p + i_int2(arch_neighb2d<A>::get(c8_h, c8, i)));
+      assert(pset.domain().has(n));
       if (pset.domain().has(n) and pset.has(n))
       {
     	const particle& buddy = pset(n);

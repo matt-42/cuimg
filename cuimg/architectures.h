@@ -41,7 +41,9 @@ namespace cuimg
     static dim3 dimgrid1d(unsigned size) { return dim3(idivup(size, 128), 1, 1); }
 
     static dim3 dimblock2d() { return dim3(16, 16, 1); }
-    static dim3 dimgrid2d(const obox2d& d) { return dim3(idivup(d.ncols(), 16), idivup(d.nrows(), 16), 1); }
+
+    template <typename D>
+    static dim3 dimgrid2d(const D& d) { return dim3(idivup(d.ncols(), 16), idivup(d.nrows(), 16), 1); }
   };
 #endif
 

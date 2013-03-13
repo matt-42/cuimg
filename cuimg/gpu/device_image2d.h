@@ -4,6 +4,7 @@
 # define CUIMG_IMAGE2D_H_
 
 # include <cuimg/gpu/cuda.h>
+# include <cuimg/architectures.h>
 # include <boost/shared_ptr.hpp>
 # include <cuimg/target.h>
 # include <cuimg/concepts.h>
@@ -14,6 +15,8 @@
 namespace cuimg
 {
 
+  struct cuda_gpu;
+
   template <typename V>
   class kernel_image2d;
 
@@ -22,7 +25,7 @@ namespace cuimg
   {
   public:
     static const cuimg::target target = GPU;
-
+    typedef cuda_gpu architecture;
     typedef int is_expr;
     typedef boost::shared_ptr<V> PT;
     typedef V value_type;

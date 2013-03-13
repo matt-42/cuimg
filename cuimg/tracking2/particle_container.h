@@ -12,7 +12,7 @@ namespace cuimg
   struct particle
   {
     typedef i_short2 coords_type;
-    __host__ __device__
+    inline __host__ __device__
     particle() : age(0), speed(0.f, 0.f), fault(0) {}
 
   //   particle(const particle& o, i_short2 p)
@@ -164,11 +164,19 @@ namespace cuimg
     inline __host__ __device__ bool has(i_int2 p) const;
     inline __host__ __device__ const obox2d& domain() const { return sparse_buffer_.domain(); }
 
+#ifndef NDEBUG
+    inline __host__ __device__ int size() const { return size_; }
+#endif
+
   private:
     uint_image2d sparse_buffer_;
     particle_type* particles_vec_;
     feature_type* features_vec_;
     unsigned frame_cpt_;
+#ifndef NDEBUG
+    unsigned size_;
+#endif
+
   };
 
 }

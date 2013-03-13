@@ -1,12 +1,14 @@
 #ifndef CUIMG_BC2S_FEATURE_H_
 # define CUIMG_BC2S_FEATURE_H_
 
+# include <map>
 # include <cuimg/architectures.h>
 # include <cuimg/kernel_type.h>
 # include <cuimg/gpu/cuda.h>
 # include <cuimg/improved_builtin.h>
 # include <cuimg/gl.h>
 # include <cuimg/gpu/kernel_image2d.h>
+# include <cuimg/gpu/gaussian_blur.h>
 
 namespace cuimg
 {
@@ -120,6 +122,8 @@ namespace cuimg
     I tmp_;
     int offsets_s1_[8];
     int offsets_s2_[8];
+    npp_gaussian_kernel kernel_1_;
+    npp_gaussian_kernel kernel_2_;
   };
 
   template <> struct kernel_type<bc2s_feature<cpu> > { typedef bc2s_feature<cpu>& ret; };
@@ -127,12 +131,19 @@ namespace cuimg
 #ifndef NO_CUDA
   template <> struct kernel_type<bc2s_feature<cuda_gpu> > { typedef cuda_bc2s_feature ret; };
 
-  extern __constant__ int cuda_bc2s_offsets_s1[8];
-  extern __constant__ int cuda_bc2s_offsets_s2[8];
+  extern __constant__ int cuda_bc2s_offsets_s1_0[8];
+  extern __constant__ int cuda_bc2s_offsets_s2_0[8];
+
+  extern __constant__ int cuda_bc2s_offsets_s1_2[8];
+  extern __constant__ int cuda_bc2s_offsets_s2_2[8];
+
+  extern __constant__ int cuda_bc2s_offsets_s1_1[8];
+  extern __constant__ int cuda_bc2s_offsets_s2_1[8];
 
   class cuda_bc2s_feature
   {
   public:
+    typedef cuda_gpu architecture;
     typedef bc2s value_type;
     typedef gl8u V;
     inline cuda_bc2s_feature(bc2s_feature<cuda_gpu>&);
@@ -148,7 +159,8 @@ namespace cuimg
   public:
     kernel_image2d<V> s1_;
     kernel_image2d<V> s2_;
-    static bool cuda_bc2s_offsets_loaded_;
+    unsigned scaleid_;
+    static std::map<int, int> scales;
   };
 #endif
 

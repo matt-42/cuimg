@@ -23,7 +23,7 @@ namespace cuimg
 #endif
 
   private:
-    host_image2d<unsigned short> h;
+    typename A::template image2d<int>::ret h;
     typename A::template vector<int>::ret vote_buffer_;
     typename A::template vector<int>::ret histo_values_;
     typename A::template vector<int>::ret histo_counts_;

@@ -15,7 +15,7 @@ INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
 ADD_DEFINITIONS(-std=c++0x -DNDEBUG -O3 -fopenmp -march=native -funroll-loops -DWITH_OPENCV)
-add_definitions(-std=c++0x -g  -DWITH_OPENCV -DNO_CUDA)
+#add_definitions(-std=c++0x -g  -DWITH_OPENCV -DNO_CUDA)
 
 IF (NOT CUDA_FOUND)
   add_definitions(-DNO_CUDA)

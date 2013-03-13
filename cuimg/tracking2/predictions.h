@@ -21,21 +21,20 @@ namespace cuimg
   // Need S::get_flow_at
   template <typename S, typename P>
   inline __host__ __device__
-  i_int2 multiscale_prediction(S& s, const P& p)
+  i_int2 multiscale_prediction(const P& p, S& uf, int flow_ratio,
+			       const i_short2& u_prev_cam_motion = i_short2(0,0),
+			       const i_short2& u_cam_motion = i_short2(0,0))
   {
-    S* upper = static_cast<S*>(s.upper());
-      if (p.age > 1)
-	if (upper)
-	  return motion_based_prediction(p, upper->prev_camera_motion()*2, upper->camera_motion()*2);
-	else
-	  return motion_based_prediction(p);
+    if (p.age > 1)
+      if (uf.data())
+	return motion_based_prediction(p, u_prev_cam_motion*2, u_cam_motion*2);
       else
-	if (upper)
-	{
-	  return p.pos + 2 * upper->get_flow_at(p.pos / 2);
-	}
-	else
-	  return p.pos;
+	return motion_based_prediction(p);
+    else
+      if (uf.data())
+	return p.pos + 2 * uf(p.pos / (2 * flow_ratio));
+      else
+	return p.pos;
   }
 
 }

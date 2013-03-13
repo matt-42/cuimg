@@ -5,14 +5,19 @@
 # include <cuimg/profiler.h>
 # include <cuimg/architectures.h>
 # include <cuimg/neighb2d_data.h>
-//# include <cuimg/gpu/local_jet_static.h>
+# include <cuimg/border.h>
+# include <cuimg/box2d.h>
 
 #ifndef NO_CUDA
+//# include <cuimg/gpu/local_jet_static.h>
 # include <cuimg/gpu/gaussian_blur.h>
 #endif
 
 namespace cuimg
 {
+
+  ::texture<uchar1, 2, cudaReadModeElementType> bc2s_tex_s1;
+  ::texture<uchar1, 2, cudaReadModeElementType> bc2s_tex_s2;
 
   namespace bc2s_internals
   {
@@ -21,16 +26,16 @@ namespace cuimg
     distance(const O& o, const bc2s& a, const i_short2& n, const unsigned scale = 1)
     {
       int d = 0;
-
+      assert((o.domain() - border(6)).has(n));
       const typename O::V* data = &o.s1_(n);
-
-      // return 0;
-      // return o.s1_(n).x; // fixme
 
       if (scale == 1)
       {
 	for(int i = 0; i < 8; i ++)
 	{
+	  assert(o.s1_.begin() <= data + o.offsets_s1(i));
+	  assert(o.s1_.end() > data + o.offsets_s1(i));
+
 	  int v = data[o.offsets_s1(i)].x;
 	  d += ::abs(v - a[i]);
 	}
@@ -40,7 +45,34 @@ namespace cuimg
 	data = &o.s2_(n);
 	for(int i = 0; i < 8; i ++)
 	{
+	  assert(o.s2_.begin() <= data + o.offsets_s2(i));
+	  assert(o.s2_.end() > data + o.offsets_s2(i));
 	  int v = data[o.offsets_s2(i)].x;
+	  d += ::abs(v - a[8+i]);
+	}
+      }
+
+      // return d / (255.f * 16.f);
+      return d;
+    }
+
+    __device__ inline int
+    distance_tex(const bc2s& a, const i_short2& n, const unsigned scale = 1)
+    {
+      int d = 0;
+      if (scale == 1)
+      {
+	for(int i = 0; i < 8; i ++)
+	{
+	  int v = tex2D(bc2s_tex_s1, n.c() + circle_r3[i][1], n.r() + circle_r3[i][0]).x;
+	  d += ::abs(v - a[i]);
+	}
+      }
+      //else
+      {
+	for(int i = 0; i < 8; i ++)
+	{
+	  int v = tex2D(bc2s_tex_s2, n.c() + circle_r3[i][1] * 2, n.r() + circle_r3[i][0] * 2).x;
 	  d += ::abs(v - a[8+i]);
 	}
       }
@@ -83,14 +115,42 @@ namespace cuimg
     compute_feature(const O& o, const i_int2& n)
     {
       bc2s b;
+      assert((o.domain() - border(6)).has(n));
 
       const typename O::V* data = &o.s1_(n);
       for(int i = 0; i < 8; i ++)
+      {
+	assert(o.s1_.begin() <= data + o.offsets_s1(i));
+	assert(o.s1_.end() > data + o.offsets_s1(i));
         b[i] = data[o.offsets_s1(i)].x;
+      }
 
       data = &o.s2_(n);
       for(int i = 0; i < 8; i ++)
+      {
+	assert(o.s2_.begin() <= data + o.offsets_s2(i));
+	assert(o.s2_.end() > data + o.offsets_s2(i));
         b[i+8] = data[o.offsets_s2(i)].x;
+      }
+
+      return b;
+    }
+
+
+    __device__ inline bc2s
+    compute_feature_tex(const i_int2& n)
+    {
+      bc2s b;
+
+      for(int i = 0; i < 8; i ++)
+      {
+	b[i] = tex2D(bc2s_tex_s1, n.c() + circle_r3[i][1], n.r() + circle_r3[i][0]).x;
+      }
+
+      for(int i = 0; i < 8; i ++)
+      {
+        b[i+8] = tex2D(bc2s_tex_s2, n.c() + circle_r3[i][1] * 2, n.r() + circle_r3[i][0] * 2).x;
+      }
 
       return b;
     }
@@ -163,7 +223,9 @@ namespace cuimg
   bc2s_feature<A>::bc2s_feature(const obox2d& d)
     : s1_(d),
       s2_(d),
-      tmp_(d)
+      tmp_(d),
+      kernel_1_(1, 1),
+      kernel_2_(2, 3)
   {
     for (unsigned i = 0; i < 16; i += 2)
     {
@@ -171,26 +233,22 @@ namespace cuimg
       i_int2 o = circle_r3_h[i];
       i_int2 o2 = o*2;
 
-      //std::cout << '-'<< o << std::endl;
       offsets_s1_[i/2] = (int(s1_.pitch()) * o.r()) / sizeof(V) + o.c();
       offsets_s2_[i/2] = (int(s2_.pitch()) * o2.r()) / sizeof(V) + o2.c();
-
 
       //offsets_s1_[i/2] = (long(&s1_(p + i_int2(circle_r3[i]))) - long(&s1_(p))) / sizeof(V);
       //offsets_s2_[i/2] = (long(&s2_(p + i_int2(circle_r3[i])*2)) - long(&s2_(p))) / sizeof(V);
     }
 
-    for (unsigned i = 0; i < 8; i ++)
-      std::cout << offsets_s1_[i] << "  " << offsets_s2_[i] << std::endl;
-    std::cout <<  " ------------- "  << std::endl;
-
     // for (unsigned i = 0; i < 8; i ++)
     // {
     //   point2d<int> p(10,10);
-    //   offsets_s1_[i] = (long(&s1_(p + i_int2(c8[i])*2)) - long(&s1_(p))) / sizeof(V);
-    //   offsets_s2_[i] = (long(&s1_(p + i_int2(c8[i])*6)) - long(&s1_(p))) / sizeof(V);
-    // }
+    //   i_int2 o = c8_h[i];
+    //   i_int2 o2 = o*2;
 
+    //   offsets_s1_[i/2] = (int(s1_.pitch()) * o.r()) / sizeof(V) + o.c();
+    //   offsets_s2_[i/2] = (int(s2_.pitch()) * o2.r()) / sizeof(V) + o2.c();
+    // }
   }
 
   // template <template <class> class I>
@@ -228,6 +286,7 @@ namespace cuimg
   }
 
 
+
   template <typename A>
   void
   bc2s_feature<A>::update(const I& in, const cpu&)
@@ -253,14 +312,8 @@ namespace cuimg
   bc2s_feature<A>::update(const I& in, const cuda_gpu&)
   {
     SCOPE_PROF(bc2s_feature::update);
-    //local_jet_static_<0, 0, 2, 2>::run(in, s1_, tmp_, 0, dimblock);
-    //local_jet_static_<0, 0, 3, 3>::run(in, s2_, tmp_, 0, dimblock);
-    //local_jet_static_<0, 0, 1, 1>::run(s1_, s2_, tmp_, 0, dimblock);
-    gaussian_blur(in, s1_, tmp_, 2, 3);
-    gaussian_blur(s1_, s2_, tmp_, 1, 1);
-    //cv::GaussianBlur(cv::Mat(in), cv::Mat(s2_), cv::Size(9, 9), 3, 3, cv::BORDER_REPLICATE);
-    // dg::widgets::ImageView("frame") << (*(host_image2d<i_uchar1>*)(&s2_)) << dg::widgets::show;
-    // dg::pause();
+    gaussian_blur(in, s1_, tmp_, kernel_2_);
+    gaussian_blur(s1_, s2_, tmp_, kernel_1_);
   }
 #endif
 
@@ -319,40 +372,91 @@ namespace cuimg
     : s1_(o.s1_),
       s2_(o.s2_)
   {
-    // s1_ = o.s1_;
-    // s2_ = o.s2_;
+    return;
+    if (scales.find(o.domain().size()) == scales.end())
+    {
+      unsigned i = scales.size();
+      std::cout << "load- " << i << std::endl;
+      scales[o.domain().size()] = i;
+      switch (scales[o.domain().size()])
+      {
+	case 0:
+	  std::cout << "load 0" << std::endl;
+	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_0, o.offsets_s1_, sizeof(o.offsets_s1_));
+	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_0, o.offsets_s2_, sizeof(o.offsets_s2_));
+	  break;
+	case 1:
+	  std::cout << "load 1" << std::endl;
+	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_1, o.offsets_s1_, sizeof(o.offsets_s1_));
+	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_1, o.offsets_s2_, sizeof(o.offsets_s2_));
+	  break;
+	case 2:
+	  std::cout << "load 2" << std::endl;
+	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_2, o.offsets_s1_, sizeof(o.offsets_s1_));
+	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_2, o.offsets_s2_, sizeof(o.offsets_s2_));
+	  break;
+      }
+    }
+    scaleid_ = scales[o.domain().size()];
 
     //if (not cuda_bc2s_offsets_loaded_)
     {
-      cuda_bc2s_offsets_loaded_ = true;
-      std::cout << sizeof(o.offsets_s1_) << std::endl;
-      cudaMemcpyToSymbol(cuda_bc2s_offsets_s1, o.offsets_s1_, sizeof(o.offsets_s1_));
-      cudaMemcpyToSymbol(cuda_bc2s_offsets_s2, o.offsets_s2_, sizeof(o.offsets_s2_));
+      //cuda_bc2s_offsets_loaded_ = true;
+      //cudaMemcpyToSymbol(cuda_bc2s_offsets_s1, o.offsets_s1_, sizeof(o.offsets_s1_));
+      //cudaMemcpyToSymbol(cuda_bc2s_offsets_s2, o.offsets_s2_, sizeof(o.offsets_s2_));
+
+      cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_0, o.offsets_s1_, sizeof(o.offsets_s1_));
+      cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_0, o.offsets_s2_, sizeof(o.offsets_s2_));
+
     }
   }
 
   __device__ int
   cuda_bc2s_feature::distance(const bc2s& a, const i_short2& n, unsigned scale)
   {
-    return bc2s_internals::distance(*this, a, n, scale);
+    return bc2s_internals::distance_tex(a, n, scale);
+    //return bc2s_internals::distance(*this, a, n, scale);
   }
+
+  // void
+  // bc2s_feature::bind()
+  // {
+  //   return bc2s_internals::distance_tex(a, n, scale);
+  //   //return bc2s_internals::distance(*this, a, n, scale);
+  // }
 
   __device__ bc2s
   cuda_bc2s_feature::operator()(const i_short2& p) const
   {
-    return bc2s_internals::compute_feature(*this, p);
+    //return bc2s_internals::compute_feature(*this, p);
+    return bc2s_internals::compute_feature_tex(p);
   }
 
   __device__ int
   cuda_bc2s_feature::offsets_s1(int o) const
   {
-    return cuda_bc2s_offsets_s1[o];
+    assert(o < 8);
+    return cuda_bc2s_offsets_s1_0[o];
+    switch (scaleid_)
+    {
+      case 0: return cuda_bc2s_offsets_s1_0[o];
+      case 1: return cuda_bc2s_offsets_s1_1[o];
+      case 2: return cuda_bc2s_offsets_s1_2[o];
+    }
+    //return cuda_bc2s_offsets_s1[o];
   }
 
   __device__ int
   cuda_bc2s_feature::offsets_s2(int o) const
   {
-    return cuda_bc2s_offsets_s2[o];
+    assert(o < 8);
+    return cuda_bc2s_offsets_s2_0[o];
+    switch (scaleid_)
+    {
+      case 0: return cuda_bc2s_offsets_s2_0[o];
+      case 1: return cuda_bc2s_offsets_s2_1[o];
+      case 2: return cuda_bc2s_offsets_s2_2[o];
+    }
   }
 
 #endif

@@ -1,6 +1,7 @@
 #ifndef CUIMG_MIPMAP_H_
 # define CUIMG_MIPMAP_H_
 
+# include <cuimg/profiler.h>
 # include <cuimg/image_traits.h>
 # include <cuimg/util.h>
 # include <cuimg/pw_call.h>
@@ -47,7 +48,6 @@ namespace cuimg
 
   }
 
-#if 0
   template <typename D, typename S>
   std::vector<typename change_value_type<S, D>::ret>
   allocate_mipmap(const D&,
@@ -188,27 +188,11 @@ namespace cuimg
       I& tmp = pyramid_tmp2[l-1];
       I& out = pyramid_out[l];
 
-      /* local_jet_static<I, I, I, 0, 0, 1, 1> */
-      /*   (c, gaussian, tmp, stream, dimblock); */
-      /* START_PROF(copy); */
-      /* copy(c, gaussian); */
-      /* END_PROF(copy); */
-
       dim3 dimgrid = grid_dimension(out.domain(), dimblock);
-
-#ifndef NO_CUDA
-      if (I::target == GPU)
-        bindTexture2d(gaussian, mipmap_internals::UNIT_STATIC(mipmap_input_tex)<V>::tex());
-#endif
 
       START_PROF(resize_kernel);
       pw_call<mipmap_kernel_sig(I::target, U)>(flag<I::target>(), dimgrid, dimblock, c, out);
       END_PROF(resize_kernel);
-
-#ifndef NO_CUDA
-      if (I::target == GPU)
-        cudaUnbindTexture(mipmap_internals::UNIT_STATIC(mipmap_input_tex)<V>::tex());
-#endif
 
       c = out;
 
@@ -217,8 +201,6 @@ namespace cuimg
     }
 
   }
-
-#endif
 
   template <typename I>
   void subsample(const Image2d<I>& in,

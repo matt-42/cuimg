@@ -58,6 +58,9 @@ namespace cuimg
     __host__ __device__ inline V* data();
     __host__ __device__ inline const V* data() const;
 
+    __host__ __device__ inline V* begin() const;
+    __host__ __device__ inline V* end() const;
+
   private:
     domain_type domain_;
     unsigned pitch_;

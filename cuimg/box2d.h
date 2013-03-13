@@ -23,6 +23,7 @@ namespace cuimg
     __host__ __device__ inline const i_int2& p1() const;
     __host__ __device__ inline const i_int2& p2() const;
     __host__ __device__ inline const i_int2 center() const;
+    __host__ __device__ inline int size() const;
 
     __host__ __device__ inline bool has(const point2d<int>& p) const;
 

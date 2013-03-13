@@ -43,7 +43,7 @@ namespace cuimg
     SCOPE_PROF(dominant_speed_estimation);
 
     typedef unsigned short US;
-    fill(h, US(0));
+    fill(h, 0);
     i_int2 h_center(h.nrows() / 2, h.ncols() / 2);
     int max = 0;
     i_int2 max_bin = h_center;
@@ -79,15 +79,12 @@ namespace cuimg
   template <typename Vector1,
 	    typename Vector2,
 	    typename Vector3>
-  void sparse_histogram(const Vector1& data,
+  void sparse_histogram(Vector1& data,
 			Vector2& histogram_values,
 			Vector3& histogram_counts)
   {
     typedef typename Vector1::value_type ValueType; // input value type
     typedef typename Vector3::value_type IndexType; // histogram index type
-
-    // copy input data (could be skipped if input is allowed to be modified)
-    //thrust::device_vector<ValueType> data(input);
 
     // sort data to bring equal elements together
     thrust::sort(data.begin(), data.end());
@@ -116,16 +113,25 @@ namespace cuimg
   particle_vote(P* pset,
 		int* vote_buffer_,
 		unsigned size,
-		kernel_image2d<unsigned short> h,
+		kernel_image2d<int> h,
 		i_int2 prev_camera_motion)
   {
     int i = thread_pos1d();
     if (i >= size) return;
 
     const particle& part = pset[i];
+    if (part.age <= 2)
+    {
+      vote_buffer_[i] = -1;
+      return;
+    }
+
     i_int2 h_center(h.nrows() / 2, h.ncols() / 2);
     i_int2 bin = h_center + part.acceleration + prev_camera_motion;
-    vote_buffer_[i] = &h(bin) - &h(0,0);
+    if (h.has(bin))
+      vote_buffer_[i] = &h(bin) - &h(0,0);
+    else
+      vote_buffer_[i] = -1;
   }
 
   template <typename A>
@@ -133,26 +139,33 @@ namespace cuimg
   i_short2
   dominant_speed_estimator<A>::estimate(const PI& pset, i_int2 prev_camera_motion, const cuda_gpu&)
   {
+    if (pset.size() < 10)
+      return i_short2(0,0);
+
     SCOPE_PROF(dominant_speed_estimation);
 
-    // Vote
+    //Vote
     vote_buffer_.resize(pset.size());
-    // FIXME particle_vote<<<A::dimgrid1d(pset.size()), A::dimblock1d()>>>(thrust::raw_pointer_cast(&pset.dense_particles()[0]),
-    // 								  thrust::raw_pointer_cast(&vote_buffer_[0]),
-    // 								  pset.size(),
-    // 								  h,
-    // 								  prev_camera_motion);
+    particle_vote<<<A::dimgrid1d(pset.size()), A::dimblock1d()>>>(thrust::raw_pointer_cast(pset.dense_particles().data()),
+    								  thrust::raw_pointer_cast(vote_buffer_.data()),
+    								  pset.size(),
+    								  h,
+    								  prev_camera_motion);
 
-    // Histogram
-    //sparse_histogram(vote_buffer_, histo_values_, histo_counts_);
+    //Histogram
+    sparse_histogram(vote_buffer_, histo_values_, histo_counts_);
 
-    // Get max.
-    //int* max = thrust::max_element(histo_counts_.begin(), histo_counts_.end());
-    // int max = thrust::max_element(histo_counts_.begin(), histo_counts_.end()) - histo_counts_.begin();
-    // int max_bin = histo_values_[max];
+    using thrust::device_pointer_cast;
+    //Get max.
+    if (histo_counts_.size() == 1) return i_short2(0,0);
 
-    return i_short2(0,0);
-    //return h.index_to_point(max_bin);
+    thrust::device_ptr<int> max = &*thrust::max_element(++histo_counts_.begin(), histo_counts_.end());
+    int max_pos = max - &*histo_counts_.begin();
+    int max_bin = histo_values_[max_pos];
+
+    i_short2 speed = h.index_to_point(max_bin) - i_int2(h.nrows() / 2, h.ncols() / 2);
+    std::cout << speed << std::endl;
+    return speed;
   }
 
 #endif

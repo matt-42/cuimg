@@ -177,7 +177,7 @@ namespace cuimg
   particle_container<F, P, A>::before_matching()
   {
     // Reset matches, new particles and features.
-    memset(sparse_buffer_, 255);
+    memset(sparse_buffer_, -1);
     compact_has_run_ = false;
   }
 
@@ -185,7 +185,6 @@ namespace cuimg
   void
   particle_container<F, P, A>::after_matching()
   {
-    frame_cpt_++;
   }
 
   template <typename F, typename P, typename A>
@@ -210,7 +209,7 @@ namespace cuimg
     compact_has_run_ = true;
 
     matches_.resize(particles_vec_.size());
-    std::fill(matches_.begin(), matches_.end(), -1);
+    std::fill(matches_.begin(), matches_.end(), 0);
 
     typename particle_vector::iterator pts_it = particles_vec_.begin();
     typename feature_vector::iterator feat_it = features_vec_.begin();
@@ -252,12 +251,16 @@ namespace cuimg
 				 kernel_image2d<unsigned int> sparse_buffer_,
 				 unsigned nparticles)
   {
+    typedef unsigned int uint;
     unsigned int i = thread_pos1d();
-    if (i > nparticles) return;
+    if (i >= nparticles) return;
 
     unsigned int old_index = uint_tmp_[i];
+    assert(old_index != uint(-1));
     particles_vec_tmp_[i] = particles_vec_[old_index];
     features_vec_tmp_[i] = features_vec_[old_index];
+
+    assert(sparse_buffer_.has(particles_vec_[old_index].pos));
     sparse_buffer_(particles_vec_[old_index].pos) = i;
   }
 
@@ -267,24 +270,27 @@ namespace cuimg
   {
     typedef unsigned int uint;
     using thrust::device_pointer_cast;
-
     // Thrust compaction.
     uint_tmp_.resize(sparse_buffer_.end() - sparse_buffer_.begin());
-    thrust::remove_copy(device_pointer_cast(sparse_buffer_.begin()), 
-			device_pointer_cast(sparse_buffer_.end()),
-			uint_tmp_.begin(), uint(-1));
+    thrust::detail::normal_iterator<thrust::device_ptr<unsigned int> >
+      end =
+      thrust::remove_copy(device_pointer_cast(sparse_buffer_.begin()), 
+			  device_pointer_cast(sparse_buffer_.end()),
+			  uint_tmp_.begin(), uint(-1));
 
-    particles_vec_tmp_.resize(particles_vec_.size());
-    features_vec_tmp_.resize(particles_vec_.size());
+    unsigned nparticles = end - uint_tmp_.begin();
+    particles_vec_tmp_.resize(nparticles);
+    features_vec_tmp_.resize(nparticles);
 
-    compact_update<<<A::dimgrid1d(particles_vec_.size()), A::dimblock1d()>>>
-      (thrust::raw_pointer_cast(uint_tmp_.data()),
-       thrust::raw_pointer_cast(particles_vec_.data()),
-       thrust::raw_pointer_cast(particles_vec_tmp_.data()),
-       thrust::raw_pointer_cast(features_vec_.data()),
-       thrust::raw_pointer_cast(features_vec_tmp_.data()),
-       sparse_buffer_,
-       particles_vec_.size());
+    if (nparticles)
+      compact_update<<<A::dimgrid1d(nparticles), A::dimblock1d()>>>
+	(thrust::raw_pointer_cast(uint_tmp_.data()),
+	 thrust::raw_pointer_cast(particles_vec_.data()),
+	 thrust::raw_pointer_cast(particles_vec_tmp_.data()),
+	 thrust::raw_pointer_cast(features_vec_.data()),
+	 thrust::raw_pointer_cast(features_vec_tmp_.data()),
+	 sparse_buffer_,
+	 nparticles);
 
     particles_vec_.swap(particles_vec_tmp_);
     features_vec_.swap(features_vec_tmp_);
@@ -302,6 +308,8 @@ namespace cuimg
     unsigned int i = thread_pos1d();
     if (i >= size) return;
 
+    assert(sparse_buffer_.domain().has(new_points[i]));
+    assert(new_points[i] != i_short2(0,0));
     P part;
     part.pos = new_points[i];
     part.age = 1;
@@ -320,33 +328,29 @@ namespace cuimg
 
     using thrust::device_pointer_cast;
 
-    std::cout << "append_new_points "<< new_points_.nrows() << "x" << new_points_.ncols() << std::endl;
     thrust::device_ptr<i_short2> end =
       thrust::remove(device_pointer_cast(new_points_.begin()),
 		     device_pointer_cast(new_points_.end()), i_short2(0,0));
-    std::cout << end << std::endl;
 
     unsigned old_size = particles_vec_.size();
     unsigned size = end - device_pointer_cast(new_points_.begin());
 
     assert(size < new_points_.domain().size());
 
-    std::cout << old_size << " >> " << size << std::endl;
-
     // Allocate space for new particles.
     particles_vec_.resize(particles_vec_.size() + size);
+    features_vec_.resize(features_vec_.size() + size);
 
     // init new particles
     typedef const typename ::cuimg::kernel_type<F>::ret kernel_feature;
-    particle_type* new_particles = thrust::raw_pointer_cast(particles_vec_.data() + old_size) ;
-    init_new_particles<<<A::dimgrid1d(size), A::dimblock1d()>>>
-      (new_points_.data(), new_particles,
-       thrust::raw_pointer_cast(features_vec_.data() + size), mki(sparse_buffer_),
-       kernel_feature(feature), size, old_size);
+    if (size)
+      init_new_particles<<<A::dimgrid1d(size), A::dimblock1d()>>>
+	(new_points_.data(),
+	 thrust::raw_pointer_cast(particles_vec_.data() + old_size),
+	 thrust::raw_pointer_cast(features_vec_.data() + old_size),
+	 mki(sparse_buffer_),
+	 kernel_feature(feature), size, old_size);
 
-    cudaThreadSynchronize();
-    check_cuda_error();
-    std::cout << "init_new_particles done" << std::endl;
   }
 
 #endif
@@ -394,10 +398,13 @@ namespace cuimg
   void
   kernel_particle_container<F, P, A>::move(unsigned i, particle_coords dst, const feature_type& f)
   {
-    particle_type& p = particles_vec_[i];
-    particle_coords src = p.pos;
+    assert(i < size_);
+    assert(i >= 0);
+    particle_type p = particles_vec_[i];
+    assert(domain().has(p.pos));
+    assert(domain().has(dst));
     p.age++;
-    i_int2 new_speed = dst - src;
+    i_int2 new_speed = dst - p.pos;
     if (p.age > 1)
       p.acceleration = (new_speed - p.speed);
     else
@@ -405,27 +412,37 @@ namespace cuimg
     //p.speed = i_float2(new_speed) / (frame_cpt_ - p.prev_match_time);
     p.speed = i_float2(new_speed);
     p.pos = dst;
-    p.prev_match_time = frame_cpt_;
-    float period = 10.f;
-    i_float2 mesure = p.speed;
-    if (norml2(mesure) > 0.f)
-      period = std::min(10.f, 10.f / norml2(mesure));
-    if (period < 1)
-      period = 1;
-    // p.next_match_time = frame_cpt_ + period;
-    p.next_match_time = frame_cpt_ + 1;
+    // p.prev_match_time = frame_cpt_;
+    // float period = 10.f;
+    // i_float2 mesure = p.speed;
+    // if (norml2(mesure) > 0.f)
+    // {
+    //   period = 10.f / norml2(mesure);
+    //   period = period > 10.f ? 10.f : period;
+    // }
+    // if (period < 1)
+    //   period = 1;
+    // // p.next_match_time = frame_cpt_ + period;
+    // p.next_match_time = frame_cpt_ + 1;
+
+    particles_vec_[i] = p;
     if ((p.speed.y + p.speed.x) > 0)
       features_vec_[i] = f;
 
     sparse_buffer_(dst) = i;
+
+    assert(domain().has(p.pos));
   }
 
   template <typename F, typename P, typename A>
   void
   kernel_particle_container<F, P, A>::touch(unsigned i)
   {
+    assert(i < size_);
+    assert(i >= 0);
     particle_type& p = particles_vec_[i];
-    particle_coords src = p.pos;
+    assert(domain().has(p.pos));
+
     p.age++;
     sparse_buffer_(p.pos) = i;
   }
@@ -459,13 +476,16 @@ namespace cuimg
   kernel_particle_container<F, P, A>::kernel_particle_container(particle_container<F, P, A>& o)
     : sparse_buffer_(o.sparse_particles()),
 #ifndef NO_CUDA
-      particles_vec_(thrust::raw_pointer_cast(&o.dense_particles()[0])),
-      features_vec_(thrust::raw_pointer_cast(&o.features()[0])),
+      particles_vec_(thrust::raw_pointer_cast(o.dense_particles().data())),
+      features_vec_(thrust::raw_pointer_cast(o.features().data())),
 #else
-      particles_vec_(&(o.dense_particles()[0])),
-      features_vec_(&(o.features()[0])),
+      particles_vec_(o.dense_particles().data()),
+      features_vec_(o.features().data()),
 #endif
       frame_cpt_(o.frame_cpt())
+#ifndef NDEBUG
+    , size_(o.dense_particles().size())
+#endif
   {
   }
 
