@@ -11,13 +11,16 @@
 #ifndef NO_CUDA
 //# include <cuimg/gpu/local_jet_static.h>
 # include <cuimg/gpu/gaussian_blur.h>
+# include <cuimg/gpu/texture.h>
 #endif
 
 namespace cuimg
 {
 
+#ifndef NO_CUDA
   ::texture<uchar1, 2, cudaReadModeElementType> bc2s_tex_s1;
   ::texture<uchar1, 2, cudaReadModeElementType> bc2s_tex_s2;
+#endif
 
   namespace bc2s_internals
   {
@@ -56,6 +59,7 @@ namespace cuimg
       return d;
     }
 
+#ifndef NO_CUDA
     __device__ inline int
     distance_tex(const bc2s& a, const i_short2& n, const unsigned scale = 1)
     {
@@ -80,6 +84,7 @@ namespace cuimg
       // return d / (255.f * 16.f);
       return d;
     }
+#endif
 
     template <typename O>
     __host__ __device__ inline int
@@ -136,7 +141,7 @@ namespace cuimg
       return b;
     }
 
-
+#ifndef NO_CUDA
     __device__ inline bc2s
     compute_feature_tex(const i_int2& n)
     {
@@ -154,6 +159,8 @@ namespace cuimg
 
       return b;
     }
+
+#endif
 
 #ifndef NO_CPP0X
     template <typename O>
@@ -235,9 +242,6 @@ namespace cuimg
 
       offsets_s1_[i/2] = (int(s1_.pitch()) * o.r()) / sizeof(V) + o.c();
       offsets_s2_[i/2] = (int(s2_.pitch()) * o2.r()) / sizeof(V) + o2.c();
-
-      //offsets_s1_[i/2] = (long(&s1_(p + i_int2(circle_r3[i]))) - long(&s1_(p))) / sizeof(V);
-      //offsets_s2_[i/2] = (long(&s2_(p + i_int2(circle_r3[i])*2)) - long(&s2_(p))) / sizeof(V);
     }
 
     // for (unsigned i = 0; i < 8; i ++)
@@ -315,7 +319,29 @@ namespace cuimg
     gaussian_blur(in, s1_, tmp_, kernel_2_);
     gaussian_blur(s1_, s2_, tmp_, kernel_1_);
   }
+
+  template <typename A>
+  void
+  bc2s_feature<A>::bind(const cuda_gpu&)
+  {
+    bindTexture2d(s1(), bc2s_tex_s1);
+    bindTexture2d(s2(), bc2s_tex_s2);
+  }
+
 #endif
+
+  template <typename A>
+  void
+  bc2s_feature<A>::bind(const cpu&)
+  {
+  }
+
+  template <typename A>
+  void
+  bc2s_feature<A>::bind()
+  {
+    bind(A());
+  }
 
   template <typename A>
   int

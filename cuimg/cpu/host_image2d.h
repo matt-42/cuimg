@@ -79,6 +79,8 @@ namespace cuimg
 
     V* data();
     const V* data() const;
+    inline V* begin() const;
+    inline V* end() const;
 
     size_t buffer_size() const;
 

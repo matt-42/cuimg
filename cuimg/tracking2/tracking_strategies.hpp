@@ -47,7 +47,7 @@ namespace cuimg
     template<typename F, typename D, typename P, typename I>
     generic_strategy<F, D, P, I>::generic_strategy(const obox2d& d)
       : feature_(d),
-	flow_ratio(4),
+	flow_ratio(8),
         detector_(d),
         dominant_speed_estimator_(d),
         camera_motion_(0,0),
@@ -186,7 +186,8 @@ namespace cuimg
 	    //i_short2 match = pred;
 	    //i_short2 match = gradient_descent_match(pred, pset.features()[i], feature, distance);
 	    if (domain.has(match) //and detector_.saliency()(match) > 0.f
-		and distance < 300 and part.fault < 10 //and pos_distance >= distance
+		and distance < 300
+		and part.fault < 10 //and pos_distance >= distance
 		)
 	    {
 	      if (contrast(match) <= 10.f) part.fault++;
@@ -391,8 +392,8 @@ namespace cuimg
       // Matching
       START_PROF(matcher);
       typename kernel_type<F>::ret feature_gpu = feature_;
-      bindTexture2d(feature_.s1(), bc2s_tex_s1);
-      bindTexture2d(feature_.s2(), bc2s_tex_s2);
+
+      feature_.bind();
 
       i_short2 ucm = upper_ ? upper_->camera_motion_ : i_short2(0,0);
       i_short2 upcm = upper_ ? upper_->prev_camera_motion_ : i_short2(0,0);
@@ -404,8 +405,8 @@ namespace cuimg
       			   pset.dense_particles().size(),
       			   typename particles_type::architecture());
 
-      cudaUnbindTexture(bc2s_tex_s1);
-      cudaUnbindTexture(bc2s_tex_s2);
+      // cudaUnbindTexture(bc2s_tex_s1);
+      // cudaUnbindTexture(bc2s_tex_s2);
       END_PROF(matcher);
 
       // Compute sparse flow.
@@ -450,11 +451,10 @@ namespace cuimg
     inline void
     generic_strategy<F, D, P, I>::new_particles(particles_type& pset)
     {
-      bindTexture2d(feature_.s1(), bc2s_tex_s1);
-      bindTexture2d(feature_.s2(), bc2s_tex_s2);
+      feature_.bind();
       detector_.new_particles(feature_, pset);
-      cudaUnbindTexture(bc2s_tex_s1);
-      cudaUnbindTexture(bc2s_tex_s2);
+      // cudaUnbindTexture(bc2s_tex_s1);
+      // cudaUnbindTexture(bc2s_tex_s2);
       pset.after_new_particles();
     }
 

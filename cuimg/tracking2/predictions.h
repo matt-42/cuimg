@@ -27,12 +27,16 @@ namespace cuimg
   {
     if (p.age > 1)
       if (uf.data())
-	return motion_based_prediction(p, u_prev_cam_motion*2, u_cam_motion*2);
+	//return p.pos + 2 * uf(p.pos / (2 * flow_ratio));
+        return motion_based_prediction(p, u_prev_cam_motion*2, u_cam_motion*2);
+        //return motion_based_prediction(p);
       else
 	return motion_based_prediction(p);
     else
       if (uf.data())
+      {
 	return p.pos + 2 * uf(p.pos / (2 * flow_ratio));
+      }
       else
 	return p.pos;
   }

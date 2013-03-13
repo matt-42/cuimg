@@ -209,7 +209,7 @@ namespace cuimg
     compact_has_run_ = true;
 
     matches_.resize(particles_vec_.size());
-    std::fill(matches_.begin(), matches_.end(), 0);
+    std::fill(matches_.begin(), matches_.end(), -1);
 
     typename particle_vector::iterator pts_it = particles_vec_.begin();
     typename feature_vector::iterator feat_it = features_vec_.begin();

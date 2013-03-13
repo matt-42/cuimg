@@ -211,7 +211,6 @@ namespace cuimg
   template <typename V>
   const typename host_image2d<V>::domain_type& host_image2d<V>::domain() const
   {
-    assert(buffer_);
     return domain_;
   }
 
@@ -272,6 +271,18 @@ namespace cuimg
   inline const V* host_image2d<V>::data() const
   {
     return buffer_;
+  }
+
+  template <typename V>
+  V* host_image2d<V>::begin() const
+  {
+    return buffer_;
+  }
+
+  template <typename V>
+  V* host_image2d<V>::end() const
+  {
+    return buffer_ + (pitch_ * nrows()) / sizeof(V);
   }
 
   template <typename V>

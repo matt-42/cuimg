@@ -164,7 +164,7 @@ namespace cuimg
     int max_bin = histo_values_[max_pos];
 
     i_short2 speed = h.index_to_point(max_bin) - i_int2(h.nrows() / 2, h.ncols() / 2);
-    std::cout << speed << std::endl;
+    //std::cout << speed << std::endl;
     return speed;
   }
 

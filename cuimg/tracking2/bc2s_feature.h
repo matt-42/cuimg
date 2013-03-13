@@ -104,8 +104,12 @@ namespace cuimg
 
 #ifndef NO_CUDA
     void update(const I& in, const cuda_gpu&);
+    void bind(const cuda_gpu&);
 #endif
 
+    void bind();
+    void bind(const cpu&);
+    //void unbind();
     void update(const I& in, const cpu&);
     int distance(const bc2s& a, const i_short2& n, unsigned scale = 1);
     bc2s operator()(const i_short2& p) const;
@@ -122,8 +126,8 @@ namespace cuimg
     I tmp_;
     int offsets_s1_[8];
     int offsets_s2_[8];
-    npp_gaussian_kernel kernel_1_;
-    npp_gaussian_kernel kernel_2_;
+    gaussian_kernel<A> kernel_1_;
+    gaussian_kernel<A> kernel_2_;
   };
 
   template <> struct kernel_type<bc2s_feature<cpu> > { typedef bc2s_feature<cpu>& ret; };

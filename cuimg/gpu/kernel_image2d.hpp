@@ -25,7 +25,6 @@ namespace cuimg
       pitch_(img.pitch()),
       data_(const_cast<V*>(img.data()))
   {
-    my_assert(data_);
   }
 
   template <typename V>
@@ -35,7 +34,6 @@ namespace cuimg
       pitch_(exact(img).pitch()),
       data_((V*)(exact(img).data()))
   {
-    my_assert(data_);
   }
 
   template <typename V>
@@ -45,7 +43,6 @@ namespace cuimg
     domain_ = img.domain();
     pitch_ = img.pitch();
     data_ = img.data();
-    my_assert(data_);
     return *this;
   }
 
@@ -58,7 +55,6 @@ namespace cuimg
     domain_ = img.domain();
     pitch_ = img.pitch();
     data_ = const_cast<V*>(img.data());
-    my_assert(data_);
     return *this;
   }
 

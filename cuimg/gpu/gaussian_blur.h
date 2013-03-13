@@ -1,9 +1,14 @@
 #ifndef CUIMG_GAUSSIAN_BLUR_NPP_H_
 # define CUIMG_GAUSSIAN_BLUR_NPP_H_
 
+# ifndef NO_CUDA
+
 # include <npp.h>
 # include <nppi_computer_vision.h>
 # include <nppi_filtering_functions.h>
+
+# endif
+
 # include <cuimg/improved_builtin.h>
 # include <cuimg/obox2d.h>
 # include <cuimg/obox3d.h>
@@ -12,9 +17,20 @@
 
 namespace cuimg
 {
-  struct npp_gaussian_kernel
+  template <typename A>
+  struct gaussian_kernel;
+
+  template <>
+  struct gaussian_kernel<cpu>
   {
-    inline npp_gaussian_kernel(float sigma, int hw)
+    inline gaussian_kernel(float sigma, int hw) {}
+  };
+
+#ifndef NO_CUDA
+  template <>
+  struct gaussian_kernel<cuda_gpu>
+  {
+    inline gaussian_kernel(float sigma, int hw)
     {
       half_width_ = hw;
       int size = 2 * half_width_ + 1;
@@ -30,7 +46,7 @@ namespace cuimg
       cudaMemcpy(data_, host_kernel, size * sizeof(int), cudaMemcpyHostToDevice);
     }
 
-    inline ~npp_gaussian_kernel()
+    inline ~gaussian_kernel()
     {
       cudaFree(data_);
     }
@@ -45,7 +61,7 @@ namespace cuimg
   };
 
   template <typename I>
-  void gaussian_blur(const I& src, I& dst, I& tmp, const npp_gaussian_kernel& k)
+  void gaussian_blur(const I& src, I& dst, I& tmp, const gaussian_kernel<cuda_gpu>& k)
   {
     int size = 2 * k.half_width() + 1;
 
@@ -72,9 +88,11 @@ namespace cuimg
   template <typename I>
   void gaussian_blur(const I& src, I& dst, I& tmp, float sigma, int half_width)
   {
-    npp_gaussian_kernel k(sigma, half_width);
+    gaussian_kernel<cuda_gpu> k(sigma, half_width);
     gaussian_blur(src, dst, tmp, k);
   }
+
+#endif
 
 }
 

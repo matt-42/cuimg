@@ -105,8 +105,9 @@ namespace cuimg
 
 #ifndef NO_CPP0X
   template <typename A>
+  template <typename J>
   void
-  fastnc_detector<A>::update(const host_image2d<gl8u>& input)
+  fastnc_detector<A>::update(const image2d_gl8u& input, const J& mask)
   {
     input_ = input;
 
