@@ -23,6 +23,7 @@ namespace cuimg
   template <>
   struct gaussian_kernel<cpu>
   {
+    inline gaussian_kernel() {}
     inline gaussian_kernel(float sigma, int hw) {}
   };
 

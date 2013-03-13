@@ -37,11 +37,16 @@ namespace cuimg
       //           I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1], d[0] + 1)) +
       //           I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1] + 1, d[0] + 1))) / 4.f;
 
-      unsigned linesize = in.pitch()/sizeof(I);
+      size_t linesize = in.pitch()/sizeof(I);
       I* data = &in(d);
-      out(p) = I(*(data) + *(data + 1) +
-		 *(data + linesize + *(data + linesize + 1))) / 4.f;
-
+      out(p) = (*(data) +
+		  *(data + 1) +
+		  *(data + linesize) +
+		*(data + linesize + 1)) / 4;
+      // out(p) = (in(d) +
+      // 		in(d + i_int2(0,1)) +
+      // 		in(d + i_int2(1,1)) +
+      // 		in(d + i_int2(1,0))) / 4;
     }
 
 #define mipmap_kernel_sig(T, I) kernel_image2d<I>, kernel_image2d<I>, &mipmap_kernel<T, I>

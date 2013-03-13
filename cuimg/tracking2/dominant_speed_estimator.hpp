@@ -42,6 +42,9 @@ namespace cuimg
   {
     SCOPE_PROF(dominant_speed_estimation);
 
+    if (pset.size() < 100)
+      return i_short2(0,0);
+
     typedef unsigned short US;
     fill(h, 0);
     i_int2 h_center(h.nrows() / 2, h.ncols() / 2);
@@ -139,7 +142,7 @@ namespace cuimg
   i_short2
   dominant_speed_estimator<A>::estimate(const PI& pset, i_int2 prev_camera_motion, const cuda_gpu&)
   {
-    if (pset.size() < 10)
+    if (pset.size() < 100)
       return i_short2(0,0);
 
     SCOPE_PROF(dominant_speed_estimation);

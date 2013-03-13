@@ -261,21 +261,23 @@ namespace cuimg
   //   *this = f;
   // }
 
-  // template <template <class> class I>
-  // bc2s_feature<A>&
-  // bc2s_feature<A>::operator=(const bc2s_feature& f)
-  // {
-  //   s1_ = clone(f.s1_);
-  //   s2_ = clone(f.s2_);
-  //   tmp_ = clone(f.tmp_);
-  //   for (unsigned i = 0; i < 8; i ++)
-  //   {
-  //     offsets_s1_[i] = f.offsets_s1_[i];
-  //     offsets_s2_[i] = f.offsets_s2_[i];
-  //   }
+  template <typename A>
+  bc2s_feature<A>&
+  bc2s_feature<A>::operator=(const bc2s_feature& f)
+  {
+    s1_ = f.s1_;
+    s2_ = f.s2_;
+    tmp_ = f.tmp_;
+    for (unsigned i = 0; i < 8; i ++)
+    {
+      offsets_s1_[i] = f.offsets_s1_[i];
+      offsets_s2_[i] = f.offsets_s2_[i];
+    }
 
-  //   return *this;
-  // }
+    kernel_1_ = f.kernel_1_;
+    kernel_2_ = f.kernel_2_;
+    return *this;
+  }
 
   template <typename A>
   bc2s64_feature<A>::bc2s64_feature(const obox2d& d)
@@ -303,7 +305,7 @@ namespace cuimg
     //local_jet_static_<0, 0, 1, 1>::run(s1_, s2_, tmp_, 0, dimblock);
 
     cv::GaussianBlur(cv::Mat(in), cv::Mat(s1_), cv::Size(7, 7), 2, 2, cv::BORDER_REPLICATE);
-    cv::GaussianBlur(cv::Mat(s1_), cv::Mat(s2_), cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE);
+    cv::GaussianBlur(cv::Mat(s1_), cv::Mat(s2_), cv::Size(9, 9), 5, 5, cv::BORDER_REPLICATE);
     //cv::GaussianBlur(cv::Mat(in), cv::Mat(s2_), cv::Size(9, 9), 3, 3, cv::BORDER_REPLICATE);
     // dg::widgets::ImageView("frame") << (*(host_image2d<i_uchar1>*)(&s2_)) << dg::widgets::show;
     // dg::pause();

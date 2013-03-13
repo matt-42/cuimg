@@ -126,7 +126,6 @@ namespace cuimg
 
       pset.tick();
       frame_cpt_++;
-
     }
 
     template<typename F, typename I, typename J, typename P>
@@ -174,6 +173,7 @@ namespace cuimg
 	  // Prediction.
 	  i_short2 pred;
 	  pred = multiscale_prediction(part, upper_flow, flow_ratio, u_prev_camera_motion, u_camera_motion);
+	  //pred = motion_based_prediction(part, u_prev_camera_motion, u_camera_motion);
 
 	  // Matching.
 	  float pos_distance = feature.distance(pset.features()[i], part.pos);
@@ -183,11 +183,9 @@ namespace cuimg
 	    std::pair<i_short2, float> match_res = two_step_gradient_descent_match(pred, pset.features()[i], feature);
 	    i_short2 match = match_res.first;
 	    distance = match_res.second;
-	    //i_short2 match = pred;
-	    //i_short2 match = gradient_descent_match(pred, pset.features()[i], feature, distance);
-	    if (domain.has(match) //and detector_.saliency()(match) > 0.f
+	    if (domain.has(match)
 		and distance < 300
-		and part.fault < 10 //and pos_distance >= distance
+		and part.fault < 10
 		)
 	    {
 	      if (contrast(match) <= 10.f) part.fault++;
@@ -199,12 +197,6 @@ namespace cuimg
 		assert(pset.has(match));
 		assert(pset.dense_particles()[i].age > 0);
 	      }
-	      // 	//if (detector_.saliency()(match) <= 5.f) part.fault++;
-	      // 	// if (distance > 300)
-	      // 	// {
-	      // 	// 	part.fault++;
-	      // 	// 	match = pred;
-	      // 	// }
 	    }
 	    else
 	      pset.remove(i);
@@ -214,8 +206,6 @@ namespace cuimg
 	}
 	else if (part.age > 0)
 	  pset.touch(i);
-
-	//assert(pset.dense_particles()[i].age == pset.sparse_particles()(part.pos).age);
       }
     };
 
@@ -351,10 +341,10 @@ namespace cuimg
 
 	if (stats_(bin).first > 1)
 	  flow_(bin) = stats_(bin).second / stats_(bin).first;
-	// else
-	//   if (upper_stats_(ubin).first > 1)
-	//     flow_(bin) = upper_flow_(ubin) * 2;
-	  else flow_(bin) = i_float2(0.f, 0.f);
+	else
+	  //if (upper_stats_(ubin).first > 1)
+	  flow_(bin) = upper_flow_(ubin) * 2;
+	//else flow_(bin) = i_float2(0.f, 0.f);
       }
     };
 

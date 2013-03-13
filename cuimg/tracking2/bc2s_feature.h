@@ -96,6 +96,7 @@ namespace cuimg
 
     typedef gl8u V;
     typedef typename A::template image2d<V>::ret I;
+    bc2s_feature() {};
     bc2s_feature(const obox2d& o);
     bc2s_feature(const bc2s_feature<A>& f);
     bc2s_feature& operator=(const bc2s_feature<A>& f);

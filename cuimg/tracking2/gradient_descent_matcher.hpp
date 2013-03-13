@@ -66,6 +66,10 @@ namespace cuimg
 
     }
 
+    // if (scale == 2)
+    //   match = prediction + 2 * (match - prediction);
+    // match_distance = feature_img.distance(f, match, scale);
+
     return ret(match, match_distance);
   }
 
@@ -85,7 +89,7 @@ namespace cuimg
     {
       for(int i = 0; i != 25; i++)
       {
-        i_int2 n(prediction + i_int2(c25[i]));
+        i_int2 n(prediction + i_int2(c25_h[i]));
         {
           float d = feature_img.distance(f, n, scale);
           if (d < match_distance)
