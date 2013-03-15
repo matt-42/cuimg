@@ -45,6 +45,7 @@ namespace cuimg
 
       cudaMalloc(&data_, size * sizeof(int));
       cudaMemcpy(data_, host_kernel, size * sizeof(int), cudaMemcpyHostToDevice);
+      check_cuda_error();
     }
 
     inline ~gaussian_kernel()

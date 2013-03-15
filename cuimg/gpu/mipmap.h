@@ -1,6 +1,8 @@
 #ifndef CUIMG_MIPMAP_H_
 # define CUIMG_MIPMAP_H_
 
+# include <opencv2/opencv.hpp>
+
 # include <cuimg/profiler.h>
 # include <cuimg/image_traits.h>
 # include <cuimg/util.h>
@@ -220,6 +222,9 @@ namespace cuimg
     /* cudaStream_t stream = 0; */
     /* local_jet_static<I, I, I, 0, 0, 2, 2> */
     /*   (exact(in), exact(tmp2), exact(tmp), stream, dimblock); */
+
+    /* I tmp(exact(in).domain()); */
+    /* cv::GaussianBlur(cv::Mat(exact(in)), cv::Mat(tmp), cv::Size(7, 7), 1.5, 1.5, cv::BORDER_REPLICATE); */
 
     pw_call<mipmap_kernel_sig(I::target, typename I::value_type)>(flag<I::target>(), dimgrid, dimblock,
     								  exact(in), exact(out));

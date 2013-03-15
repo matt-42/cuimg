@@ -97,7 +97,7 @@ namespace cuimg
       inline __host__ __device__
       void operator()(i_int2 p)
       {
-	const int d = 5;
+	const int d = 3;
 	int res = 0;
 	if ((input_.domain() - border(d)).has(p))
 	  res = ::abs(int(input_(p + i_int2(0,d))) - int(input_(p + i_int2(0,-d)))) +
@@ -184,12 +184,12 @@ namespace cuimg
 	    i_short2 match = match_res.first;
 	    distance = match_res.second;
 	    if (domain.has(match)
-		and distance < 300
-		and part.fault < 10
+		and distance < 1000
+		and part.fault < 1
 		)
 	    {
 	      if (contrast(match) <= 10.f) part.fault++;
-	      if (contrast(match) <= 1.f)
+	      if (contrast(match) <= 10.f)
 		pset.remove(i);
 	      else
 	      {
