@@ -39,6 +39,7 @@ namespace cuimg
       typedef typename feature_t::architecture::template image2d<std::pair<int, i_int2> >::ret flow_stats_t;
       typedef typename feature_t::architecture::template image2d<i_float2>::ret flow_t;
       typedef typename feature_t::architecture::template image2d<gl8u>::ret gl8u_image2d;
+      typedef typename feature_t::architecture::template image2d<unsigned int>::ret uint_image2d;
 
       inline generic_strategy(const obox2d& o);
 
@@ -80,8 +81,9 @@ namespace cuimg
       self* lower_;
       int frame_cpt_;
 
-      gl8u_image2d contrast_;
+      uint_image2d contrast_;
       gl8u_image2d mask_;
+      gl8u_image2d new_points_map_;
       const int flow_ratio;
       flow_stats_t flow_stats_;
       flow_t flow_;

@@ -19,7 +19,8 @@ namespace cuimg
     inline mdfl_1s_detector(const obox2d& d);
     inline mdfl_1s_detector(const mdfl_1s_detector& d);
 
-    inline void update(const host_image2d<gl8u>& input);
+    template <typename J>
+    inline void update(const host_image2d<gl8u>& input, const J& mask);
 
     template <typename F, typename PS>
     inline void new_particles(const F& feature, PS& pset);
@@ -50,7 +51,8 @@ namespace cuimg
   public:
     inline mdfl_2s_detector(const obox2d& d);
 
-    inline void update(const host_image2d<gl8u>& input);
+    template <typename J>
+    inline void update(const host_image2d<gl8u>& input, const J& mask);
 
   private:
     host_image2d<gl8u> input_s1_;

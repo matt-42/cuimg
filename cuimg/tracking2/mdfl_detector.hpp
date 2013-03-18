@@ -188,8 +188,9 @@ namespace cuimg
   }
 
 #ifndef NO_CPP0X
+  template <typename J>
   void
-  mdfl_1s_detector::update(const host_image2d<gl8u>& input)
+  mdfl_1s_detector::update(const host_image2d<gl8u>& input, const J& mask)
   {
     START_PROF(mdfl_compute_saliency);
 
@@ -252,8 +253,10 @@ namespace cuimg
   {
   }
 
+
+  template <typename J>
   void
-  mdfl_2s_detector::update(const host_image2d<gl8u>& input)
+  mdfl_2s_detector::update(const host_image2d<gl8u>& input, const J& mask)
   {
     START_PROF(mdfl2s_compute_saliency);
 

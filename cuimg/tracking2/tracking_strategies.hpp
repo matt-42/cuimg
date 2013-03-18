@@ -56,6 +56,7 @@ namespace cuimg
         frame_cpt_(0),
 	contrast_(d),
 	mask_(d),
+	new_points_map_(d / (2*flow_ratio)),
 	flow_stats_(d / flow_ratio),
 	flow_(d / flow_ratio),
         detector_frequency_(1),
@@ -87,7 +88,7 @@ namespace cuimg
     struct contrast_kernel
     {
       typename I::kernel_type input_;
-      typename I::kernel_type out_;
+      typename J::kernel_type out_;
 
       contrast_kernel(const I& input, J& output)
 	: input_(input),
@@ -97,11 +98,22 @@ namespace cuimg
       inline __host__ __device__
       void operator()(i_int2 p)
       {
-	const int d = 3;
+	const int d = 2;
 	int res = 0;
 	if ((input_.domain() - border(d)).has(p))
-	  res = ::abs(int(input_(p + i_int2(0,d))) - int(input_(p + i_int2(0,-d)))) +
-	    ::abs(int(input_(p + i_int2(-d,0))) - int(input_(p + i_int2(d,0))));
+	{
+	  int vp = input_(p);
+	  for (int i = 0; i < 8; i++)
+	  {
+	    gl8u vn = input_(p + i_int2(c8_h[i])*2);
+	    res += ::abs(vn - vp);
+	  }
+	  // res = ::abs(int(input_(p + i_int2(0,d))) - int(input_(p + i_int2(0,-d)))) +
+	  //   ::abs(int(input_(p + i_int2(-d,0))) - int(input_(p + i_int2(d,0)))) +
+	  //   ::abs(int(input_(p + i_int2(-d,-d))) - int(input_(p + i_int2(d,d)))) +
+	  //   ::abs(int(input_(p + i_int2(-d,d))) - int(input_(p + i_int2(d,-d))))
+	    // ;
+	}
 	out_(p) = res;
       }
     };
@@ -110,7 +122,7 @@ namespace cuimg
     void
     generic_strategy<F, D, P, I>::update(const I& in, particles_type& pset)
     {
-      run_kernel2d_functor(contrast_kernel<I, gl8u_image2d>(in, contrast_),
+      run_kernel2d_functor(contrast_kernel<I, uint_image2d>(in, contrast_),
 			   contrast_.domain(), architecture());
 
       feature_.update(in, architecture());
@@ -185,11 +197,11 @@ namespace cuimg
 	    distance = match_res.second;
 	    if (domain.has(match)
 		and distance < 1000
-		and part.fault < 1
+		//and part.fault < 1
 		)
 	    {
-	      if (contrast(match) <= 10.f) part.fault++;
-	      if (contrast(match) <= 10.f)
+	      //if (contrast(match) <= 10.f) part.fault++;
+	      if (contrast(match) < 10.f)
 		pset.remove(i);
 	      else
 	      {
@@ -388,21 +400,17 @@ namespace cuimg
       i_short2 ucm = upper_ ? upper_->camera_motion_ : i_short2(0,0);
       i_short2 upcm = upper_ ? upper_->prev_camera_motion_ : i_short2(0,0);
       flow_t uf = upper_ ? upper_->flow_ : flow_t();
-      match_particles_kernel<F, I, flow_t, P> func
+      match_particles_kernel<F, uint_image2d, flow_t, P> func
 	(pset, feature_, contrast_, uf, frame_cpt_,
 	 ucm, upcm, detector_frequency_, flow_ratio);
       run_kernel1d_functor(func,
       			   pset.dense_particles().size(),
       			   typename particles_type::architecture());
 
-      // cudaUnbindTexture(bc2s_tex_s1);
-      // cudaUnbindTexture(bc2s_tex_s2);
       END_PROF(matcher);
 
       // Compute sparse flow.
       memset(flow_stats_, 0);
-      // run_kernel1d_functor(compute_flow_stats_kernel<P, flow_stats_t>(pset, flow_stats_, flow_ratio),
-      // 			   pset.size(), typename P::architecture());
       run_kernel2d_functor(compute_flow_stats_kernel<P, flow_stats_t>(pset, flow_stats_, flow_ratio),
 			   flow_stats_.domain(), typename P::architecture());
       // Fusion with upper flow.

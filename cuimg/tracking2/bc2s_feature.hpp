@@ -40,10 +40,12 @@ namespace cuimg
 	  assert(o.s1_.end() > data + o.offsets_s1(i));
 
 	  int v = data[o.offsets_s1(i)].x;
-	  d += ::abs(v - a[i]);
+	  d += (v - a[i]) * (v - a[i]);
+	  //d += ::abs(v - a[i]);
 	}
       }
       //else
+      int d2 = 0;
       {
 	data = &o.s2_(n);
 	for(int i = 0; i < 8; i ++)
@@ -51,12 +53,15 @@ namespace cuimg
 	  assert(o.s2_.begin() <= data + o.offsets_s2(i));
 	  assert(o.s2_.end() > data + o.offsets_s2(i));
 	  int v = data[o.offsets_s2(i)].x;
-	  d += ::abs(v - a[8+i]) * 5;
+	  //d2 += ::abs(v - a[8+i]);
+	  d2 += (v - a[8+i]) * (v - a[8+i]);
 	}
       }
 
       // return d / (255.f * 16.f);
-      return d;
+      //return d + d2 * 5;
+      //return d + 25 * d2 + 2 * 5 * d * d2;
+      return sqrt(d) + sqrt(d2) * 5;
     }
 
 #ifndef NO_CUDA
@@ -238,7 +243,7 @@ namespace cuimg
     {
       point2d<int> p(10,10);
       i_int2 o = circle_r3_h[i];
-      i_int2 o2 = o*3;
+      i_int2 o2 = o*2;
 
       offsets_s1_[i/2] = (int(s1_.pitch()) * o.r()) / sizeof(V) + o.c();
       offsets_s2_[i/2] = (int(s2_.pitch()) * o2.r()) / sizeof(V) + o2.c();
@@ -306,6 +311,7 @@ namespace cuimg
 
     cv::GaussianBlur(cv::Mat(in), cv::Mat(s1_), cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE);
     cv::GaussianBlur(cv::Mat(s1_), cv::Mat(s2_), cv::Size(5, 5), 1.8, 1.8, cv::BORDER_REPLICATE);
+    //cv::GaussianBlur(cv::Mat(in), cv::Mat(s2_), cv::Size(5, 5), 2, 2, cv::BORDER_REPLICATE);
     //cv::GaussianBlur(cv::Mat(in), cv::Mat(s2_), cv::Size(9, 9), 3, 3, cv::BORDER_REPLICATE);
     // dg::widgets::ImageView("frame") << (*(host_image2d<i_uchar1>*)(&s2_)) << dg::widgets::show;
     // dg::pause();
