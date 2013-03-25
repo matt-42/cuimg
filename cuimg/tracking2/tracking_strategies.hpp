@@ -1,6 +1,7 @@
 #ifndef CUIMG_TRACKING_STRATEGIES_HPP_
 # define CUIMG_TRACKING_STRATEGIES_HPP_
 
+
 # include <cuimg/tracking2/tracking_strategies.h>
 # include <cuimg/tracking2/gradient_descent_matcher.h>
 # include <cuimg/tracking2/predictions.h>
@@ -9,6 +10,7 @@
 # include <cuimg/tracking2/rigid_transform_estimator.h>
 # include <cuimg/run_kernel.h>
 # include <cuimg/iterate.h>
+# include <cuimg/dige.h>
 
 namespace cuimg
 {
@@ -47,6 +49,7 @@ namespace cuimg
     template<typename F, typename D, typename P, typename I>
     generic_strategy<F, D, P, I>::generic_strategy(const obox2d& d)
       : feature_(d),
+	prev_feature_(d),
 	flow_ratio(8),
         detector_(d),
         dominant_speed_estimator_(d),
@@ -55,10 +58,11 @@ namespace cuimg
         upper_(0),
         frame_cpt_(0),
 	contrast_(d),
-	mask_(d),
+	mask_(d, 4),
 	new_points_map_(d / (2*flow_ratio)),
 	flow_stats_(d / flow_ratio),
 	flow_(d / flow_ratio),
+	multiscale_count_(d / flow_ratio),
         detector_frequency_(1),
         filtering_frequency_(1)
     {
@@ -84,6 +88,13 @@ namespace cuimg
       return *this;
     }
 
+    template<typename F, typename D, typename P, typename I>
+    int
+    generic_strategy<F, D, P, I>::border_needed() const
+    {
+      return std::max(feature_.border_needed(), detector_.border_needed());
+    }
+
     template<typename I, typename J>
     struct contrast_kernel
     {
@@ -93,14 +104,16 @@ namespace cuimg
       contrast_kernel(const I& input, J& output)
 	: input_(input),
 	  out_(output)
-      {}
+      {
+	assert(input.border() >= 2);
+      }
 
       inline __host__ __device__
       void operator()(i_int2 p)
       {
 	const int d = 2;
 	int res = 0;
-	if ((input_.domain() - border(d)).has(p))
+	if ((input_.domain()).has(p))
 	{
 	  int vp = input_(p);
 	  for (int i = 0; i < 8; i++)
@@ -112,7 +125,7 @@ namespace cuimg
 	  //   ::abs(int(input_(p + i_int2(-d,0))) - int(input_(p + i_int2(d,0)))) +
 	  //   ::abs(int(input_(p + i_int2(-d,-d))) - int(input_(p + i_int2(d,d)))) +
 	  //   ::abs(int(input_(p + i_int2(-d,d))) - int(input_(p + i_int2(d,-d))))
-	    // ;
+	  //   ;
 	}
 	out_(p) = res;
       }
@@ -122,22 +135,106 @@ namespace cuimg
     void
     generic_strategy<F, D, P, I>::update(const I& in, particles_type& pset)
     {
+      pset.set_flow(flow_);
       run_kernel2d_functor(contrast_kernel<I, uint_image2d>(in, contrast_),
 			   contrast_.domain(), architecture());
+      // host_image2d<i_uchar1> test(contrast_.domain());
+      // test = contrast_ / 4;
+      // //fill(test, i_uchar1(255));
+      // if (in.nrows() == 480)
+      // 	dg::widgets::ImageView("test") << test << dg::widgets::show;
 
+      feature_.swap(prev_feature_);
       feature_.update(in, architecture());
       match_particles(pset);
       estimate_camera_motion(pset);
 
       if (!(frame_cpt_ % detector_frequency_))
       {
-	memset(mask_, 0);
+	create_detector_mask(pset);
         detector_.update(in, mask_);
 	new_particles(pset);
       }
 
+      if (!(frame_cpt_ % filtering_frequency_))
+	filter(pset);
+
       pset.tick();
       frame_cpt_++;
+    }
+
+
+    template<typename P, typename I>
+    struct particle_mask_kernel
+    {
+      typedef typename I::architecture A;
+
+      typename P::kernel_type pset_;
+      typename I::kernel_type mask_;
+
+      particle_mask_kernel(P& pset, I& mask)
+	: pset_(pset),
+	  mask_(mask)
+      {}
+
+      inline __host__ __device__
+      void operator()(int i)
+      {
+	particle& p = pset_.dense_particles()[i];
+	mask_(p.pos) = false;
+	for(int i = 0; i != 9; i++)
+	{
+	  i_int2 n(p.pos + i_int2(arch_neighb2d<A>::get(c8_h, c8, i)));
+	  mask_(n) = 0;
+	}
+      }
+    };
+
+    template<typename I, typename J, typename K>
+    struct flow_mask_kernel
+    {
+      typedef typename I::architecture A;
+
+      typename I::kernel_type contrast_;
+      typename J::kernel_type multiscale_count_;
+      typename K::kernel_type mask_;
+      int flow_ratio_;
+
+      flow_mask_kernel(I& contrast, J& multiscale_count, K& mask, int flow_ratio)
+	: contrast_(contrast),
+	  multiscale_count_(multiscale_count),
+	  mask_(mask),
+	  flow_ratio_(flow_ratio)
+      {}
+
+      inline __host__ __device__
+      void operator()(i_int2 p)
+      {
+	//if (contrast_(p) < 5 || (flow_.data() && flow_(p / (2*flow_ratio_)) == NO_FLOW))
+	if (contrast_(p) < 5// || (multiscale_count_.data() && multiscale_count_(p / (2*flow_ratio_)) == 0)
+	    )
+	  mask_(p) = false;
+      }
+    };
+
+    template<typename F, typename D, typename P, typename I>
+    void
+    generic_strategy<F, D, P, I>::create_detector_mask(particles_type& pset)
+    {
+      memset(mask_, 255);
+      run_kernel1d_functor(particle_mask_kernel<P, gl8u_image2d>
+      			   (pset, mask_),
+      			   pset.size(), typename P::architecture());
+
+      //flow_t uf = upper_ ? upper_->flow_ : flow_t();
+      uint_image2d uc = upper_ ? upper_->multiscale_count_ : uint_image2d();
+      run_kernel2d_functor(flow_mask_kernel<uint_image2d, uint_image2d, gl8u_image2d>
+      			   (contrast_, uc, mask_, flow_ratio),
+      			   contrast_.domain(), typename P::architecture());
+
+      // if (mask_.nrows() == 480)
+      // 	dg::widgets::ImageView("test") << mask_ << dg::widgets::show;
+
     }
 
     template<typename F, typename I, typename J, typename P>
@@ -176,7 +273,7 @@ namespace cuimg
 	assert(i >= 0 && i < pset.size());
 	particle& part = pset.dense_particles()[i];
 	assert(pset.domain().has(part.pos));
-	box2d domain = pset.domain() - border(6);
+	box2d domain = pset.domain() - border(0);
 	assert(domain.has(part.pos));
 	if (part.age > 0
 	    //&& part.next_match_time == frame_cpt
@@ -189,19 +286,21 @@ namespace cuimg
 
 	  // Matching.
 	  float pos_distance = feature.distance(pset.features()[i], part.pos);
-	  if (domain.has(pred))
+	  if (domain.has(pred) 
+	      //and (!upper_flow.data() or contrast.nrows() < 400 or upper_flow(pred / (2*flow_ratio)) != NO_FLOW)
+	      )
 	  {
 	    float distance;
 	    std::pair<i_short2, float> match_res = two_step_gradient_descent_match(pred, pset.features()[i], feature);
 	    i_short2 match = match_res.first;
 	    distance = match_res.second;
 	    if (domain.has(match)
-		and distance < 1000
+		and distance < 500
 		//and part.fault < 1
 		)
 	    {
 	      //if (contrast(match) <= 10.f) part.fault++;
-	      if (contrast(match) < 10.f)
+	      if (contrast(match) < 5.f)
 		pset.remove(i);
 	      else
 	      {
@@ -221,38 +320,56 @@ namespace cuimg
       }
     };
 
-    template<typename I, typename P>
-    struct other_match_kernels
+
+    template<typename F, typename I, typename J>
+    struct fill_flow_kernel
     {
-      typename P::kernel_type pset;
-      typename I::kernel_type flow;
+    private:
+      typename kernel_type<F>::ret feature;
+      typename kernel_type<F>::ret prev_feature;
+      typename I::kernel_type flow_stats;
+      typename J::kernel_type flow;
+      typename J::kernel_type upper_flow;
+      i_int2 u_camera_motion;
+      i_int2 u_prev_camera_motion;
       int flow_ratio;
 
-      other_match_kernels(P& pset_, I& flow_, int flow_ratio_)
-	: pset(pset_),
+    public:
+      fill_flow_kernel(F& feature_, F& prev_feature_, const I& flow_stats_, J& flow_, J& upper_flow_,
+		       i_short2 u_camera_motion_, i_short2 u_prev_camera_motion_, int flow_ratio_)
+	: feature(feature_),
+	  prev_feature(prev_feature_),
+	  flow_stats(flow_stats_),
 	  flow(flow_),
+	  upper_flow(upper_flow_),
+	  u_camera_motion(u_camera_motion_),
+	  u_prev_camera_motion(u_prev_camera_motion_),
 	  flow_ratio(flow_ratio_)
       {
       }
 
-
-      inline __host__ __device__
-      void merge_trajectories(int i)
+      inline __host__ __device__ void
+      operator()(i_int2 p)
       {
-	particle& p = pset.dense_particles()[i];
-	::cuimg::merge_trajectories(pset, p);
-      }
-
-      inline __host__ __device__
-      void filter_bad_particles(int i)
-      {
-	particle& part = pset.dense_particles()[i];
-	if (part.age > 0)
+	if (flow_stats(p).first == 0)
 	{
-	  if (is_spacial_incoherence(pset, part.pos))
-	    pset.remove(i);
-	}
+	  // Prediction.
+	  i_short2 pred = p;
+	  if (upper_flow.data())
+	    pred += 2 * upper_flow(p / (2 * flow_ratio));
 
+	  // Matching.
+	  if (flow.domain().has(pred))
+	  {
+	    float distance;
+	    std::pair<i_short2, float> match_res = two_step_gradient_descent_match(pred, prev_feature(p), feature);
+	    //std::pair<i_short2, float> match_res = gradient_descent_match(pred, prev_feature(p), feature, 1);
+	    i_short2 match = match_res.first;
+	    distance = match_res.second;
+	    if (flow.has(match) and distance < 1000)
+	      flow(p) = match - p;
+	  }
+	}
       }
     };
 
@@ -274,24 +391,43 @@ namespace cuimg
       }
     };
 
-    template<typename P>
+    template<typename P, typename F, typename I>
     struct filter_bad_particles_kernel
     {
       typename P::kernel_type pset;
+      typename F::kernel_type flow;
+      typename I::kernel_type multiscale_count;
 
-      filter_bad_particles_kernel(P& pset_)
-	: pset(pset_)
+      int flow_ratio;
+
+      filter_bad_particles_kernel(P& pset_, F& flow_, I& multiscale_count_, int flow_ratio_)
+	: pset(pset_),
+	  flow(flow_),
+	  multiscale_count(multiscale_count_),
+	  flow_ratio(flow_ratio_)
       {}
 
       inline __host__ __device__
       void operator()(int i)
       {
 	particle& part = pset.dense_particles()[i];
-	if (part.age > 0)
+	if (part.age > 2 && flow(part.pos / flow_ratio) != NO_FLOW)
 	{
-	  if (is_spacial_incoherence(pset, part.pos))
+	  if (norml2(part.speed - flow(part.pos / flow_ratio)) > 5.f)
+	  {
 	    pset.remove(i);
+	    return;
+	  }
+	  // if (is_spacial_incoherence(pset, part.pos))
+	  //   pset.remove(i);
 	}
+
+	bool alone = true;
+	for_all_in_static_neighb2d(part.pos / flow_ratio, n, c8_h)
+	  if (multiscale_count.has(n) && multiscale_count(n) != 0)
+	    alone = false;
+	if (alone && multiscale_count(part.pos / flow_ratio) == 1)
+	  pset.remove(i);
       }
     };
 
@@ -311,37 +447,40 @@ namespace cuimg
       inline __host__ __device__
       void operator()(i_int2 p)
       {
-	unsigned count = 0;
+	int count = 0;
 	i_int2 sum(0,0);
-	for (unsigned r = 0; r < flow_ratio_; r++)
-	  for (unsigned c = 0; c < flow_ratio_; c++)
+	for (int r = 0; r < flow_ratio_; r++)
+	  for (int c = 0; c < flow_ratio_; c++)
 	  {
 	    i_int2 n = p * flow_ratio_ + i_int2(r, c);
 	    if (pset_.domain().has(n) && pset_.has(n) &&
-		pset_(n).age > 1)
+		pset_(n).age >= 1)
 	    {
 	      count++;
 	      sum += pset_(n).speed;
 	    }
 	  }
 
+
 	stats_(p).first = count;
 	stats_(p).second = sum;
       }
     };
 
-    template<typename I, typename J>
+    template<typename I, typename J, typename K>
     struct flow_fusion_kernel
     {
       typename I::kernel_type stats_, upper_stats_;
       typename J::kernel_type flow_, upper_flow_;
+      typename K::kernel_type multiscale_count_;
 
       flow_fusion_kernel(I& stats, I& upper_stats,
-			 J& flow, J& upper_flow)
+			 J& flow, J& upper_flow, K multiscale_count)
 	: stats_(stats),
 	  upper_stats_(upper_stats),
 	  flow_(flow),
-	  upper_flow_(upper_flow)
+	  upper_flow_(upper_flow),
+	  multiscale_count_(multiscale_count)
       {}
 
       inline __host__ __device__
@@ -351,24 +490,31 @@ namespace cuimg
 	i_int2 bin = p;
 	i_int2 ubin = bin / 2;
 
+	multiscale_count_(bin) = stats_(bin).first + upper_stats_(ubin).first;
+
 	if (stats_(bin).first > 1)
 	  flow_(bin) = stats_(bin).second / stats_(bin).first;
 	else
 	  //if (upper_stats_(ubin).first > 1)
-	  flow_(bin) = upper_flow_(ubin) * 2;
+	  if (upper_flow_(ubin) != NO_FLOW)
+	  {
+	    flow_(bin) = upper_flow_(ubin) * 2;
+	  }
 	//else flow_(bin) = i_float2(0.f, 0.f);
       }
     };
 
-    template<typename I, typename J>
+    template<typename I, typename J, typename K>
     struct flow_fusion_kernel_root
     {
       typename I::kernel_type stats_;
       typename J::kernel_type flow_;
+      typename K::kernel_type multiscale_count_;
 
-      flow_fusion_kernel_root(I& stats, J& flow)
+      flow_fusion_kernel_root(I& stats, J& flow, K& multiscale_count)
 	: stats_(stats),
-	  flow_(flow)
+	  flow_(flow),
+	  multiscale_count_(multiscale_count)
       {}
 
       inline __host__ __device__
@@ -378,10 +524,11 @@ namespace cuimg
 	i_int2 bin = p;
 	i_int2 ubin = bin / 2;
 
+	multiscale_count_(bin) = stats_(bin).first;
 	if (stats_(bin).first > 1)
 	  flow_(bin) = stats_(bin).second / stats_(bin).first;
 	else
-	  flow_(bin) = i_float2(0.f, 0.f);
+	  flow_(bin) = NO_FLOW;
       }
     };
 
@@ -411,17 +558,42 @@ namespace cuimg
 
       // Compute sparse flow.
       memset(flow_stats_, 0);
+      fill(flow_, NO_FLOW);
+      memset(multiscale_count_, 0);
       run_kernel2d_functor(compute_flow_stats_kernel<P, flow_stats_t>(pset, flow_stats_, flow_ratio),
 			   flow_stats_.domain(), typename P::architecture());
+
       // Fusion with upper flow.
       if (upper_)
-	run_kernel2d_functor(flow_fusion_kernel<flow_stats_t, flow_t>
-			     (flow_stats_, upper_->flow_stats_, flow_, upper_->flow_),
+	run_kernel2d_functor(flow_fusion_kernel<flow_stats_t, flow_t, uint_image2d>
+			     (flow_stats_, upper_->flow_stats_, flow_, upper_->flow_, multiscale_count_),
 			     flow_.domain(), typename P::architecture());
       else
-	run_kernel2d_functor(flow_fusion_kernel_root<flow_stats_t, flow_t>(flow_stats_, flow_),
+      {
+	run_kernel2d_functor(flow_fusion_kernel_root<flow_stats_t, flow_t, uint_image2d>
+			     (flow_stats_, flow_, multiscale_count_),
 			     flow_.domain(), typename P::architecture());
+      }
 
+      // host_image2d<i_uchar1> test(multiscale_count_.domain());
+      // [&] (i_int2 p) { test(p) = multiscale_count_(p) * 10; } >> iterate(multiscale_count_.domain());
+      // if (mask_.nrows() == 480)
+      //  	dg::widgets::ImageView("test") << test << dg::widgets::show;
+
+      // if (lower_)
+      // 	run_kernel2d_functor(fill_flow_kernel<F, flow_stats_t, flow_t>
+      // 			     (feature_, prev_feature_, flow_stats_, flow_, uf, ucm, upcm, flow_ratio),
+      // 			     flow_.domain(), typename P::architecture());
+
+
+      pset.after_matching();
+    }
+
+
+    template<typename F, typename D, typename P, typename I>
+    inline void
+    generic_strategy<F, D, P, I>::filter(particles_type& pset)
+    {
       if (!(frame_cpt_ % filtering_frequency_))
       {
 	START_PROF(merge_trajectories);
@@ -435,14 +607,13 @@ namespace cuimg
 	// ****** Filter bad particles.
 	START_PROF(filter_spacial_incoherences);
 
-	run_kernel1d_functor(filter_bad_particles_kernel<P>(pset),
+	run_kernel1d_functor(filter_bad_particles_kernel<P, flow_t, uint_image2d>
+			     (pset, flow_, multiscale_count_, flow_ratio),
 			     pset.dense_particles().size(),
 			     typename particles_type::architecture());
 
 	END_PROF(filter_spacial_incoherences);
       }
-
-      pset.after_matching();
     }
 
     template<typename F, typename D, typename P, typename I>
@@ -461,6 +632,7 @@ namespace cuimg
     generic_strategy<F, D, P, I>::estimate_camera_motion(const particles_type& pset)
     {
       prev_camera_motion_ = camera_motion_;
+      //camera_motion_ = i_short2(0,0);
       camera_motion_ = dominant_speed_estimator_.estimate(pset, prev_camera_motion_, typename F::architecture());
     }
 

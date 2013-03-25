@@ -38,11 +38,13 @@ namespace cuimg
 
     host_image2d();
     ~host_image2d();
-    host_image2d(unsigned nrows, unsigned ncols, bool pinned = 0);
+    host_image2d(unsigned nrows, unsigned ncols, unsigned border = 0, bool pinned = 0);
     host_image2d(V* data, unsigned nrows, unsigned ncols, unsigned pitch);
-    host_image2d(const domain_type& d, bool pinned = 0);
+    host_image2d(const domain_type& d, unsigned border = 0, bool pinned = 0);
 
     host_image2d(const host_image2d<V>& d);
+    void swap(host_image2d<V>& o);
+
 #ifdef WITH_OPENCV
     host_image2d(IplImage * imgIpl);
     host_image2d(cv::Mat m);
@@ -55,6 +57,10 @@ namespace cuimg
     bool has(const point& p) const;
 
     size_t pitch() const;
+    int border() const;
+
+    V& operator[](int i);
+    const V& operator[](int i) const;
 
     V& operator()(const point& p);
     const V& operator()(const point& p) const;
@@ -74,8 +80,8 @@ namespace cuimg
     host_image2d<V>& operator=(cv::Mat imgIpl);
 #endif
 
-    V* row(unsigned i);
-    const V* row(unsigned i) const;
+    V* row(int i);
+    const V* row(int i) const;
 
     V* data();
     const V* data() const;
@@ -85,6 +91,7 @@ namespace cuimg
     size_t buffer_size() const;
 
     inline i_int2 index_to_point(unsigned int idx) const;
+    inline int point_to_index(const point& p) const;
 
     template <typename E>
     host_image2d<V>& operator=(const expr<E>& e)
@@ -98,12 +105,13 @@ namespace cuimg
     }
 
   private:
-    void allocate(const domain_type& d, bool pinned);
+    void allocate(const domain_type& d, unsigned border, bool pinned);
 
     domain_type domain_;
     size_t pitch_;
+    unsigned border_;
     boost::shared_ptr<V> data_;
-    V* buffer_;
+    V* begin_;
   };
 
   template <typename T>

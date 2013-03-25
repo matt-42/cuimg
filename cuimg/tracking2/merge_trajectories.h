@@ -18,8 +18,7 @@ namespace cuimg
     for (int i = 0; i < 8; i++)
     {
       i_int2 n(p + i_int2(arch_neighb2d<A>::get(c8_h, c8, i)));
-      assert(pset.domain().has(n));
-      if (pset.domain().has(n) and pset.has(n))
+      if (pset.has(n))
       {
     	const particle& buddy = pset(n);
     	if (buddy.age > (part.age + 2) and norml2(part.speed - buddy.speed) < 2.f)

@@ -16,7 +16,7 @@ namespace cuimg
     i_short2 match = prediction;
     float match_distance = feature_img.distance(f, prediction);
     unsigned match_i = 8;
-    box2d domain = feature_img.domain() - border(8);
+    box2d domain = feature_img.domain() - border(0);
 
     if (!domain.has(prediction))
     {

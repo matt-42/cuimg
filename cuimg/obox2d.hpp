@@ -29,18 +29,18 @@ namespace cuimg
     return *this;
   }
 
-  unsigned obox2d::nrows() const
+  int obox2d::nrows() const
   {
     return nrows_;
   }
 
-  unsigned obox2d::ncols() const
+  int obox2d::ncols() const
   {
     return ncols_;
   }
 
 
-  unsigned obox2d::size() const
+  int obox2d::size() const
   {
     return ncols_ * nrows_;
   }

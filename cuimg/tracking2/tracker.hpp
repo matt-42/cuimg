@@ -10,10 +10,10 @@ namespace cuimg
 
   template <typename F>
   tracker<F>::tracker(const obox2d& d, int nscales)
-    : input_(d),
-      pset_(d),
+    : pset_(d),
       strategy_(d)
   {
+    input_ = I(d, strategy_.border_needed());
     lower_tracker_ = 0;
     upper_tracker_ = 0;
     if (nscales > 1)
@@ -27,10 +27,10 @@ namespace cuimg
 
   template <typename F>
   tracker<F>::tracker(const obox2d& d, tracker<F>* lower, int nscales)
-    : input_(d),
-      pset_(d),
+    : pset_(d),
       strategy_(d)
   {
+    input_ = I(d, strategy_.border_needed());
     lower_tracker_ = lower;
     upper_tracker_ = 0;
     if (nscales > 1)
@@ -53,6 +53,7 @@ namespace cuimg
   tracker<F>& tracker<F>::update_input(const I& in)
   {
     copy(in, input_);
+    fill_border_clamp(input_);
     if (upper_tracker_)
       upper_tracker_->subsample_input(in);
     return *this;
@@ -62,6 +63,7 @@ namespace cuimg
   void tracker<F>::subsample_input(const I& in)
   {
     subsample(in, input_);
+    fill_border_clamp(input_);
     if (upper_tracker_)
       upper_tracker_->subsample_input(input_);
   }

@@ -1,6 +1,8 @@
 #ifndef CUIMG_TRACKING_STRATEGIES_H_
 # define CUIMG_TRACKING_STRATEGIES_H_
 
+#define NO_FLOW i_float2(-500.f, -500.f)
+
 # include <cuimg/architectures.h>
 # include <cuimg/gl.h>
 
@@ -59,11 +61,13 @@ namespace cuimg
       inline void estimate_camera_motion(const particles_type& pset);
 
       inline void update(const input& in, particles_type& pset);
+      inline void filter(particles_type& pset);
 
       inline detector_t& detector() { return detector_; }
       inline feature_t& feature() { return feature_; }
 
       inline void clear();
+      inline void create_detector_mask( particles_type& pset);
 
       inline i_int2 get_flow_at(const i_int2& p);
       inline const flow_t& flow() const { return flow_; }
@@ -71,8 +75,11 @@ namespace cuimg
       inline i_short2 camera_motion() const { return camera_motion_; }
       inline i_short2 prev_camera_motion() const { return prev_camera_motion_; }
 
+      int border_needed() const;
+
     protected:
       feature_t feature_;
+      feature_t prev_feature_;
       detector_t detector_;
       dominant_speed_estimator<typename feature_t::architecture> dominant_speed_estimator_;
       i_short2 camera_motion_;
@@ -87,6 +94,7 @@ namespace cuimg
       const int flow_ratio;
       flow_stats_t flow_stats_;
       flow_t flow_;
+      uint_image2d multiscale_count_;
 
       int detector_frequency_;
       int filtering_frequency_;

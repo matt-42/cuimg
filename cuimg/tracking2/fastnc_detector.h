@@ -35,6 +35,8 @@ namespace cuimg
     inline const image2d_gl8u& saliency() { return saliency_; }
     inline const image2d_gl8u& contrast() { return contrast_; }
 
+    inline int border_needed() const { return 3; }
+    
   private:
     float contrast_th_;
     float fast_th_;

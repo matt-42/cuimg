@@ -121,6 +121,8 @@ namespace cuimg
     inline int offsets_s1(int o) const;
     inline int offsets_s2(int o) const;
 
+    inline int border_needed() const { return 6; }
+    void swap(bc2s_feature<A>& o);
   public:
     I s1_;
     I s2_;

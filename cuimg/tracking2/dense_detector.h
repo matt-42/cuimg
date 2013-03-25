@@ -17,6 +17,8 @@ namespace cuimg
     template <typename F, typename PS>
     inline void new_particles(const F& feature, PS& pset);
 
+    inline int border_needed() const { return 0; }
+
   };
 
 }

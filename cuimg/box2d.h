@@ -3,7 +3,6 @@
 
 # include <cuimg/gpu/cuda.h>
 # include <cuimg/point2d.h>
-# include <cuimg/border.h>
 
 namespace cuimg
 {
@@ -17,8 +16,8 @@ namespace cuimg
 
     __host__ __device__ inline box2d& operator=(const box2d& d);
 
-    __host__ __device__ inline unsigned nrows() const;
-    __host__ __device__ inline unsigned ncols() const;
+    __host__ __device__ inline int nrows() const;
+    __host__ __device__ inline int ncols() const;
 
     __host__ __device__ inline const i_int2& p1() const;
     __host__ __device__ inline const i_int2& p2() const;
@@ -34,29 +33,6 @@ namespace cuimg
     i_int2 a_;
     i_int2 b_;
   };
-
-  inline __host__ __device__
-  bool operator==(const box2d& a, const box2d& b)
-  {
-    return a.nrows() == b.nrows() && a.ncols() == b.ncols();
-  }
-
-  inline __host__ __device__
-  box2d operator-(const obox2d& d, const border& bd)
-  {
-    int b = bd.thickness();
-    return box2d(i_int2(b, b),
-                 i_int2(d.nrows() - b - 1, d.ncols() - b - 1));
-  }
-
-
-  inline __host__ __device__
-  box2d operator-(const box2d& d, const border& bd)
-  {
-    int b = bd.thickness();
-    return box2d(i_int2(d.p1().r() + b, d.p1().c() + b),
-                 i_int2(d.p2().r() - b, d.p2().c() - b));
-  }
 
 }
 

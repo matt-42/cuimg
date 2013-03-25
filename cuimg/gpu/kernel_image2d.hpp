@@ -23,7 +23,7 @@ namespace cuimg
   kernel_image2d<V>::kernel_image2d(const kernel_image2d<V>& img)
     : domain_(img.domain()),
       pitch_(img.pitch()),
-      data_(const_cast<V*>(img.data()))
+      data_(const_cast<V*>(img.begin()))
   {
   }
 
@@ -32,7 +32,7 @@ namespace cuimg
   kernel_image2d<V>::kernel_image2d(const Image2d<I>& img)
     : domain_(exact(img).domain()),
       pitch_(exact(img).pitch()),
-      data_((V*)(exact(img).data()))
+      data_((V*)(exact(img).begin()))
   {
   }
 
@@ -42,7 +42,7 @@ namespace cuimg
   {
     domain_ = img.domain();
     pitch_ = img.pitch();
-    data_ = img.data();
+    data_ = img.begin();
     return *this;
   }
 
@@ -54,7 +54,7 @@ namespace cuimg
     const I& img = exact(img_);
     domain_ = img.domain();
     pitch_ = img.pitch();
-    data_ = const_cast<V*>(img.data());
+    data_ = const_cast<V*>(img.begin());
     return *this;
   }
 
@@ -65,18 +65,18 @@ namespace cuimg
   }
 
   template <typename V>
-  unsigned kernel_image2d<V>::nrows() const
+  int kernel_image2d<V>::nrows() const
   {
     return domain_.nrows();
   }
   template <typename V>
-  unsigned kernel_image2d<V>::ncols() const
+  int kernel_image2d<V>::ncols() const
   {
     return domain_.ncols();
   }
 
   template <typename V>
-  unsigned kernel_image2d<V>::pitch() const
+  int kernel_image2d<V>::pitch() const
   {
     return pitch_;
   }
@@ -113,14 +113,14 @@ namespace cuimg
 
 
   template <typename V>
-  V& kernel_image2d<V>::operator()(unsigned i, unsigned j)
+  V& kernel_image2d<V>::operator()(int i, int j)
   {
     my_assert(data_);
     return *(V*)(((char*)data_) + i * pitch_ + j * sizeof(V));
   }
 
   template <typename V>
-  const V& kernel_image2d<V>::operator()(unsigned i, unsigned j) const
+  const V& kernel_image2d<V>::operator()(int i, int j) const
   {
     my_assert(data_);
     return *(V*)(((char*)data_) + i * pitch_ + j * sizeof(V));
@@ -141,14 +141,14 @@ namespace cuimg
   }
 
   template <typename V>
-  V& kernel_image2d<V>::operator[](unsigned i)
+  V& kernel_image2d<V>::operator[](int i)
   {
     my_assert(data_);
     return data_[i];
   }
 
   template <typename V>
-  const V& kernel_image2d<V>::operator[](unsigned i) const
+  const V& kernel_image2d<V>::operator[](int i) const
   {
     my_assert(data_);
     return data_[i];

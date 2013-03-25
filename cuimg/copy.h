@@ -26,7 +26,12 @@ namespace cuimg
   void copy(const host_image2d<T>& in, host_image2d<T>& out)
   {
     assert(in.domain() == out.domain());
-    memcpy(out.data(), in.data(), in.nrows() * in.pitch());
+    if (in.border() == out.border())
+      memcpy(out.data(), in.data(), in.nrows() * in.pitch());
+    else
+      for (unsigned i = 0; i < in.nrows(); i++)
+	memcpy(out.row(i), in.row(i), in.ncols() * sizeof(T));
+
   }
 
 #ifndef NO_CUDA

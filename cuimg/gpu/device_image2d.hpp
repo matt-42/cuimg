@@ -81,6 +81,17 @@ namespace cuimg
     return *this;
   }
 
+
+  template <typename V>
+  void
+  device_image2d<V>::swap(device_image2d<V>& o)
+  {
+    std::swap(domain_, o.domain);
+    std::swap(pitch_, o.pitch_);
+    std::swap(data_ptr_, o.data_ptr_);
+    data_.swap(o.data_);
+  }
+
   namespace internal
   {
 #ifdef NVCC

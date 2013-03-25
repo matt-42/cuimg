@@ -34,7 +34,7 @@ namespace cuimg
     inline fast_detector& set_n(unsigned n);
 
     inline const image2d_gl8u& saliency() { return saliency_; }
-
+    inline int border_needed() const { return 3; }
   private:
     float contrast_th_;
     float fast_th_;

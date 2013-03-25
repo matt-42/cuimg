@@ -29,17 +29,18 @@ namespace cuimg
     distance(const O& o, const bc2s& a, const i_short2& n, const unsigned scale = 1)
     {
       int d = 0;
-      assert((o.domain() - border(6)).has(n));
       const typename O::V* data = &o.s1_(n);
+      int idx = o.s1_.point_to_index(n);
 
+      //typedef no_border<typename O::I> B;
+      typedef border_clamp<typename O::I> B;
       if (scale == 1)
       {
+	// auto data = B(o.s1_, n);
 	for(int i = 0; i < 8; i ++)
 	{
-	  assert(o.s1_.begin() <= data + o.offsets_s1(i));
-	  assert(o.s1_.end() > data + o.offsets_s1(i));
-
 	  int v = data[o.offsets_s1(i)].x;
+	  //int v = o.s1_[idx + o.offsets_s1(i)].x;
 	  d += (v - a[i]) * (v - a[i]);
 	  //d += ::abs(v - a[i]);
 	}
@@ -47,12 +48,13 @@ namespace cuimg
       //else
       int d2 = 0;
       {
+	idx = o.s2_.point_to_index(n);
+	//auto data = B(o.s2_, n);
 	data = &o.s2_(n);
 	for(int i = 0; i < 8; i ++)
 	{
-	  assert(o.s2_.begin() <= data + o.offsets_s2(i));
-	  assert(o.s2_.end() > data + o.offsets_s2(i));
 	  int v = data[o.offsets_s2(i)].x;
+	  //int v = o.s2_[idx + o.offsets_s2(i)].x;
 	  //d2 += ::abs(v - a[8+i]);
 	  d2 += (v - a[8+i]) * (v - a[8+i]);
 	}
@@ -125,21 +127,21 @@ namespace cuimg
     compute_feature(const O& o, const i_int2& n)
     {
       bc2s b;
-      assert((o.domain() - border(6)).has(n));
+      assert((o.domain()).has(n));
 
       const typename O::V* data = &o.s1_(n);
       for(int i = 0; i < 8; i ++)
       {
-	assert(o.s1_.begin() <= data + o.offsets_s1(i));
-	assert(o.s1_.end() > data + o.offsets_s1(i));
+	// assert(o.s1_.begin() <= data + o.offsets_s1(i));
+	// assert(o.s1_.end() > data + o.offsets_s1(i));
         b[i] = data[o.offsets_s1(i)].x;
       }
 
       data = &o.s2_(n);
       for(int i = 0; i < 8; i ++)
       {
-	assert(o.s2_.begin() <= data + o.offsets_s2(i));
-	assert(o.s2_.end() > data + o.offsets_s2(i));
+	// assert(o.s2_.begin() <= data + o.offsets_s2(i));
+	// assert(o.s2_.end() > data + o.offsets_s2(i));
         b[i+8] = data[o.offsets_s2(i)].x;
       }
 
@@ -233,8 +235,8 @@ namespace cuimg
 
   template <typename A>
   bc2s_feature<A>::bc2s_feature(const obox2d& d)
-    : s1_(d),
-      s2_(d),
+    : s1_(d, 3),
+      s2_(d, 6),
       tmp_(d),
       kernel_1_(1, 1),
       kernel_2_(2, 3)
@@ -265,6 +267,15 @@ namespace cuimg
   // {
   //   *this = f;
   // }
+
+
+  template <typename A>
+  void
+  bc2s_feature<A>::swap(bc2s_feature<A>& o)
+  {
+    s1_.swap(o.s1_);
+    s2_.swap(o.s2_);
+  }
 
   template <typename A>
   bc2s_feature<A>&
@@ -310,7 +321,10 @@ namespace cuimg
     //local_jet_static_<0, 0, 1, 1>::run(s1_, s2_, tmp_, 0, dimblock);
 
     cv::GaussianBlur(cv::Mat(in), cv::Mat(s1_), cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE);
+    fill_border_clamp(s1_);
     cv::GaussianBlur(cv::Mat(s1_), cv::Mat(s2_), cv::Size(5, 5), 1.8, 1.8, cv::BORDER_REPLICATE);
+    fill_border_clamp(s2_);
+
     //cv::GaussianBlur(cv::Mat(in), cv::Mat(s2_), cv::Size(5, 5), 2, 2, cv::BORDER_REPLICATE);
     //cv::GaussianBlur(cv::Mat(in), cv::Mat(s2_), cv::Size(9, 9), 3, 3, cv::BORDER_REPLICATE);
     // dg::widgets::ImageView("frame") << (*(host_image2d<i_uchar1>*)(&s2_)) << dg::widgets::show;

@@ -38,6 +38,8 @@ namespace cuimg
     inline device_image2d(V* data, unsigned nrows, unsigned ncols, unsigned pitch);
     inline device_image2d(const domain_type& d);
 
+    void swap(device_image2d<V>& o);
+
     __host__ __device__ inline device_image2d(const device_image2d<V>& d);
 
     __host__ __device__ inline device_image2d<V>& operator=(const device_image2d<V>& d);

@@ -12,20 +12,20 @@ namespace cuimg
 #define RUN_KERNEL1D(O, M, ARGS, SIZE, ARCH) run_kernel1d<O, &O::M>(O ARGS, (SIZE),(ARCH));
 
   template <typename F, void (F::*m)(int)>
-  void run_kernel1d(const F& f_, unsigned size, const cpu&)
+  void run_kernel1d(const F& f_, int size, const cpu&)
   {
     F& f = *const_cast<F*>(&f_);
 #pragma omp parallel for schedule(static, 300)
-    for (unsigned i = 0; i < size; i++)
+    for (int i = 0; i < size; i++)
       (f.*m)(i);
   }
 
   template <typename F>
-  void run_kernel1d_functor(const F& f_, unsigned size, const cpu&)
+  void run_kernel1d_functor(const F& f_, int size, const cpu&)
   {
     F& f = *const_cast<F*>(&f_);
 #pragma omp parallel for schedule(static, 300)
-    for (unsigned i = 0; i < size; i++)
+    for (int i = 0; i < size; i++)
       f(i);
   }
 
@@ -35,8 +35,8 @@ namespace cuimg
   {
     F& f = *const_cast<F*>(&f_);
 #pragma omp parallel for schedule(static, 2)
-    for (unsigned r = 0; r < bb.nrows(); r++)
-      for (unsigned c = 0; c < bb.ncols(); c++)
+    for (int r = 0; r < bb.nrows(); r++)
+      for (int c = 0; c < bb.ncols(); c++)
 	f(i_int2(r, c));
   }
 
@@ -46,16 +46,16 @@ namespace cuimg
   {
     F& f = *const_cast<F*>(&f_);
 #pragma omp parallel for schedule(static, 2)
-    for (unsigned r = bb.p1().r(); r <= bb.p2().r(); r++)
-      for (unsigned c = bb.p1().c(); c <= bb.p2().c(); c++)
+    for (int r = bb.p1().r(); r <= bb.p2().r(); r++)
+      for (int c = bb.p1().c(); c <= bb.p2().c(); c++)
 	f(i_int2(r, c));
   }
 
   template <typename F>
-  void run_kernel2d(F& f, unsigned size, const cpu&)
+  void run_kernel2d(F& f, int size, const cpu&)
   {
 #pragma omp parallel for schedule(static, 300)
-    for (unsigned i = 0; i < size; i++)
+    for (int i = 0; i < size; i++)
       f(i);
   }
 
@@ -70,18 +70,18 @@ namespace cuimg
 
   template <typename F>
   __global__ void
-  run_kernel1d_functor_kernel(F f, unsigned size)
+  run_kernel1d_functor_kernel(F f, int size)
   {
-    unsigned i = thread_pos1d();
+    int i = thread_pos1d();
     if (i < size)
       f(i);
   }
 
   template <typename F, void (&f)(F&, int)>
   __global__ void
-  run_kernel1d_kernel(F o, unsigned size)
+  run_kernel1d_kernel(F o, int size)
   {
-    unsigned i = thread_pos1d();
+    int i = thread_pos1d();
     if (i < size)
       f(o, i);
   }
@@ -105,7 +105,7 @@ namespace cuimg
   }
 
   template <typename F, void (F::*m)(int)>
-  void run_kernel1d(const F& f_, unsigned size, const cuda_gpu&)
+  void run_kernel1d(const F& f_, int size, const cuda_gpu&)
   {
     if (size == 0) return;
 
@@ -114,7 +114,7 @@ namespace cuimg
   }
 
   template <typename F>
-  void run_kernel1d_functor(const F& f_, unsigned size, const cuda_gpu&)
+  void run_kernel1d_functor(const F& f_, int size, const cuda_gpu&)
   {
     if (size == 0) return;
 

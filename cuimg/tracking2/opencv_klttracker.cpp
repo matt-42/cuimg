@@ -69,7 +69,7 @@ namespace cuimg
         cv::Point2f pt(pos.y, pos.x);
         keypoints_.push_back(pt);
       }
-
+      //std::cout << pset_.dense_particles().size() << std::endl;
       calcOpticalFlowPyrLK(cv::Mat(in_prev), cv::Mat(in), keypoints_, new_keypoints_, status, err);
       matches_.resize(keypoints_.size());
 
@@ -79,7 +79,7 @@ namespace cuimg
       for (unsigned i = 0; i < matches_.size(); i++)
       {
         //if (status.at<int>(0,i))
-        if (status[i] && pset.dense_particles()[i].age > 0 && in.has(i_int2(new_keypoints_[i].y, new_keypoints_[i].x)) && err.at<float>(i) < 20)
+        if (status[i] && pset.dense_particles()[i].age > 0 && in.has(i_int2(new_keypoints_[i].y, new_keypoints_[i].x)) && err.at<float>(i) < 25)
         {
           //std::cout << status.at<int>(0,i) << " " << new_keypoints_[i] << std::endl;
 	  // std::cout << int(err.at<float>(i)) << " " << keypoints_[i] << " " << new_keypoints_[i] << std::endl;

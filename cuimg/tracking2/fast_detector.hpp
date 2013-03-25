@@ -140,7 +140,7 @@ namespace cuimg
     SCOPE_PROF(fast_new_particles_detector);
     memset(new_points_, 0);
     typename PS::kernel_type pset_ = pset;
-    mt_apply2d(sizeof(i_float1), saliency_.domain() - border(8),
+    mt_apply2d(sizeof(i_float1), saliency_.domain() - border(0),
                [this, &feature, &pset_] (i_int2 p)
                {
                  if (pset_.has(p)) return;
@@ -156,7 +156,7 @@ namespace cuimg
                  new_points_(p) = p;
                }, cpu());
 
-    st_apply2d(sizeof(i_float1), saliency_.domain() - border(8),
+    st_apply2d(sizeof(i_float1), saliency_.domain() - border(0),
                [this, &feature, &pset] (i_int2 p)
                {
                  if (new_points_(p) != i_short2(0,0)) pset.add(p, feature(p));
@@ -184,12 +184,13 @@ namespace cuimg
 	n_(n),
 	fast_th_(fast_th)
     {
+      assert(input.border() >= 3);
     }
 
     __host__ __device__ inline
     void operator()(i_int2 p)
     {
-      if (!mask_(p))
+      if (mask_(p))
 	saliency_(p) = fast::compute_saliency(p, input_, n_, fast_th_, architecture());
     }
 
@@ -200,10 +201,11 @@ namespace cuimg
   void
   fast_detector<A>::update(const image2d_gl8u& input, const J& mask)
   {
+    SCOPE_PROF(fast_compute_saliency);
     input_ = input;
     memset(saliency_, 0);
     run_kernel2d_functor(compute_saliency_kernel<image2d_gl8u, J>(input, mask, saliency_, n_, fast_th_),
-			 input.domain() - border(4), A());
+			 input.domain(), A());
   }
 
 #ifndef NO_CUDA
@@ -243,7 +245,7 @@ namespace cuimg
 
     select_particles<<<A::dimgrid2d(saliency_.domain()), A::dimblock2d()>>>
       (typename PS::kernel_type(pset), mki(saliency_), mki(new_points_),
-       new_points_.domain() - border(6));
+       new_points_.domain());
 
     pset.append_new_points(new_points_, feature);
   }

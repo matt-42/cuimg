@@ -37,9 +37,9 @@ namespace cuimg
     __host__ __device__ inline kernel_image2d<V>& operator=(const Image2d<I>& img);
 
     __host__ __device__ inline const domain_type& domain() const;
-    __host__ __device__ inline unsigned nrows() const;
-    __host__ __device__ inline unsigned ncols() const;
-    __host__ __device__ inline unsigned pitch() const;
+    __host__ __device__ inline int nrows() const;
+    __host__ __device__ inline int ncols() const;
+    __host__ __device__ inline int pitch() const;
 
     __host__ __device__ inline V& operator()(const point& p);
     __host__ __device__ inline const V& operator()(const point& p) const;
@@ -47,11 +47,11 @@ namespace cuimg
     __host__ __device__ inline V& eval(const point& p)             { return (*this)(p); };
     __host__ __device__ inline const V& eval(const point& p) const { return (*this)(p); };
 
-    __host__ __device__ inline V& operator()(unsigned i, unsigned j);
-    __host__ __device__ inline const V& operator()(unsigned i, unsigned j) const;
+    __host__ __device__ inline V& operator()(int i, int j);
+    __host__ __device__ inline const V& operator()(int i, int j) const;
 
-    __host__ __device__ inline V& operator[](unsigned i);
-    __host__ __device__ inline const V& operator[](unsigned i) const;
+    __host__ __device__ inline V& operator[](int i);
+    __host__ __device__ inline const V& operator[](int i) const;
 
     __host__ __device__ inline bool has(const point& p) const;
 
@@ -63,7 +63,7 @@ namespace cuimg
 
   private:
     domain_type domain_;
-    unsigned pitch_;
+    int pitch_;
     V* data_;
   };
 

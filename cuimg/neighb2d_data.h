@@ -34,35 +34,31 @@ namespace cuimg
 
 }
 
+#ifndef NO_CUDA
+extern __constant__  int c4[4][2];
+extern __constant__ int c5[5][2];
+extern __constant__ int c8[8][2];
+extern __constant__ int c8_it[9][2];
+extern __constant__  int c9[9][2];
+extern __constant__  int c24[24][2];
+extern __constant__  int c25[25][2];
+extern __constant__  int c25x2[25][2];
+extern __constant__  int c49[49][2];
+extern __constant__  int c48[48][2];
+extern __constant__  int c49x2[49][2];
+extern __constant__  int c81[81][2];
+extern __constant__  int c81x2[81][2];
+extern __constant__  int c80[80][2];
+extern __constant__  int circle_r2[8][2];
+extern __constant__ int circle_r3[16][2];
+extern __constant__  int circle_r3_nb[24][2];
+extern __constant__  int circle_r3_wo1[16][2];
+#else
+# include <cuimg/neighb2d_data.cu>
+#endif
+
 //namespace cuimg
 //{
-extern __constant__  int c4[4][2];
-
-extern __constant__ int c5[5][2];
-
-extern __constant__ int c8[8][2];
-
-extern __constant__ int c8_it[9][2];
-
-extern __constant__  int c9[9][2];
-
-extern __constant__  int c24[24][2];
-
-extern __constant__  int c25[25][2];
-
-extern __constant__  int c25x2[25][2];
-
-extern __constant__  int c49[49][2];
-
-extern __constant__  int c48[48][2];
-
-extern __constant__  int c49x2[49][2];
-
-extern __constant__  int c81[81][2];
-
-extern __constant__  int c81x2[81][2];
-
-extern __constant__  int c80[80][2];
 
 const int c4_h[4][2] =
 {
@@ -123,6 +119,17 @@ const int c49_h[49][2] =
   {-3, -3}, {-2, -3}, {-1, -3}, {0, -3}, {1, -3}, {2, -3}, {3, -3}
 };
 
+const int c48_h[48][2] =
+{
+  {-3, 3},  {-2, 3},  {-1,  3}, {0,  3}, {1,  3}, {2,  3}, {3,  3},
+  {-3, 2},  {-2, 2},  {-1,  2}, {0,  2}, {1,  2}, {2,  2}, {3,  2},
+  {-3, 1},  {-2, 1},  {-1,  1}, {0,  1}, {1,  1}, {2,  1}, {3,  1},
+  {-3, 0},  {-2, 0},  {-1,  0},          {1,  0}, {2,  0}, {3,  0},
+  {-3, -1}, {-2, -1}, {-1, -1}, {0, -1}, {1, -1}, {2, -1}, {3, -1},
+  {-3, -2}, {-2, -2}, {-1, -2}, {0, -2}, {1, -2}, {2, -2}, {3, -2},
+  {-3, -3}, {-2, -3}, {-1, -3}, {0, -3}, {1, -3}, {2, -3}, {3, -3}
+};
+
 const int c81_h[81][2] =
 {
   {-4, 4},  {-3, 4},  {-2, 4},  {-1,  4}, {0,  4}, {1,  4}, {2,  4}, {3,  4}, {4,  4},
@@ -170,9 +177,6 @@ const int c8_it_h[9][2] =
 };
 
 
-extern __constant__  int circle_r2[8][2];
-
-extern __constant__ int circle_r3[16][2];
 
 
 const int circle_r3_h[16][2] = {
@@ -181,10 +185,6 @@ const int circle_r3_h[16][2] = {
   { 3, 0}, { 3,-1}, { 2,-2}, {  1,-3},
   { 0,-3}, {-1,-3}, {-2,-2}, { -3,-1}
 };
-
-extern __constant__  int circle_r3_nb[24][2];
-
-extern __constant__  int circle_r3_wo1[16][2];
 
 #define for_all_in_static_neighb2d(p, n, dps)				\
   neighb_iterator2d<static_neighb2d<sizeof(dps) / (2 * sizeof(int))> > n(p, dps); \

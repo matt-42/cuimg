@@ -72,6 +72,7 @@ namespace cuimg
     typedef typename A::template image2d<i_short2>::ret short2_image2d;
     typedef typename A::template vector<unsigned int>::ret uint_vector;
     typedef typename A::template vector<i_short2>::ret short2_vector;
+    typedef typename A::template image2d<i_float2>::ret flow_t;
 
     typedef A architecture;
     typedef kernel_particle_container<F, P, A> kernel_type;
@@ -104,6 +105,9 @@ namespace cuimg
 
     void compact();
 
+    void set_flow(const flow_t& flow) { flow_ = flow; }
+    const flow_t& flow() const { return flow_; }
+
 #ifndef NO_CUDA
     void compact(const cuda_gpu&);
 #endif
@@ -132,6 +136,7 @@ namespace cuimg
 
   private:
     uint_image2d sparse_buffer_;
+    flow_t flow_;
     particle_vector particles_vec_;
     particle_vector particles_vec_tmp_;
     short2_vector new_points_tmp_;
@@ -163,6 +168,9 @@ namespace cuimg
     inline __host__ __device__ const particle_type& operator()(i_short2 p) const;
     inline __host__ __device__ bool has(i_int2 p) const;
     inline __host__ __device__ const obox2d& domain() const { return sparse_buffer_.domain(); }
+
+    uint_image2d& sparse_particles() { return sparse_buffer_; }
+    const uint_image2d& sparse_particles() const  { return sparse_buffer_; }
 
 #ifndef NDEBUG
     inline __host__ __device__ int size() const { return size_; }

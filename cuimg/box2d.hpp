@@ -29,12 +29,12 @@ namespace cuimg
     return *this;
   }
 
-  unsigned box2d::nrows() const
+  int box2d::nrows() const
   {
     return b_.r() - a_.r();
   }
 
-  unsigned box2d::ncols() const
+  int box2d::ncols() const
   {
     return b_.c() - a_.c();
   }

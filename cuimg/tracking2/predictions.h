@@ -15,7 +15,7 @@ namespace cuimg
     if (p.age == 1)
       return p.pos;
     else
-      return p.pos + p.speed - prev_cam_motion + cam_motion;
+    return p.pos + p.speed - prev_cam_motion + cam_motion;
   }
 
   // Need S::get_flow_at
@@ -25,19 +25,25 @@ namespace cuimg
 			       const i_short2& u_prev_cam_motion = i_short2(0,0),
 			       const i_short2& u_cam_motion = i_short2(0,0))
   {
-    if (p.age > 1)
+    /* if (p.age > 0) */
       if (uf.data())
-	//return p.pos + 2 * uf(p.pos / (2 * flow_ratio));
-	return motion_based_prediction(p, u_prev_cam_motion*2, u_cam_motion*2);
+	if (uf(p.pos / (2 * flow_ratio)) != NO_FLOW)
+	  return p.pos + 2 * uf(p.pos / (2 * flow_ratio));
+	else
+	  //return motion_based_prediction(p);
+	  return motion_based_prediction(p, u_prev_cam_motion*2, u_cam_motion*2);
       else
 	return motion_based_prediction(p);
-    else
-      if (uf.data())
-      {
-	return p.pos + 2 * uf(p.pos / (2 * flow_ratio));
-      }
-      else
-	return p.pos;
+    /* else */
+    /*   if (uf.data() && uf(p.pos / (2 * flow_ratio)) != NO_FLOW) */
+    /*   { */
+    /* 	//return motion_based_prediction(p, u_prev_cam_motion*2, u_cam_motion*2); */
+    /* 	return p.pos + 2 * uf(p.pos / (2 * flow_ratio)); */
+    /* 	//return p.pos + 2 * uf(p.pos / (2 * flow_ratio)); */
+    /*   } */
+    /*   else */
+    /* 	return motion_based_prediction(p); */
+    //return p.pos;
   }
 
 }

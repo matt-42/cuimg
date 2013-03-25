@@ -4,6 +4,7 @@
 # include <cuimg/improved_builtin.h>
 # include <cuimg/obox2d.h>
 
+
 namespace cuimg
 {
   template <typename F>

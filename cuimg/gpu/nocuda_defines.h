@@ -6,7 +6,7 @@
 # define __device__
 
 # define __align__
-# define __constant__
+# define __constant__ static
 
 // Builtins
 

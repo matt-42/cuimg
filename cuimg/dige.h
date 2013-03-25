@@ -30,21 +30,21 @@ namespace dg
   adapt(const cuimg::host_image2d<cuimg::improved_builtin<T, 3> >& i)
   {
     return image<trait::format::bgr, T>
-      (i.ncols(), i.nrows(), (T*)i.data());
+      (i.ncols() + 2*i.border(), i.nrows() + 2*i.border(), (T*)i.data());
   }
 
   inline image<trait::format::luminance, unsigned char>
   adapt(const cuimg::host_image2d<cuimg::gl8u>& i)
   {
     return image<trait::format::luminance, unsigned char>
-      (i.ncols(), i.nrows(), (unsigned char*)i.data());
+      (i.ncols() + 2*i.border(), i.nrows() + 2*i.border(), (unsigned char*)i.data());
   }
 
   inline image<trait::format::luminance, float>
   adapt(const cuimg::host_image2d<cuimg::gl01f>& i)
   {
     return image<trait::format::luminance, float>
-      (i.ncols(), i.nrows(), (float*)i.data());
+      (i.ncols() + 2*i.border(), i.nrows() + 2*i.border(), (float*)i.data());
   }
 
   template <typename T>
@@ -52,7 +52,7 @@ namespace dg
   adapt(const cuimg::host_image2d<cuimg::improved_builtin<T, 4> >& i)
   {
     return image<trait::format::rgba, T>
-      (i.ncols(), i.nrows(), (T*)i.data());
+      (i.ncols() + 2*i.border(), i.nrows() + 2*i.border(), (T*)i.data());
   }
 
   template <typename T>
@@ -60,7 +60,7 @@ namespace dg
   adapt(const cuimg::host_image2d<cuimg::improved_builtin<T, 1> >& i)
   {
     return image<trait::format::luminance, T>
-      (i.ncols(), i.nrows(), (T*)i.data());
+      (i.ncols() + 2*i.border(), i.nrows() + 2*i.border(), (T*)i.data());
 
   }
 
@@ -70,7 +70,7 @@ namespace dg
   adapt(const cuimg::host_image2d<T>& i)
   {
     return image<trait::format::luminance, T>
-      (i.ncols(), i.nrows(), (T*)i.data());
+      (i.ncols() + 2*i.border(), i.nrows() + 2*i.border(), (T*)i.data());
   }
 
 # ifndef NO_CUDA
@@ -175,7 +175,7 @@ namespace dg
       cudaArray* cuda_array;
       cudaGraphicsSubResourceGetMappedArray(&cuda_array, cuda_tex_.resource, 0, 0);
       cuimg::check_cuda_error();
-      cudaMemcpy2DToArray(cuda_array, 0, 0, img_.data(), img_.pitch(),
+      cudaMemcpy2DToArray(cuda_array, 0, 0, img_.begin(), img_.pitch(),
                           img_.ncols() * sizeof(cuimg::improved_builtin<V, N>), img_.nrows(),
                           cudaMemcpyDeviceToDevice);
       cuimg::check_cuda_error();

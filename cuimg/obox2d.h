@@ -35,9 +35,9 @@ namespace cuimg
 
     __host__ __device__ inline obox2d& operator=(const obox2d& d);
 
-    __host__ __device__ inline unsigned nrows() const;
-    __host__ __device__ inline unsigned ncols() const;
-    __host__ __device__ inline unsigned size() const;
+    __host__ __device__ inline int nrows() const;
+    __host__ __device__ inline int ncols() const;
+    __host__ __device__ inline int size() const;
 
     __host__ __device__ inline bool has(const point2d<int>& p) const;
 

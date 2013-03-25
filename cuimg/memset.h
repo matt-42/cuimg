@@ -15,14 +15,14 @@ namespace cuimg
   {
     // cudaMemset2D(out.data(), out.pitch(), v,
     //              out.pitch(), out.nrows());
-    cudaMemset(out.data(), v, out.nrows() * out.pitch());
+    cudaMemset(out.begin(), v, out.nrows() * out.pitch());
     check_cuda_error();
   }
 
   template <typename T>
   void memset(host_image2d<T>& out, int v)
   {
-    ::memset(out.data(), v, out.pitch() * out.nrows());
+    ::memset(out.begin(), v, out.pitch() * out.nrows());
   }
 
 }

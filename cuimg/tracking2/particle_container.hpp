@@ -10,6 +10,7 @@
 # include <cuimg/tracking2/compact_particles_image.h>
 # include <cuimg/mt_apply.h>
 # include <cuimg/builtin_math.h>
+# include <cuimg/border.h>
 
 namespace cuimg
 {
@@ -19,8 +20,10 @@ namespace cuimg
 
   template <typename F, typename P, typename A>
   particle_container<F, P, A>::particle_container(const obox2d& d)
-    : sparse_buffer_(d)
+    : sparse_buffer_(d, 7)
   {
+    memset(sparse_buffer_, -1);
+    fill_border_clamp(sparse_buffer_);
     frame_cpt_ = 0;
     particles_vec_.reserve((d.nrows() * d.ncols()) / 10);
     features_vec_.reserve((d.nrows() * d.ncols()) / 10);
@@ -361,7 +364,13 @@ namespace cuimg
   {
     P pt;
     pt.age = 1;
-    pt.speed = i_int2(0,0);
+    if (flow_(p) != NO_FLOW)
+      pt.speed = flow_(p/8);
+    else
+    {
+      pt.speed = i_int2(0,0);
+    }
+    // pt.speed = i_int2(0,0);
     pt.pos = p;
     pt.prev_match_time = frame_cpt_;
     pt.next_match_time = frame_cpt_ + 1;

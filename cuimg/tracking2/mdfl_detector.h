@@ -34,6 +34,8 @@ namespace cuimg
     inline const host_image2d<gl8u>& saliency() { return saliency_; }
     inline const host_image2d<gl8u>& contrast() { return contrast_; }
 
+    inline int border_needed() const { return 3; }
+
   protected:
     saliency_mode saliency_mode_;
     float contrast_th_;
@@ -53,6 +55,8 @@ namespace cuimg
 
     template <typename J>
     inline void update(const host_image2d<gl8u>& input, const J& mask);
+
+    inline int border_needed() const { return 6; }
 
   private:
     host_image2d<gl8u> input_s1_;
