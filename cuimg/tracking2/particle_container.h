@@ -89,6 +89,7 @@ namespace cuimg
     const feature_vector& features() const;
     feature_vector& features() { return features_vec_; }
     const uint_vector& matches() const;
+    uint_vector& matches();
 
     //const feature_type& feature_at(i_short2 p);
 
@@ -161,6 +162,7 @@ namespace cuimg
     kernel_particle_container(particle_container<F, P, A>& c);
 
     inline __host__ __device__ void remove(int i);
+    inline __host__ __device__ void remove(i_int2 p);
     inline __host__ __device__ particle_type* dense_particles() const;
     inline __host__ __device__ feature_type* features();
     inline __host__ __device__ void move(unsigned i, particle_coords dst, const feature_type& f);
@@ -180,6 +182,7 @@ namespace cuimg
     uint_image2d sparse_buffer_;
     particle_type* particles_vec_;
     feature_type* features_vec_;
+    unsigned int* matches_;
     unsigned frame_cpt_;
 #ifndef NDEBUG
     unsigned size_;

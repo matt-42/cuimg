@@ -16,7 +16,7 @@ namespace cuimg
   template <>
     struct arch_neighb2d<cuda_gpu>
   {
-    static inline const i_int2 get(const int c[][2], int g[][2], int i)
+    static inline const i_int2 get(const int c[][2], const int g[][2], int i)
     {
       return g[i];
     }
@@ -26,7 +26,7 @@ namespace cuimg
   template <>
     struct arch_neighb2d<cpu>
   {
-    static inline const i_int2 get(const int c[][2], int g[][2], int i)
+    static inline const i_int2 get(const int c[][2], const int g[][2], int i)
     {
       return c[i];
     }

@@ -10,7 +10,7 @@
 # include <cuimg/tracking2/rigid_transform_estimator.h>
 # include <cuimg/run_kernel.h>
 # include <cuimg/iterate.h>
-# include <cuimg/dige.h>
+//# include <cuimg/dige.h>
 
 namespace cuimg
 {
@@ -157,7 +157,7 @@ namespace cuimg
       }
 
       if (!(frame_cpt_ % filtering_frequency_))
-	filter(pset);
+      	filter(pset);
 
       pset.tick();
       frame_cpt_++;
@@ -184,7 +184,7 @@ namespace cuimg
 	mask_(p.pos) = false;
 	for(int i = 0; i != 9; i++)
 	{
-	  i_int2 n(p.pos + i_int2(arch_neighb2d<A>::get(c8_h, c8, i)));
+	  i_int2 n(p.pos + i_int2(arch_neighb2d<A>::get(c9_h, c9, i)));
 	  mask_(n) = 0;
 	}
       }
@@ -213,7 +213,7 @@ namespace cuimg
 	//if (contrast_(p) < 5 || (flow_.data() && flow_(p / (2*flow_ratio_)) == NO_FLOW))
 	if (contrast_(p) < 5// || (multiscale_count_.data() && multiscale_count_(p / (2*flow_ratio_)) == 0)
 	    )
-	  mask_(p) = false;
+	  mask_(p) = 0;
       }
     };
 
@@ -598,9 +598,9 @@ namespace cuimg
       {
 	START_PROF(merge_trajectories);
 
-	run_kernel1d_functor(merge_trajectories_kernel<P>(pset),
-			     pset.dense_particles().size(),
-			     typename particles_type::architecture());
+	// run_kernel1d_functor(merge_trajectories_kernel<P>(pset),
+	// 		     pset.dense_particles().size(),
+	// 		     typename particles_type::architecture());
 
 	END_PROF(merge_trajectories);
 

@@ -23,7 +23,7 @@ namespace cuimg
     	const particle& buddy = pset(n);
     	if (buddy.age > (part.age + 2) and norml2(part.speed - buddy.speed) < 2.f)
     	{
-    	  part.age = 0;
+	  pset.remove(n);
     	  break;
     	}
       }

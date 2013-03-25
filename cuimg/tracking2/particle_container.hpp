@@ -153,6 +153,13 @@ namespace cuimg
     return matches_;
   }
 
+  template <typename F, typename P, typename A>
+  typename particle_container<F, P, A>::uint_vector&
+  particle_container<F, P, A>::matches()
+  {
+    return matches_;
+  }
+
 
 #ifndef NO_CPP0X
   template <typename F, typename P, typename A>
@@ -383,14 +390,24 @@ namespace cuimg
   void
   kernel_particle_container<F, P, A>::remove(int i)
   {
+    assert(i < size_);
     P& p = particles_vec_[i];
     p.age = 0;
   }
 
   template <typename F, typename P, typename A>
   void
+  kernel_particle_container<F, P, A>::remove(i_int2 p)
+  {
+    assert(has(p));
+    remove(sparse_buffer_(p));
+  }
+
+  template <typename F, typename P, typename A>
+  void
   particle_container<F, P, A>::remove(int i)
   {
+    assert(i < particles_vec_.size());
     P& p = particles_vec_[i];
     p.age = 0;
   }
@@ -399,8 +416,7 @@ namespace cuimg
   void
   particle_container<F, P, A>::remove(const i_short2& pos)
   {
-    P& p = particles_vec_[sparse_buffer_(p.pos)];
-    p.age = 0;
+    remove(sparse_buffer_(pos));
   }
 
   template <typename F, typename P, typename A>
@@ -487,9 +503,11 @@ namespace cuimg
 #ifndef NO_CUDA
       particles_vec_(thrust::raw_pointer_cast(o.dense_particles().data())),
       features_vec_(thrust::raw_pointer_cast(o.features().data())),
+      matches_(thrust::raw_pointer_cast(o.matches().data())),
 #else
       particles_vec_(o.dense_particles().data()),
       features_vec_(o.features().data()),
+      matches_(o.matches().data()),
 #endif
       frame_cpt_(o.frame_cpt())
 #ifndef NDEBUG
