@@ -1,8 +1,8 @@
 #ifndef CUIMG_TRACKING_STRATEGIES_H_
 # define CUIMG_TRACKING_STRATEGIES_H_
 
-#define NO_FLOW i_float2(-500.f, -500.f)
 
+# include <cuimg/tracking2/tracker_defines.h>
 # include <cuimg/architectures.h>
 # include <cuimg/gl.h>
 

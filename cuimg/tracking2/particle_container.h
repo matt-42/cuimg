@@ -135,6 +135,9 @@ namespace cuimg
 
     int size() const { return particles_vec_.size(); }
 
+    template <typename T>
+    void sync_attributes(T& container) const;
+
   private:
     uint_image2d sparse_buffer_;
     flow_t flow_;

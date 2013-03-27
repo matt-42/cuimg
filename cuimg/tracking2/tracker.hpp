@@ -103,8 +103,3 @@ namespace cuimg
 }
 
 #endif
-
-
-
-
-
