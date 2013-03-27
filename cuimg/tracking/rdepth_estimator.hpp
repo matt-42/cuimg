@@ -24,9 +24,9 @@ namespace cuimg
     for(unsigned i = 0; i < particles.size(); i++)
     {
       auto& p = particles[i];
-      i_float2 pos = p.pos - foe_;
-      int age = p.age >= 3 ? (3) : p.age;
-      i_float2 speed =i_float2(p.pos_history[age-1] - p.pos) / float(age);
+      i_float2 pos = p.pos() - foe_;
+      int age = p.age >= 3 ? (3) : p.age();
+      i_float2 speed =i_float2(p.pos_history[age-1] - p.pos()) / float(age);
       double d;
       bool to_far = false;
       if (norml2(speed) < .4f)

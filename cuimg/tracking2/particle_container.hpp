@@ -11,6 +11,7 @@
 # include <cuimg/mt_apply.h>
 # include <cuimg/builtin_math.h>
 # include <cuimg/border.h>
+# include <cuimg/tracking2/tracker_defines.h>
 
 namespace cuimg
 {
@@ -371,7 +372,7 @@ namespace cuimg
   {
     P pt;
     pt.age = 1;
-    if (flow_(p) != NO_FLOW)
+    if (flow_(p/8) != NO_FLOW)
       pt.speed = flow_(p/8);
     else
     {
@@ -489,6 +490,35 @@ namespace cuimg
     particles_vec_.clear();
     features_vec_.clear();
     matches_.clear();
+  }
+
+
+  template <typename F, typename P, typename A>
+  template <typename T>
+  void
+  particle_container<F, P, A>::sync_attributes(T& v) const
+  {
+    unsigned nparts = dense_particles().size();
+    if (compact_has_run())
+    {
+      unsigned nmatches = matches().size();
+      T tmp(nparts);
+      for(unsigned i = 0; i < nmatches; i++)
+      {
+	int ni = matches()[i];
+	if (ni >= 0 && particles_vec_[ni].age > 0)
+	{
+	  assert(ni < nparts);
+	  assert(particles_vec_[ni].age != 1 || i >= v.size());
+	  if (i < v.size())
+	    tmp[ni] = std::move(v[i]);
+	}
+      }
+      v.swap(tmp);
+      assert(v.size() == dense_particles().size());
+    }
+    else
+      v.resize(nparts);
   }
 
   // template <typename T>
