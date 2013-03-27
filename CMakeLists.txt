@@ -75,6 +75,8 @@ install(TARGETS cuimg DESTINATION lib/Release CONFIGURATIONS Release)
 install(DIRECTORY cuimg DESTINATION include
   FILES_MATCHING PATTERN "*.h")
 install(DIRECTORY cuimg DESTINATION include
+  FILES_MATCHING PATTERN "*.cu")
+install(DIRECTORY cuimg DESTINATION include
   FILES_MATCHING PATTERN "*.hpp")
 
 
@@ -98,4 +100,13 @@ ADD_TEST(point2d ${EXECUTABLE_OUTPUT_PATH}/point2d)
 
 TARGET_LINK_LIBRARIES(obox2d)
 ADD_TEST(obox2d ${EXECUTABLE_OUTPUT_PATH}/obox2d)
+
+
+
+
+
+
+
+
+
 
