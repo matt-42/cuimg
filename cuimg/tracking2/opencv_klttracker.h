@@ -51,6 +51,8 @@ namespace cuimg
     host_image2d<gl8u> in_prev;
 
     pset_type pset_;
+    host_image2d<unsigned char> mask_;
+
     unsigned nframe_;
     int detector_frequency_;
   };

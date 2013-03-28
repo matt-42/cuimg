@@ -413,7 +413,7 @@ namespace cuimg
 	particle& part = pset.dense_particles()[i];
 	if (part.age > 2 && flow(part.pos / flow_ratio) != NO_FLOW)
 	{
-	  if (norml2(part.speed - flow(part.pos / flow_ratio)) > 5.f)
+	  if (norml2(part.speed - flow(part.pos / flow_ratio)) > 10.f)
 	  {
 	    pset.remove(i);
 	    return;

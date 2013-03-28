@@ -8,6 +8,7 @@ namespace cuimg
 
   opencv_klttracker::opencv_klttracker(const obox2d& d)
     : pset_(d),
+			mask_(d),
       detector_frequency_(1)
   {
     nframe_ = 0;
@@ -29,18 +30,17 @@ namespace cuimg
   opencv_klttracker::detect_keypoints(const host_image2d<gl8u>& in)
   {
     SCOPE_PROF(detect_keypoints)
-    host_image2d<unsigned char> mask(in.domain());
     typedef unsigned char UC;
-    cuimg::fill(mask, UC(1));
+    cuimg::fill(mask_, UC(1));
     for (auto p : keypoints_)
     {
       i_int2 pos(p.y, p.x);
-      for_all_in_static_neighb2d(pos, n, c25_h) if (mask.has(n))
-        mask(n) = 0;
+      for_all_in_static_neighb2d(pos, n, c8_h) if (mask_.has(n))
+        mask_(n) = 0;
     }
 
     std::vector<cv::KeyPoint> kps;
-    adapter_->detect(cv::Mat(in), kps, mask);
+    adapter_->detect(cv::Mat(in), kps, mask_);
     for (auto& p : kps)
     {
       keypoints_.push_back(p.pt);

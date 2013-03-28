@@ -32,6 +32,37 @@ namespace cuimg
       unsigned sum_bright = 0;
       unsigned sum_dark = 0;
 
+			if (n_ == 15)
+			{
+				int to_test[3] = {0, 4, 12};
+				for (int i = 0; i < 3; i++)
+				{
+					gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, to_test[i])));
+					int sign = int(vn) > int(vp);
+					unsigned char dist = ::abs(int(vn) - int(vp));
+
+					if (dist > fast_th_)
+						if (sign == status) n++;
+						else
+						{
+							if (n > max_n)
+								max_n = n;
+							status = sign;
+							n = 1;
+						}
+					else
+					{
+						if (n > max_n)
+							max_n = n;
+						status = 2;
+					}
+				}
+				if (n < 3) return 0;
+			}
+
+			n = 0;
+			status = 2;
+			max_n = 0;
       for (int i = 0; i < 16; i++)
       {
 	gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, i)));
@@ -54,7 +85,11 @@ namespace cuimg
 	    sum_bright += dist;
 	}
 	else
+	{
+		if (n > max_n)
+			max_n = n;
 	  status = 2;
+	}
       }
 
       if (n != 16 && status != 2)
