@@ -89,7 +89,7 @@ namespace cuimg
   template <typename A>
   fast_detector<A>::fast_detector(const obox2d& d)
     : n_(9),
-      saliency_(d),
+      saliency_(d, 1),
       new_points_(d)
   {
   }

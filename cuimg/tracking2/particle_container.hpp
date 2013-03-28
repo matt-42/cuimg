@@ -372,7 +372,7 @@ namespace cuimg
   {
     P pt;
     pt.age = 1;
-    if (flow_(p/8) != NO_FLOW)
+    if (flow_.data() && flow_(p/8) != NO_FLOW)
       pt.speed = flow_(p/8);
     else
     {

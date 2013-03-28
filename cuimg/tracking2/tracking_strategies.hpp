@@ -49,23 +49,23 @@ namespace cuimg
     template<typename F, typename D, typename P, typename I>
     generic_strategy<F, D, P, I>::generic_strategy(const obox2d& d)
       : feature_(d),
-	prev_feature_(d),
-	flow_ratio(8),
+				prev_feature_(d),
+				flow_ratio(8),
         detector_(d),
         dominant_speed_estimator_(d),
         camera_motion_(0,0),
         prev_camera_motion_(0,0),
         upper_(0),
         frame_cpt_(0),
-	contrast_(d),
-	mask_(d, 4),
-	new_points_map_(d / (2*flow_ratio)),
-	flow_stats_(d / flow_ratio),
-	flow_(d / flow_ratio),
-	multiscale_count_(d / flow_ratio),
+				contrast_(d),
+				mask_(d, 4),
         detector_frequency_(1),
         filtering_frequency_(1)
     {
+			new_points_map_ = gl8u_image2d(d / (2*flow_ratio));
+			flow_stats_ = flow_stats_t(d / flow_ratio);
+			flow_ = flow_t(d / flow_ratio);
+			multiscale_count_ = uint_image2d(d / flow_ratio);
     }
 
     template<typename F, typename D, typename P, typename I>

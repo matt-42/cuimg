@@ -30,6 +30,7 @@ namespace cuimg
       int end = arch_neighb2d<A>::get(c8_it_h, c8_it, match_i)[1];
       {
         i_int2 n(prediction + i_int2(arch_neighb2d<A>::get(c8_h, c8, i)));
+				if (feature_img.domain().has(n))
         {
           float d = feature_img.distance(f, n, scale);
           if (d < match_distance)
@@ -48,6 +49,7 @@ namespace cuimg
       for(; i != end; i = (i + 1) & 7)
       {
         i_int2 n(prediction + i_int2(arch_neighb2d<A>::get(c8_h, c8, i)));
+				if (feature_img.domain().has(n))
         {
           float d = feature_img.distance(f, n, scale);
           if (d < match_distance)
