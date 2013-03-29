@@ -24,11 +24,11 @@ namespace cuimg
         int v2 = in(p + i_int2(circle_r3_h[i+8]) * scale).x;
 
         int contrast = std::max(::abs(pv - v1), ::abs(pv - v2));
-        int dev = ::abs(pv - (v1 + v2) / 2);
-        // unsigned dev = ::abs(pv - v1) + ::abs(pv - v2);
+        //int dev = ::abs(pv - (v1 + v2) / 2);
+        int dev = ::abs(pv - v1) + ::abs(pv - v2);
 
-	max_contrast = std::max(max_contrast, contrast);
-	min_diff = std::min(min_diff, dev);
+				max_contrast = std::max(max_contrast, contrast);
+				min_diff = std::min(min_diff, dev);
       }
 
       return std::pair<int, int>(min_diff, max_contrast);

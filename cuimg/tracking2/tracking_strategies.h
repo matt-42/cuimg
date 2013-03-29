@@ -12,6 +12,7 @@
 
 # include <cuimg/tracking2/bc2s_feature.h>
 # include <cuimg/tracking2/mdfl_detector.h>
+# include <cuimg/tracking2/miel2_detector.h>
 # include <cuimg/tracking2/fast_detector.h>
 # include <cuimg/tracking2/fastnc_detector.h>
 # include <cuimg/tracking2/dense_detector.h>
@@ -157,6 +158,20 @@ namespace cuimg
 			       host_image2d<gl8u> > super;
 
       inline bc2s_mdfl2s_gradient_cpu(const obox2d& o) : super(o) {}
+      inline void init() {};
+    };
+
+    struct bc2s_miel2_gradient_cpu
+      : public generic_strategy<bc2s_feature<cpu>, miel2_1s_detector,
+				particle_container<bc2s_feature<cpu> >,
+				host_image2d<gl8u> >
+    {
+    public:
+      typedef generic_strategy<bc2s_feature<cpu>, miel2_1s_detector,
+			       particle_container<bc2s_feature<cpu> >,
+			       host_image2d<gl8u> > super;
+
+      inline bc2s_miel2_gradient_cpu(const obox2d& o) : super(o) {}
       inline void init() {};
     };
 

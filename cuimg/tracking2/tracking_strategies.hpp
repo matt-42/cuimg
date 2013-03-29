@@ -598,9 +598,9 @@ namespace cuimg
       {
 	START_PROF(merge_trajectories);
 
-	run_kernel1d_functor(merge_trajectories_kernel<P>(pset),
-			     pset.dense_particles().size(),
-			     typename particles_type::architecture());
+	// run_kernel1d_functor(merge_trajectories_kernel<P>(pset),
+	// 		     pset.dense_particles().size(),
+	// 		     typename particles_type::architecture());
 
 	END_PROF(merge_trajectories);
 
