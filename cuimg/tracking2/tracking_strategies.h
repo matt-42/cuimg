@@ -77,6 +77,7 @@ namespace cuimg
       inline i_short2 prev_camera_motion() const { return prev_camera_motion_; }
 
       int border_needed() const;
+      void set_with_merge(bool b);
 
     protected:
       feature_t feature_;
@@ -99,6 +100,7 @@ namespace cuimg
 
       int detector_frequency_;
       int filtering_frequency_;
+      bool with_merge_;
     };
 
     struct bc2s_mdfl_gradient_cpu

@@ -45,6 +45,7 @@ namespace cuimg
   private:
     std::vector<int> matches_;
     std::vector<float> distances_;
+    cv::FastAdjuster fast_adapter_;
     cv::Ptr<cv::AdjusterAdapter> adapter_;
     std::vector<cv::Point2f > keypoints_, new_keypoints_;
 

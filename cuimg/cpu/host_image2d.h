@@ -108,8 +108,8 @@ namespace cuimg
     void allocate(const domain_type& d, unsigned border, bool pinned);
 
     domain_type domain_;
-    size_t pitch_;
-    unsigned border_;
+    int pitch_;
+    int border_;
     boost::shared_ptr<V> data_;
     V* begin_;
   };

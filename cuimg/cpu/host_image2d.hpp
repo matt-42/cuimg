@@ -46,9 +46,12 @@ namespace cuimg
   template <typename V>
   host_image2d<V>::host_image2d(const domain_type& d, unsigned border, bool pinned)
     : domain_(d),
-      border_(border)
+      pitch_(0),
+      border_(border),
+      data_(),
+      begin_(0)
   {
-    allocate(domain_, border, pinned);
+    allocate(d, border, pinned);
   }
 
   template <typename V>
@@ -74,7 +77,7 @@ namespace cuimg
   void
   host_image2d<V>::allocate(const domain_type& d, unsigned border, bool pinned)
   {
-    V* ptr;
+    V* ptr = 0;
 
 #ifndef NO_CUDA
     if (pinned)
@@ -87,10 +90,11 @@ namespace cuimg
     else
 #endif
     {
+      pitch_ = 0;
       pitch_ = (d.ncols() + 2 * border) * sizeof(V);
       if (pitch_ % 4)
        	pitch_ = pitch_ + 4 - (pitch_ & 3);
-      ptr = (V*) new char[(domain_.nrows() + 2 * border) * pitch_ + 64];
+      ptr = (V*) new char[(d.nrows() + 2 * border) * pitch_ + 64];
       data_ = boost::shared_ptr<V>(ptr, array_free<V>);
       // data_ = boost::shared_ptr<V>(ptr, [&] (V* ptr) {
       // 	  for (unsigned r = 0; r < this->nrows(); r++)
