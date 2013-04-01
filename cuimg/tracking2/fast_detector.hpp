@@ -32,17 +32,46 @@ namespace cuimg
       unsigned sum_bright = 0;
       unsigned sum_dark = 0;
 
-			if (n_ == 15)
+			// if (n_ == 15)
+			// {
+			// 	int to_test[3] = {0, 4, 12, 0};
+			// 	for (int i = 0; i < 3; i++)
+			// 	{
+			// 		gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, to_test[i])));
+			// 		int sign = int(vn) > int(vp);
+			// 		unsigned char dist = ::abs(int(vn) - int(vp));
+
+			// 		if (dist > fast_th_)
+			// 			if (sign == status) n++;
+			// 			else
+			// 			{
+			// 				if (n > max_n)
+			// 					max_n = n;
+			// 				status = sign;
+			// 				n = 1;
+			// 			}
+			// 		else
+			// 		{
+			// 			if (n > max_n)
+			// 				max_n = n;
+			// 			status = 2;
+			// 		}
+			// 	}
+			// 	if (n < 3) return 0;
+			// }
+
+			if (n_ >= 9)
 			{
-				int to_test[3] = {0, 4, 12};
-				for (int i = 0; i < 3; i++)
+				int to_test[6] = {0, 4, 8, 12, 0, 4};
+				int equals = 0;
+				for (int i = 0; i < 6; i++)
 				{
 					gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, to_test[i])));
 					int sign = int(vn) > int(vp);
 					unsigned char dist = ::abs(int(vn) - int(vp));
 
 					if (dist > fast_th_)
-						if (sign == status) n++;
+						if (sign == status) { n++; }
 						else
 						{
 							if (n > max_n)
@@ -55,9 +84,14 @@ namespace cuimg
 						if (n > max_n)
 							max_n = n;
 						status = 2;
+						equals++;
+						if (i < 4 && n_ >= 12 && equals >= 2) return 0;
 					}
 				}
-				if (n < 3) return 0;
+				if (n > max_n)
+					max_n = n;
+				if (n_ >= 12 && max_n < 3) return 0;
+				else if (n_ >= 8 && max_n < 2) return 0;
 			}
 
 			n = 0;
@@ -65,59 +99,59 @@ namespace cuimg
 			max_n = 0;
       for (int i = 0; i < 16; i++)
       {
-	gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, i)));
-	int sign = int(vn) > int(vp);
-	unsigned char dist = ::abs(int(vn) - int(vp));
-	if (dist > fast_th_)
-	{
- 	  if (sign == status) n++;
-	  else
-	  {
-	    if (n > max_n)
-	      max_n = n;
-	    status = sign;
-	    n = 1;
-	  }
+				gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, i)));
+				int sign = int(vn) > int(vp);
+				unsigned char dist = ::abs(int(vn) - int(vp));
+				if (dist > fast_th_)
+				{
+					if (sign == status) n++;
+					else
+					{
+						if (n > max_n)
+							max_n = n;
+						status = sign;
+						n = 1;
+					}
 
-	  if (vn < vp)
-	    sum_dark += dist;
-	  else
-	    sum_bright += dist;
-	}
-	else
-	{
-		if (n > max_n)
-			max_n = n;
-	  status = 2;
-	}
+					if (vn < vp)
+						sum_dark += dist;
+					else
+						sum_bright += dist;
+				}
+				else
+				{
+					if (n > max_n)
+						max_n = n;
+					status = 2;
+				}
       }
 
       if (n != 16 && status != 2)
       {
-	int i = 0;
-	while (true)
-	{
-	  gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, i)));
-	  int sign = int(vn) > int(vp);
-	  unsigned char dist = ::abs(int(vn) - int(vp));
+				int i = 0;
+				while (true)
+				{
+					gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, i)));
+					int sign = int(vn) > int(vp);
+					unsigned char dist = ::abs(int(vn) - int(vp));
 
-	  if (dist <= fast_th_ || sign != status) break;
+					if (dist <= fast_th_ || sign != status) break;
 
-	  n++;
-	  i++;
-	  assert(i < 16);
-	}
+					n++;
+					i++;
+					assert(i < 16);
+				}
 
       }
 
 
       if (n > max_n)
-	max_n = n;
+				max_n = n;
 
       if (max_n < n_)
-	return 0;
+				return 0;
       else
-	return max(sum_bright, sum_dark);
+				return max(sum_bright, sum_dark);
     }
   }
 

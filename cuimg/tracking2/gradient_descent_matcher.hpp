@@ -24,7 +24,7 @@ namespace cuimg
     }
 
     assert(domain.has(prediction));
-    for (int search = 0; search < 7; search++)
+    for (int search = 0; search < 5; search++)
     {
       int i = arch_neighb2d<A>::get(c8_it_h, c8_it, match_i)[0];
       int end = arch_neighb2d<A>::get(c8_it_h, c8_it, match_i)[1];
