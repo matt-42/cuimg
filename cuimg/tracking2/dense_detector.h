@@ -12,7 +12,8 @@ namespace cuimg
   public:
     inline dense_detector(const obox2d& d);
 
-    inline void update(const host_image2d<gl8u>& input);
+    template <typename J>
+    inline void update(const host_image2d<gl8u>& input, const J& mask);
 
     template <typename F, typename PS>
     inline void new_particles(const F& feature, PS& pset);

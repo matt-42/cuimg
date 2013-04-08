@@ -90,7 +90,7 @@ namespace cuimg
 
     size_t buffer_size() const;
 
-    inline i_int2 index_to_point(unsigned int idx) const;
+    inline i_int2 index_to_point(int idx) const;
     inline int point_to_index(const point& p) const;
 
     template <typename E>

@@ -389,11 +389,11 @@ namespace cuimg
   }
 
   template <typename V>
-  i_int2 host_image2d<V>::index_to_point(unsigned int idx) const
+  i_int2 host_image2d<V>::index_to_point(int idx) const
   {
     assert(!(pitch_ % sizeof(V)));
-    int r = (idx * sizeof(V)) / pitch_;
-    int c = idx - r * (pitch_ / sizeof(V));
+    int r = (idx * int(sizeof(V))) / pitch_;
+    int c = idx - r * (pitch_ / int(sizeof(V)));
     return i_int2(r, c);
   }
 
