@@ -10,42 +10,52 @@ namespace cuimg
   namespace miel2
   {
 
-    template <typename I>
-    inline int compute_saliency(i_short2 p, const I& in, float contrast_thresh)
+    template <typename T>
+    inline
+    int get_dev(const T* data, int i, const int offsets[], int& min_diff)
     {
-      int min_diff = 999999;
-      int pv = in(p).x;
-      for(int i = 0; i < 8; i++)
-      {
-        int v1 = in(p + i_int2(circle_r3_h[i])).x;
-				int v2 = in(p + i_int2(circle_r3_h[i+8])).x;
-        // int v3 = in(p + i_int2(circle_r3_h[i]) * 0.5).x;
-				// int v4 = in(p + i_int2(circle_r3_h[i+8]) * 0.5).x;
-				// int dev = ::abs(pv - v1) + ::abs(pv - v2) + ::abs(pv - v3) + ::abs(pv - v4);
-				// min_diff = std::min(min_diff, dev);
-				int dev = (pv - v1) * (pv - v1) +
-					(pv - v2) * (pv - v2);
-				min_diff = std::min(min_diff, dev);
-      }
-
-			min_diff /= 4;
-			if (min_diff >= contrast_thresh)
-				return (min_diff);
-			else
-				return 0;
+      int v1 = data[offsets[i]];
+      int v2 = data[offsets[i+8]];
+      //int dev = ::abs(*data - v1) + ::abs(*data - v2);
+      int dev = ::abs(v2 - v1);
+      min_diff = std::min(min_diff, dev);
+      return dev;
     }
-	}
+
+    template <typename I>
+    inline int compute_saliency(i_short2 p, const I& in, float contrast_thresh, const int offsets[])
+    {
+
+      int min_diff = 999999;
+      const typename I::value_type* data = &in(p);
+
+      // Best order for queen_street.jpg : 4 0 2 6 3 1 5 7.
+      get_dev(data, 4, offsets, min_diff); if (min_diff < contrast_thresh) return 0;
+      get_dev(data, 0, offsets, min_diff); if (min_diff < contrast_thresh) return 0;
+      get_dev(data, 2, offsets, min_diff); if (min_diff < contrast_thresh) return 0;
+      get_dev(data, 6, offsets, min_diff); if (min_diff < contrast_thresh) return 0;
+      get_dev(data, 3, offsets, min_diff); if (min_diff < contrast_thresh) return 0;
+      get_dev(data, 1, offsets, min_diff); if (min_diff < contrast_thresh) return 0;
+      get_dev(data, 5, offsets, min_diff); if (min_diff < contrast_thresh) return 0;
+      get_dev(data, 7, offsets, min_diff); if (min_diff < contrast_thresh) return 0;
+
+      if (min_diff >= contrast_thresh)
+      {
+	return (min_diff);
+      }
+      else
+	return 0;
+    }
+  }
 
   miel2_1s_detector::miel2_1s_detector(const obox2d& d)
     : saliency_(d),
       contrast_(d),
       new_points_(d),
-      saliency_mode_(MAX),
       input_s2_(d),
       tmp_(d)
   {
   }
-
 
   miel2_1s_detector::miel2_1s_detector(const miel2_1s_detector& d)
   {
@@ -59,21 +69,6 @@ namespace cuimg
     return *this;
   }
 
-
-  miel2_1s_detector&
-  miel2_1s_detector::set_dev_threshold(float f)
-  {
-    dev_th_ = f;
-    return *this;
-  }
-
-  miel2_1s_detector&
-  miel2_1s_detector::set_saliency_mode(saliency_mode m)
-  {
-    saliency_mode_ = m;
-    return *this;
-  }
-
 #ifndef NO_CPP0X
   template <typename J>
   void
@@ -81,12 +76,23 @@ namespace cuimg
   {
     START_PROF(miel2_compute_saliency);
 
+    int offsets[16];
+    for (unsigned i = 0; i < 16; i ++)
+    {
+      i_int2 o = circle_r3_h[i];
+      offsets[i] = (int(input.pitch()) * o.r()) / sizeof(gl8u) + o.c();
+    }
+
+    cv::Mat opencv_s2(input_s2_);
+    cv::GaussianBlur(cv::Mat(input), opencv_s2, cv::Size(11, 11), 1, 1, cv::BORDER_REPLICATE);
+    fill_border_clamp(input_s2_);
+
     dim3 dimblock = ::cuimg::dimblock(cpu(), sizeof(i_uchar1), input.domain());
     // local_jet_static_<0, 0, 1, 1>::run(input, input_s2_, tmp_, 0, dimblock);
     mt_apply2d(sizeof(i_float1), input.domain() - border(8),
-							 [this, &input] (i_int2 p)
+	       [this, &input, &offsets] (i_int2 p)
 							 {
-								 saliency_(p) = miel2::compute_saliency(p, input, contrast_th_);
+							   saliency_(p) = miel2::compute_saliency(p, input_s2_, contrast_th_, offsets);
 							 }, cpu());
 
     END_PROF(miel2_compute_saliency);
@@ -97,18 +103,25 @@ namespace cuimg
   miel2_1s_detector::new_particles(const F& feature, PS& pset_)
   {
     SCOPE_PROF(miel2_new_particles_detector);
+
+    int offsets[8];
+    for (unsigned i = 0; i < 8; i ++)
+    {
+      i_int2 o = c8_h[i];
+      offsets[i] = (int(saliency_.pitch()) * o.r()) / sizeof(saliency_(0,0)) + o.c();
+    }
+
     memset(new_points_, 0);
     typename PS::kernel_type pset = pset_;
     mt_apply2d(sizeof(i_float1), saliency_.domain() - border(8),
-               [this, &feature, &pset] (i_int2 p)
+               [this, &feature, &pset, &offsets] (i_int2 p)
                {
-                 if (pset.has(p)) return;
-                 if (this->contrast_(p) < this->contrast_th_) return;
-                 if (this->saliency_(p) < this->dev_th_) return;
+                 if (this->saliency_(p) < this->contrast_th_) return;
+		 auto* data = &this->saliency_(p);
                  for (int i = 0; i < 8; i++)
                  {
                    i_int2 n(p + i_int2(c8_h[i]));
-                   if (this->saliency_(p) < this->saliency_(n) || pset.has(n))
+                   if (*data < data[offsets[i]])
                      return;
                  }
 

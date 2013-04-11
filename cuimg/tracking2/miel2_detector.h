@@ -10,12 +10,6 @@ namespace cuimg
   class miel2_1s_detector
   {
   public:
-    enum saliency_mode
-    {
-      MAX = 1,
-      ADD = 2
-    };
-
     inline miel2_1s_detector(const obox2d& d);
     inline miel2_1s_detector(const miel2_1s_detector& d);
 
@@ -26,10 +20,6 @@ namespace cuimg
     inline void new_particles(const F& feature, PS& pset);
 
     inline miel2_1s_detector& set_contrast_threshold(float f);
-    inline miel2_1s_detector& set_dev_threshold(float f);
-    inline miel2_1s_detector& set_saliency_mode(saliency_mode m);
-
-    inline float dev_threshold() const { return dev_th_; }
 
     inline const host_image2d<int>& saliency() { return saliency_; }
     inline const host_image2d<gl8u>& contrast() { return contrast_; }
@@ -37,9 +27,7 @@ namespace cuimg
     inline int border_needed() const { return 3; }
 
   protected:
-    saliency_mode saliency_mode_;
     float contrast_th_;
-    float dev_th_;
     host_image2d<int> saliency_;
     host_image2d<gl8u> contrast_;
     host_image2d<char> new_points_;

@@ -5,6 +5,8 @@
 # include <cuimg/mt_apply.h>
 # include <cuimg/run_kernel.h>
 # include <cuimg/gpu/cuda.h>
+# include <cuimg/neighb2d.h>
+# include <cuimg/border.h>
 # include <cmath>
 
 namespace cuimg
@@ -159,7 +161,8 @@ namespace cuimg
   fast_detector<A>::fast_detector(const obox2d& d)
     : n_(9),
       saliency_(d, 1),
-      new_points_(d)
+      new_points_(d),
+      input_s2_(d)
   {
   }
 
@@ -246,7 +249,7 @@ namespace cuimg
     int n_;
     float fast_th_;
 
-    compute_saliency_kernel(const I input, const I mask, I saliency, int n, float fast_th)
+    compute_saliency_kernel(const I input, const J mask, I saliency, int n, float fast_th)
       : input_(input),
 	mask_(mask),
 	saliency_(saliency),
@@ -272,8 +275,14 @@ namespace cuimg
   {
     SCOPE_PROF(fast_compute_saliency);
     input_ = input;
+
+    cv::Mat opencv_s2(input_s2_);
+    cv::GaussianBlur(cv::Mat(input), opencv_s2, cv::Size(11, 11), 1, 1, cv::BORDER_REPLICATE);
+    //copy(input, input_s2_);
+    fill_border_clamp(input_s2_);
+
     memset(saliency_, 0);
-    run_kernel2d_functor(compute_saliency_kernel<image2d_gl8u, J>(input, mask, saliency_, n_, fast_th_),
+    run_kernel2d_functor(compute_saliency_kernel<image2d_gl8u, J>(input_s2_, mask, saliency_, n_, fast_th_),
 			 input.domain(), A());
   }
 

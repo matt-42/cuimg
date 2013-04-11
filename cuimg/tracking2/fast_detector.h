@@ -3,6 +3,7 @@
 
 # include <cuimg/improved_builtin.h>
 # include <cuimg/cpu/host_image2d.h>
+# include <cuimg/gl.h>
 
 namespace cuimg
 {
@@ -43,6 +44,7 @@ namespace cuimg
     image2d_gl8u input_;
     image2d_short2 new_points_;
     image2d_char mask_;
+    image2d_gl8u input_s2_;
   };
 
 }

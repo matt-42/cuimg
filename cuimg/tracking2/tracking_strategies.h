@@ -13,9 +13,12 @@
 # include <cuimg/tracking2/bc2s_feature.h>
 # include <cuimg/tracking2/mdfl_detector.h>
 # include <cuimg/tracking2/miel2_detector.h>
+# include <cuimg/tracking2/miel3_detector.h>
 # include <cuimg/tracking2/fast_detector.h>
 # include <cuimg/tracking2/fastnc_detector.h>
 # include <cuimg/tracking2/dense_detector.h>
+# include <cuimg/tracking2/regular_detector.h>
+# include <cuimg/tracking2/gradient_detector.h>
 # include <cuimg/tracking2/particle_container.h>
 # include <cuimg/tracking2/dominant_speed_estimator.h>
 # include <cuimg/tracking2/rigid_transform_estimator.h>
@@ -177,6 +180,20 @@ namespace cuimg
       inline void init() {};
     };
 
+    struct bc2s_miel3_gradient_cpu
+      : public generic_strategy<bc2s_feature<cpu>, miel3_1s_detector,
+				particle_container<bc2s_feature<cpu> >,
+				host_image2d<gl8u> >
+    {
+    public:
+      typedef generic_strategy<bc2s_feature<cpu>, miel3_1s_detector,
+			       particle_container<bc2s_feature<cpu> >,
+			       host_image2d<gl8u> > super;
+
+      inline bc2s_miel3_gradient_cpu(const obox2d& o) : super(o) {}
+      inline void init() {};
+    };
+
     struct bc2s_mdfl_gradient_multiscale_prediction_cpu
       : public bc2s_mdfl_gradient_cpu
     {
@@ -220,6 +237,37 @@ namespace cuimg
       inline void init() {}
     };
 
+
+    struct bc2s_regular_gradient_cpu
+      : public generic_strategy<bc2s_feature<cpu>, regular_detector,
+				particle_container<bc2s_feature<cpu> >,
+				host_image2d<gl8u> >
+    {
+    public:
+      typedef generic_strategy<bc2s_feature<cpu>, regular_detector,
+			       particle_container<bc2s_feature<cpu> >,
+			       host_image2d<gl8u> > super;
+
+      inline bc2s_regular_gradient_cpu(const obox2d& o) :super(o) {}
+
+      inline void init() {}
+    };
+
+    struct bc2s_gradient_gradient_cpu
+      : public generic_strategy<bc2s_feature<cpu>, gradient_detector,
+				particle_container<bc2s_feature<cpu> >,
+				host_image2d<gl8u> >
+    {
+    public:
+      typedef generic_strategy<bc2s_feature<cpu>, gradient_detector,
+			       particle_container<bc2s_feature<cpu> >,
+			       host_image2d<gl8u> > super;
+
+      inline bc2s_gradient_gradient_cpu(const obox2d& o) :super(o) {}
+
+      inline void init() {}
+    };
+    
     #ifndef NO_CUDA
     struct bc2s_fast_gradient_gpu
       : public generic_strategy<bc2s_feature<cuda_gpu>, fast_detector<cuda_gpu>,
