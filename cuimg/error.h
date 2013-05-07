@@ -1,9 +1,14 @@
 #ifndef CUIMG_ERROR_H_
 # define CUIMG_ERROR_H_
 
+
+#ifndef NO_CUDA
+
 # include <cuimg/gpu/cuda.h>
 # include <iostream>
 # include <cassert>
+
+#endif
 
 namespace cuimg
 {
@@ -23,5 +28,6 @@ namespace cuimg
   }
 
 }
+
 
 #endif

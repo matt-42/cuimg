@@ -314,6 +314,35 @@ namespace cuimg
       inline void init() {}
     };
 
+    struct bc2s_256_dense_gradient_cpu
+      : public generic_strategy<bc2s_256_feature<cpu>, dense_detector,
+				particle_container<bc2s_256_feature<cpu> >,
+				host_image2d<gl8u> >
+    {
+    public:
+      typedef generic_strategy<bc2s_256_feature<cpu>, dense_detector,
+			       particle_container<bc2s_256_feature<cpu> >,
+			       host_image2d<gl8u> > super;
+
+      inline bc2s_256_dense_gradient_cpu(const obox2d& o) : super(o) {}
+      inline void init() {}
+    };
+
+
+    struct bc2s_256_miel2_gradient_cpu
+      : public generic_strategy<bc2s_256_feature<cpu>, miel2_1s_detector,
+				particle_container<bc2s_256_feature<cpu> >,
+				host_image2d<gl8u> >
+    {
+    public:
+      typedef generic_strategy<bc2s_256_feature<cpu>, miel2_1s_detector,
+			       particle_container<bc2s_256_feature<cpu> >,
+			       host_image2d<gl8u> > super;
+
+      inline bc2s_256_miel2_gradient_cpu(const obox2d& o) : super(o) {}
+      inline void init() {}
+    };
+
   }
 
 }

@@ -1,5 +1,4 @@
 
-#include <ostream>
 #include <boost/type_traits/is_scalar.hpp>
 
 #include <cuimg/meta.h>
@@ -527,10 +526,10 @@ namespace cuimg
     return a * s;
   }
 
-  template <typename U, unsigned US>
+  template <typename O, typename U, unsigned US>
   __host__ __device__ inline
-  std::ostream&
-  operator<<(std::ostream& os, const improved_builtin<U, US>& a)
+  O&
+  operator<<(O& os, const improved_builtin<U, US>& a)
   {
     os << '<';
     os << a[0];

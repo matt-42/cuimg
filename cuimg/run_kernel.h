@@ -29,15 +29,15 @@ namespace cuimg
       f(i);
   }
 
-
   template <typename F>
   void run_kernel2d_functor(const F& f_, obox2d bb, const cpu&)
   {
     F& f = *const_cast<F*>(&f_);
-#pragma omp parallel for schedule(static, 2)
-    for (int r = 0; r < bb.nrows(); r++)
-      for (int c = 0; c < bb.ncols(); c++)
-	f(i_int2(r, c));
+    mt_apply2d(1, bb, f, cpu());
+/* #pragma omp parallel for schedule(static, 2) */
+/*     for (int r = 0; r < bb.nrows(); r++) */
+/*       for (int c = 0; c < bb.ncols(); c++) */
+/* 	f(i_int2(r, c)); */
   }
 
 
@@ -45,10 +45,12 @@ namespace cuimg
   void run_kernel2d_functor(const F& f_, box2d bb, const cpu&)
   {
     F& f = *const_cast<F*>(&f_);
-#pragma omp parallel for schedule(static, 2)
-    for (int r = bb.p1().r(); r <= bb.p2().r(); r++)
-      for (int c = bb.p1().c(); c <= bb.p2().c(); c++)
-	f(i_int2(r, c));
+    mt_apply2d(1, bb, f, cpu());
+
+/* #pragma omp parallel for schedule(static, 2) */
+/*     for (int r = bb.p1().r(); r <= bb.p2().r(); r++) */
+/*       for (int c = bb.p1().c(); c <= bb.p2().c(); c++) */
+/* 	f(i_int2(r, c)); */
   }
 
   template <typename F>

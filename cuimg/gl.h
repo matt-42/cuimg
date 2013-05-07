@@ -30,8 +30,7 @@ namespace cuimg
     H_D_I gl8u& operator=(const zero& x);
     H_D_I gl8u& operator=(const gl01f& x);
 
-    template <typename T>
-    H_D_I operator T() const;
+    H_D_I operator unsigned char() const;
     H_D_I operator gl01f() const;
   };
 
@@ -54,8 +53,7 @@ namespace cuimg
     H_D_I gl01f& operator=(const gl8u& x);
     H_D_I gl01f& operator=(const zero& x);
 
-    template <typename T>
-    H_D_I operator T() const;
+    H_D_I operator float() const;
     H_D_I operator gl8u() const;
   };
 
@@ -93,8 +91,7 @@ namespace cuimg
   H_D_I gl8u& gl8u::operator=(const gl01f& x)    { super::operator=(x.x * 255.f);  return *this; }
   H_D_I gl8u& gl8u::operator=(const zero& x)    { super::operator=(x); return *this; }
 
-  template <typename T>
-  H_D_I gl8u::operator T() const { return T(x); }
+  H_D_I gl8u::operator unsigned char() const { return x; }
   H_D_I gl8u::operator gl01f() const { return float(x) / 255.f; }
 
 
@@ -111,8 +108,7 @@ namespace cuimg
   H_D_I gl01f& gl01f::operator=(const gl8u& x) { super::operator=(x.x / 255.f); return *this; }
   H_D_I gl01f& gl01f::operator=(const zero& x) { super::operator=(0.f); return *this; }
 
-  template <typename T>
-  H_D_I gl01f::operator T() const { return x; }
+  H_D_I gl01f::operator float() const { return x; }
   H_D_I gl01f::operator gl8u() const { return float(x) * 255.f; }
 
 

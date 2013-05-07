@@ -110,32 +110,33 @@ namespace cuimg
       typename J::kernel_type out_;
 
       contrast_kernel(const I& input, J& output)
-				: input_(input),
-					out_(output)
+	: input_(input),
+	  out_(output)
       {
-				assert(input.border() >= 2);
+	assert(input.border() >= 2);
       }
 
       inline __host__ __device__
       void operator()(i_int2 p)
       {
-				const int d = 2;
-				int res = 0;
-				if ((input_.domain()).has(p))
-				{
-					int vp = input_(p);
-					for (int i = 0; i < 8; i++)
-					{
-						gl8u vn = input_(p + i_int2(c8_h[i])*2);
-						res += ::abs(vn - vp);
-					}
-					// res = ::abs(int(input_(p + i_int2(0,d))) - int(input_(p + i_int2(0,-d)))) +
-					//   ::abs(int(input_(p + i_int2(-d,0))) - int(input_(p + i_int2(d,0)))) +
-					//   ::abs(int(input_(p + i_int2(-d,-d))) - int(input_(p + i_int2(d,d)))) +
-					//   ::abs(int(input_(p + i_int2(-d,d))) - int(input_(p + i_int2(d,-d))))
-					//   ;
-				}
-				out_(p) = res;
+	const int d = 2;
+	int res = 0;
+	if ((input_.domain()).has(p))
+	{
+	  int vp = input_(p);
+	  //res = vp;
+	  for (int i = 0; i < 8; i++)
+	  {
+	    gl8u vn = input_(p + i_int2(c8_h[i])*2);
+	    res += ::abs(vn - vp);
+	  }
+	  // res = ::abs(int(input_(p + i_int2(0,d))) - int(input_(p + i_int2(0,-d)))) +
+	  //   ::abs(int(input_(p + i_int2(-d,0))) - int(input_(p + i_int2(d,0)))) +
+	  //   ::abs(int(input_(p + i_int2(-d,-d))) - int(input_(p + i_int2(d,d)))) +
+	  //   ::abs(int(input_(p + i_int2(-d,d))) - int(input_(p + i_int2(d,-d))))
+	  //   ;
+	}
+	out_(p) = res;
       }
     };
 
@@ -146,14 +147,14 @@ namespace cuimg
       typename P::kernel_type pset;
 
       merge_trajectories_kernel(P& pset_)
-				: pset(pset_)
+	: pset(pset_)
       {}
 
       inline __host__ __device__
       void operator()(int i)
       {
-				particle& p = pset.dense_particles()[i];
-				::cuimg::merge_trajectories(pset, p);
+	particle& p = pset.dense_particles()[i];
+	::cuimg::merge_trajectories(pset, p);
       }
     };
 
@@ -164,6 +165,7 @@ namespace cuimg
       pset.set_flow(flow_);
       run_kernel2d_functor(contrast_kernel<I, uint_image2d>(in, contrast_),
 													 contrast_.domain(), architecture());
+
       // host_image2d<i_uchar1> test(contrast_.domain());
       // test = contrast_ / 4;
       // //fill(test, i_uchar1(255));
@@ -286,76 +288,76 @@ namespace cuimg
 
     public:
       match_particles_kernel(P& pset_, F& feature_, const I& contrast_, const J& upper_flow_, int frame_cpt_,
-														 i_short2 u_camera_motion_, i_short2 u_prev_camera_motion_,
-														 int detector_frequency_, int flow_ratio_)
-				: pset(pset_),
-					feature(feature_),
-					contrast(contrast_),
-					upper_flow(upper_flow_),
-					frame_cpt(frame_cpt_),
-					u_camera_motion(u_camera_motion_),
-					u_prev_camera_motion(u_prev_camera_motion_),
-					detector_frequency(detector_frequency_),
-					flow_ratio(flow_ratio_)
+			     i_short2 u_camera_motion_, i_short2 u_prev_camera_motion_,
+			     int detector_frequency_, int flow_ratio_)
+	: pset(pset_),
+	  feature(feature_),
+	  contrast(contrast_),
+	  upper_flow(upper_flow_),
+	  frame_cpt(frame_cpt_),
+	  u_camera_motion(u_camera_motion_),
+	  u_prev_camera_motion(u_prev_camera_motion_),
+	  detector_frequency(detector_frequency_),
+	  flow_ratio(flow_ratio_)
       {
       }
 
       inline __host__ __device__ void
       operator()(int i)
       {
-				assert(i >= 0 && i < pset.size());
-				particle& part = pset.dense_particles()[i];
-				assert(pset.domain().has(part.pos));
-				box2d domain = pset.domain() - border(0);
-				assert(domain.has(part.pos));
-				if (part.age > 0
-						//&& part.next_match_time == frame_cpt
-						)
-				{
-					// Prediction.
-					i_short2 pred;
-					pred = multiscale_prediction(part, upper_flow, flow_ratio, u_prev_camera_motion, u_camera_motion);
-					//pred = motion_based_prediction(part, u_prev_camera_motion, u_camera_motion);
+	assert(i >= 0 && i < pset.size());
+	particle& part = pset.dense_particles()[i];
+	assert(pset.domain().has(part.pos));
+	box2d domain = pset.domain() - border(0);
+	assert(domain.has(part.pos));
+	if (part.age > 0
+	    //&& part.next_match_time == frame_cpt
+	    )
+	{
+	  // Prediction.
+	  i_short2 pred;
+	  pred = multiscale_prediction(part, upper_flow, flow_ratio, u_prev_camera_motion, u_camera_motion);
+	  //pred = motion_based_prediction(part, u_prev_camera_motion, u_camera_motion);
 
-					// Matching.
-					float pos_distance = feature.distance(pset.features()[i], part.pos);
-					if (domain.has(pred)
-							//and (!upper_flow.data() or contrast.nrows() < 400 or upper_flow(pred / (2*flow_ratio)) != NO_FLOW)
-							)
-					{
-						float distance;
-						std::pair<i_short2, float> match_res = two_step_gradient_descent_match(pred, pset.features()[i], feature);
-						//match_res = two_step_gradient_descent_match(match_res.first, pset.features()[i], feature);
-						//std::pair<i_short2, float> match_res = gradient_descent_match(pred, pset.features()[i], feature, 1);
-						i_short2 match = match_res.first;
-						distance = match_res.second;
-						if (domain.has(match)
-								and distance < 300
-								//and part.fault < 1
-								)
-						{
-							//if (contrast(match) <= 10.f) part.fault++;
-							if (contrast(match) < 5.f)
-								pset.remove(i);
-							else
-							{
-								auto f = feature(match);
-								// for (unsigned c = 0; c < 16; c++)
-								// 	f[c] = (2*f[c] + pset.features()[i][c]) / 3;
-								//pset.move(i, match, feature(match));
-								pset.move(i, match, f);
-								assert(pset.has(match));
-								assert(pset.dense_particles()[i].age > 0);
-							}
-						}
-						else
-							pset.remove(i);
-					}
-					else
-						pset.remove(i);
-				}
-				else if (part.age > 0)
-					pset.touch(i);
+	  // Matching.
+	  float pos_distance = feature.distance(pset.features()[i], part.pos);
+	  if (domain.has(pred)
+	      //and (!upper_flow.data() or contrast.nrows() < 400 or upper_flow(pred / (2*flow_ratio)) != NO_FLOW)
+	      )
+	  {
+	    float distance;
+	    std::pair<i_short2, float> match_res = two_step_gradient_descent_match(pred, pset.features()[i], feature);
+	    //match_res = two_step_gradient_descent_match(match_res.first, pset.features()[i], feature);
+	    //std::pair<i_short2, float> match_res = gradient_descent_match(pred, pset.features()[i], feature, 1);
+	    i_short2 match = match_res.first;
+	    distance = match_res.second;
+	    if (domain.has(match)
+		//and distance < 300
+		//and part.fault < 1
+		)
+	    {
+	      //if (contrast(match) <= 10.f) part.fault++;
+	      if (contrast(match) < 5.f)
+		pset.remove(i);
+	      else
+	      {
+		auto f = feature(match);
+		// for (unsigned c = 0; c < 16; c++)
+		// 	f[c] = (2*f[c] + pset.features()[i][c]) / 3;
+		//pset.move(i, match, feature(match));
+		pset.move(i, match, f);
+		assert(pset.has(match));
+		assert(pset.dense_particles()[i].age > 0);
+	      }
+	    }
+	    else
+	      pset.remove(i);
+	  }
+	  else
+	    pset.remove(i);
+	}
+	else if (part.age > 0)
+	  pset.touch(i);
       }
     };
 

@@ -136,7 +136,24 @@ namespace cuimg
     int size() const { return particles_vec_.size(); }
 
     template <typename T>
-    void sync_attributes(T& container) const;
+    struct default_die_fun
+    {
+      void operator()(const T&) {}
+    };
+
+    template <typename T>
+    struct push_back_fun
+    {
+      push_back_fun(T& v) : t(v) {}
+      void operator()(const typename T::value_type& v) { t.push_back(v); }
+      T& t;
+    };
+
+    template <typename T, typename D>
+    void sync_attributes(T& container, typename T::value_type new_value = typename T::value_type(),
+			 D die_fun = default_die_fun<T>()) const;
+    template <typename T>
+    void sync_attributes(T& container, T& dead_vectors, typename T::value_type new_value = typename T::value_type()) const;
 
   private:
     uint_image2d sparse_buffer_;

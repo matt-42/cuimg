@@ -3,6 +3,7 @@
 
 # include <cuimg/mt_apply.h>
 # include <cuimg/memset.h>
+# include <cuimg/neighb2d.h>
 
 namespace cuimg
 {
@@ -15,7 +16,7 @@ namespace cuimg
     int get_dev(const T* data, int i, const int offsets[], int& min_diff)
     {
       int v1 = data[offsets[i]];
-      int v2 = data[offsets[i+8]];
+      int v2 = data[offsets[i+2]];
       //int dev = ::abs(*data - v1) + ::abs(*data - v2);
       int dev = ::abs(v2 - v1);
       min_diff = std::min(min_diff, dev);
@@ -113,17 +114,26 @@ namespace cuimg
 
     memset(new_points_, 0);
     typename PS::kernel_type pset = pset_;
-    mt_apply2d(sizeof(i_float1), saliency_.domain() - border(8),
+    mt_apply2d(sizeof(i_float1), saliency_.domain() / 5,
                [this, &feature, &pset, &offsets] (i_int2 p)
                {
-                 if (this->saliency_(p) < this->contrast_th_) return;
-		 auto* data = &this->saliency_(p);
-                 for (int i = 0; i < 8; i++)
-                 {
-                   i_int2 n(p + i_int2(c8_h[i]));
-                   if (*data < data[offsets[i]])
-                     return;
-                 }
+		 p = (p) * 5 + i_int2(3,3);
+		 float vmin = saliency_(p);
+		 i_int2 min_p = p;
+		 for_all_in_static_neighb2d(p, n, c8_h)
+		   if (vmin < saliency_(n)) { vmin = saliency_(n); min_p = n; }
+
+                 //if (pset_.has(min_p)) return;
+                 if (saliency_(min_p) < this->contrast_th_) return;
+
+                 // if (this->saliency_(p) < this->contrast_th_) return;
+		 // auto* data = &this->saliency_(p);
+                 // for (int i = 0; i < 8; i++)
+                 // {
+                 //   i_int2 n(p + i_int2(c8_h[i]));
+                 //   if (*data < data[offsets[i]])
+                 //     return;
+                 // }
 
                  this->new_points_(p) = 1;
                }, cpu());

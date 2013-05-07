@@ -4,6 +4,7 @@
 # include <cuimg/gpu/cuda.h>
 # include <cuimg/improved_builtin.h>
 # include <cuimg/meta.h>
+# include <math.h>
 
 namespace cuimg
 {

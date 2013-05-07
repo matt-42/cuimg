@@ -1,12 +1,10 @@
 #ifndef CUIMG_MIPMAP_H_
 # define CUIMG_MIPMAP_H_
 
-# include <opencv2/opencv.hpp>
+//# include <opencv2/opencv.hpp>
 
-# include <cuimg/profiler.h>
 # include <cuimg/image_traits.h>
 # include <cuimg/util.h>
-# include <cuimg/pw_call.h>
 # include <cuimg/gpu/mipmap.h>
 # include <cuimg/copy.h>
 # include <cuimg/gpu/texture.h>
@@ -20,38 +18,32 @@ namespace cuimg
   namespace mipmap_internals
   {
 
-    // template <typename T>
-    // struct UNIT_STATIC(mipmap_input_tex);
-    //   REGISTER_TEXTURE2D_PROXY(mipmap_input_tex);
-
-    template <target T, typename I>
-    __host__ __device__ void mipmap_kernel(thread_info<T> ti, kernel_image2d<I> in, kernel_image2d<I> out)
+    template <typename I>
+    struct mipmap_kernel
     {
-      typedef typename I::cuda_bt V;
-      i_int2 p = thread_pos2d(ti);
+      mipmap_kernel(kernel_image2d<I> in, kernel_image2d<I> out)
+      : in_(in), out_(out)
+      {
+      }
 
-      if (!out.has(p))
-        return;
+      inline __host__ __device__
+      void operator()(i_int2 p)
+      {
+	if (!out_.has(p))
+	  return;
 
-      i_int2 d(p[0] * 2, p[1] * 2);
-      // out(p) = (I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1], d[0])) +
-      //           I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1] + 1, d[0])) +
-      //           I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1], d[0] + 1)) +
-      //           I(tex2D(flag<T>(), UNIT_STATIC(mipmap_input_tex)<V>::tex(), in, d[1] + 1, d[0] + 1))) / 4.f;
-
-      size_t linesize = in.pitch()/sizeof(I);
-      I* data = &in(d);
-      out(p) = (*(data) +
+	i_int2 d(p[0] * 2, p[1] * 2);
+	size_t linesize = in_.pitch()/sizeof(I);
+	const I* data = &in_(d);
+	out_(p) = (*(data) +
 		  *(data + 1) +
 		  *(data + linesize) +
-		*(data + linesize + 1)) / 4;
-      // out(p) = (in(d) +
-      // 		in(d + i_int2(0,1)) +
-      // 		in(d + i_int2(1,1)) +
-      // 		in(d + i_int2(1,0))) / 4;
-    }
+		  *(data + linesize + 1)) / 4;
+      }
 
-#define mipmap_kernel_sig(T, I) kernel_image2d<I>, kernel_image2d<I>, &mipmap_kernel<T, I>
+      kernel_image2d<I> in_;
+      kernel_image2d<I> out_;
+    };
 
   }
 
@@ -195,10 +187,9 @@ namespace cuimg
       I& tmp = pyramid_tmp2[l-1];
       I& out = pyramid_out[l];
 
-      dim3 dimgrid = grid_dimension(out.domain(), dimblock);
-
       START_PROF(resize_kernel);
-      pw_call<mipmap_kernel_sig(I::target, U)>(flag<I::target>(), dimgrid, dimblock, c, out);
+      mt_apply2d(sizeof(U), out.domain(), mipmap_kernel<I>(c, out), I::architecture());
+      //pw_call<mipmap_kernel_sig(I::target, U)>(flag<I::target>(), dimgrid, dimblock, c, out);
       END_PROF(resize_kernel);
 
       c = out;
@@ -226,8 +217,10 @@ namespace cuimg
     /* I tmp(exact(in).domain()); */
     /* cv::GaussianBlur(cv::Mat(exact(in)), cv::Mat(tmp), cv::Size(7, 7), 1.5, 1.5, cv::BORDER_REPLICATE); */
 
-    pw_call<mipmap_kernel_sig(I::target, typename I::value_type)>(flag<I::target>(), dimgrid, dimblock,
-    								  exact(in), exact(out));
+    typedef typename I::value_type V;
+    mt_apply2d(sizeof(V), exact(out).domain(), mipmap_kernel<V>(exact(in), exact(out)), typename I::architecture());
+    /* pw_call<mipmap_kernel_sig(I::target, typename I::value_type)>(flag<I::target>(), dimgrid, dimblock, */
+    /* 								  exact(in), exact(out)); */
   }
 
   template <typename I>
@@ -253,8 +246,9 @@ namespace cuimg
     {
       dim3 dimgrid = grid_dimension(pyramid_out[level].domain(), dimblock);
       START_PROF(resize_kernel);
-      pw_call<mipmap_kernel_sig(I::target, U)>(flag<I::target>(), dimgrid, dimblock,
-                                               pyramid_out[level-1], pyramid_out[level]);
+      mt_apply2d(sizeof(U), pyramid_out[level].domain(), mipmap_kernel<I>(pyramid_out[level-1], pyramid_out[level]), I::architecture());
+      /* pw_call<mipmap_kernel_sig(I::target, U)>(flag<I::target>(), dimgrid, dimblock, */
+      /*                                          pyramid_out[level-1], pyramid_out[level]); */
       END_PROF(resize_kernel);
     }
 

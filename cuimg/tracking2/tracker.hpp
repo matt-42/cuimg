@@ -72,6 +72,8 @@ namespace cuimg
   template <typename F>
   tracker<F>& tracker<F>::run(const I& in)
   {
+    //copy(in, input_);
+    //fill_border_clamp(input_);
     update_input(in);
     run();
     return *this;

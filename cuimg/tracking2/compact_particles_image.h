@@ -19,12 +19,14 @@ namespace cuimg
 
     unsigned size = 0;
 
-    int num_threads = omp_get_max_threads();
+    int num_threads = cpu::ncores();
 
     static std::vector<std::vector<PP> > compaction_openmp_buffers(num_threads, std::vector<PP>(100000));
     std::vector<int> out_size(num_threads);
 
     START_PROF(loop);
+    thread_pool pool(num_threads);
+
 #pragma omp parallel
     {
       int tid;

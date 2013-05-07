@@ -2,7 +2,9 @@
 # define CUIMG_HOST_IMAGE2D_H_
 
 # include <boost/shared_ptr.hpp>
+#ifndef NO_OPENMP
 # include <omp.h>
+#endif
 
 # include <cuimg/target.h>
 # include <cuimg/concepts.h>
@@ -97,7 +99,7 @@ namespace cuimg
     host_image2d<V>& operator=(const expr<E>& e)
     {
       const E& x(*(E*)&e);
-#pragma omp parallel for schedule(static, 2)
+      //#pragma omp parallel for schedule(static, 2)
       for (unsigned r = 0; r < nrows(); r++)
         for (unsigned c = 0; c < ncols(); c++)
           (*this)(r, c) = x.eval(point2d<int>(r, c));

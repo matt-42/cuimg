@@ -171,30 +171,39 @@ namespace cuimg
   };
 #endif
 
-  template <template <class> class I>
+  template <typename A>
   class bc2s_256_feature
   {
   public:
-    typedef bc2s_256 value_type;
-
+    typedef A architecture;
     typedef gl8u V;
+    typedef typename A::template image2d<V>::ret I;
+    typedef bc2s_256 value_type;
     bc2s_256_feature(const obox2d& o);
-    bc2s_256_feature(const bc2s_256_feature& f);
-    bc2s_256_feature& operator=(const bc2s_256_feature& f);
+    bc2s_256_feature(const bc2s_256_feature<A>& f);
+    bc2s_256_feature& operator=(const bc2s_256_feature<A>& f);
 
     inline const obox2d& domain() const { return s1_.domain(); }
 
-    void update(const I<gl8u>& in);
+    void update(const I& in, const cpu&);
     int distance(const bc2s_256& a, const i_short2& n, unsigned scale = 1);
     bc2s_256 operator()(const i_short2& p) const;
 
-    const I<V>& s1() const { return s1_; }
-    const I<V>& s2() const { return s2_; }
+    const I& s1() const { return s1_; }
+    const I& s2() const { return s2_; }
+
+    inline int border_needed() const { return 6; }
+
+    inline int offsets_s1(int o) const { return offsets_s1_[o]; }
+    inline int offsets_s2(int o) const { return offsets_s2_[o]; }
+
+    void swap(bc2s_256_feature<A>& o);
+    void bind() {}
 
   public:
-    I<V> s1_;
-    I<V> s2_;
-    I<V> tmp_;
+    I s1_;
+    I s2_;
+    I tmp_;
     int offsets_s1_[16];
     int offsets_s2_[16];
   };

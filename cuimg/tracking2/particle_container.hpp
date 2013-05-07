@@ -7,7 +7,7 @@
 # endif
 
 # include <cuimg/memset.h>
-# include <cuimg/tracking2/compact_particles_image.h>
+//# include <cuimg/tracking2/compact_particles_image.h>
 # include <cuimg/mt_apply.h>
 # include <cuimg/builtin_math.h>
 # include <cuimg/border.h>
@@ -492,17 +492,16 @@ namespace cuimg
     matches_.clear();
   }
 
-
   template <typename F, typename P, typename A>
-  template <typename T>
+  template <typename T, typename D>
   void
-  particle_container<F, P, A>::sync_attributes(T& v) const
+  particle_container<F, P, A>::sync_attributes(T& v, typename T::value_type new_value, D die_fun) const
   {
     unsigned nparts = dense_particles().size();
     if (compact_has_run())
     {
       unsigned nmatches = matches().size();
-      T tmp(nparts);
+      T tmp(nparts, new_value);
       for(unsigned i = 0; i < nmatches; i++)
       {
 	int ni = matches()[i];
@@ -513,12 +512,22 @@ namespace cuimg
 	  if (i < v.size())
 	    tmp[ni] = std::move(v[i]);
 	}
+	else
+	  die_fun(v[i]);
       }
       v.swap(tmp);
       assert(v.size() == dense_particles().size());
     }
     else
-      v.resize(nparts);
+      v.resize(nparts, new_value);
+  }
+
+  template <typename F, typename P, typename A>
+  template <typename T>
+  void
+  particle_container<F, P, A>::sync_attributes(T& v, T& dead_vectors, typename T::value_type new_value) const
+  {
+    sync_attributes(v, new_value, push_back_fun<T>(dead_vectors));
   }
 
   // template <typename T>

@@ -1,7 +1,6 @@
 #ifndef CUIMG_ARCHITECTURES_H_
 # define CUIMG_ARCHITECTURES_H_
 
-# include <iostream>
 # include <cassert>
 
 # include <cuimg/gpu/cuda.h>
@@ -27,7 +26,10 @@ namespace cuimg
     template <typename V> struct kernel_image2d { typedef host_image2d<V> ret; };
     template <typename V> struct vector { typedef std::vector<V> ret; };
 
-    enum { l1_cache_size = 32 * 1024 };
+    static int ncores() { return 4; }
+
+    enum { l1_cache_size = 32*1024 };
+    //enum { l1_cache_size = 32 * 1024 };
   };
 
 #ifndef NO_CUDA

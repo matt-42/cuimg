@@ -297,12 +297,20 @@ struct opencv_typeof<T>				\
   enum { ret = V };				\
 };
 
-OPENCV_TYPEOF(unsigned char, CV_8UC1);
-OPENCV_TYPEOF(i_uchar1, CV_8UC1);
-OPENCV_TYPEOF(i_uchar2, CV_8UC2);
-OPENCV_TYPEOF(i_uchar3, CV_8UC3);
-OPENCV_TYPEOF(i_uchar4, CV_8UC4);
+#define OPENCV_TYPEOF_(BT, T, CV)		\
+OPENCV_TYPEOF(BT, CV_##CV##C1);		\
+OPENCV_TYPEOF(i_##T##1, CV_##CV##C1);		\
+OPENCV_TYPEOF(i_##T##2, CV_##CV##C2);		\
+OPENCV_TYPEOF(i_##T##3, CV_##CV##C3);		\
+OPENCV_TYPEOF(i_##T##4, CV_##CV##C4);
 
+ OPENCV_TYPEOF_(unsigned char, uchar, 8U);
+ OPENCV_TYPEOF_(char, char, 8S);
+ OPENCV_TYPEOF_(unsigned short, ushort, 16U);
+ OPENCV_TYPEOF_(short, short, 16S);
+ OPENCV_TYPEOF_(float, float, 32S);
+
+ 
 #endif
 
 template <typename BT, typename V>

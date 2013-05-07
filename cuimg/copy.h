@@ -34,6 +34,16 @@ namespace cuimg
 
   }
 
+
+  template <typename T, typename U>
+  void copy(const host_image2d<T>& in, host_image2d<U>& out)
+  {
+    assert(in.domain() == out.domain());
+    for (unsigned r = 0; r < in.nrows(); r++)
+    for (unsigned c = 0; c < in.ncols(); c++)
+      out(r, c) = in(r, c);
+  }
+
 #ifndef NO_CUDA
 
   template <typename T>

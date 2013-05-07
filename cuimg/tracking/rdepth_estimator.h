@@ -15,7 +15,7 @@ namespace cuimg
     ~rdepth_estimator();
 
     template <typename V>
-    inline void update(V& particles);
+    inline void update(V& particles, i_float2 stab);
 
     void set_foe(const i_short2& p);
 

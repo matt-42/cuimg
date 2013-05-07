@@ -162,7 +162,7 @@ namespace cuimg
     : n_(9),
       saliency_(d, 1),
       new_points_(d),
-      input_s2_(d)
+      input_s2_(d, 3)
   {
   }
 
@@ -212,20 +212,19 @@ namespace cuimg
     SCOPE_PROF(fast_new_particles_detector);
     memset(new_points_, 0);
     typename PS::kernel_type pset_ = pset;
-    mt_apply2d(sizeof(i_float1), saliency_.domain() - border(0),
+    mt_apply2d(sizeof(i_float1), saliency_.domain() / 3,
                [this, &feature, &pset_] (i_int2 p)
                {
-                 if (pset_.has(p)) return;
-                 if (saliency_(p) == 0) return;
+		 p = (p) * 3 + i_int2(1,1);
+		 float vmin = saliency_(p);
+		 i_int2 min_p = p;
+		 for_all_in_static_neighb2d(p, n, c8_h)
+		   if (vmin < saliency_(n)) { vmin = saliency_(n); min_p = n; }
 
-                 for (int i = 0; i < 8; i++)
-                 {
-                   i_int2 n(p + i_int2(c8_h[i]));
-                   if (saliency_(p) < saliency_(n) || pset_.has(n))
-                     return;
-                 }
+                 if (pset_.has(min_p)) return;
+                 if (saliency_(min_p) == 0) return;
 
-                 new_points_(p) = p;
+                 new_points_(min_p) = min_p;
                }, cpu());
 
     st_apply2d(sizeof(i_float1), saliency_.domain() - border(0),
