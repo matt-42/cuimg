@@ -492,6 +492,17 @@ namespace cuimg
     matches_.clear();
   }
 
+  // Sync attributes.
+
+  // Sync a third party attribute vector v with the particle vector.
+
+  // When compact has not run:
+  //    - Append new attributes to v
+  // When compact has run:
+  //    - Append new attributes to v if new particles has been created.
+  //    - Push particles attributes in die_fun if they are not in the vector anymore.
+  //    - Reorder attributes according to the matches array.
+
   template <typename F, typename P, typename A>
   template <typename T, typename D>
   void
@@ -505,14 +516,14 @@ namespace cuimg
       for(unsigned i = 0; i < nmatches; i++)
       {
 	int ni = matches()[i];
-	if (ni >= 0 && particles_vec_[ni].age > 0)
+	if (ni >= 0)
 	{
 	  assert(ni < nparts);
 	  assert(particles_vec_[ni].age != 1 || i >= v.size());
 	  if (i < v.size())
 	    tmp[ni] = std::move(v[i]);
 	}
-	else
+	else if (ni < 0)
 	  die_fun(v[i]);
       }
       v.swap(tmp);

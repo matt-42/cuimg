@@ -4,6 +4,7 @@
 # include <cuimg/gpu/cuda.h>
 # include <cuimg/point2d.h>
 # include <cuimg/obox2d.h>
+# include <cuimg/util.h>
 
 namespace cuimg
 {
@@ -61,6 +62,12 @@ namespace cuimg
   obox2d operator/(const obox2d& a, const float x)
   {
     return obox2d(a.nrows() / x, a.ncols() / x);
+  }
+
+  inline __host__ __device__
+  obox2d domain_div_up(const obox2d& a, const float x)
+  {
+    return obox2d(idivup(a.nrows(), x), idivup(a.ncols(), x));
   }
 
 }

@@ -317,7 +317,7 @@ namespace cuimg
   inline size_t host_image2d<V>::buffer_size() const
   {
     assert(begin_);
-    return nrows() * pitch_;
+    return (nrows() + 2 * border) * pitch_;
   }
 
   template <typename V>

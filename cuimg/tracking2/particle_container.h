@@ -144,14 +144,14 @@ namespace cuimg
     template <typename T>
     struct push_back_fun
     {
-      push_back_fun(T& v) : t(v) {}
-      void operator()(const typename T::value_type& v) { t.push_back(v); }
-      T& t;
+      push_back_fun(T& v) : t(&v) {}
+      void operator()(const typename T::value_type& v) { t->push_back(std::move(v)); }
+      T* t;
     };
 
-    template <typename T, typename D>
+  template <typename T, typename D = default_die_fun<typename T::value_type> >
     void sync_attributes(T& container, typename T::value_type new_value = typename T::value_type(),
-			 D die_fun = default_die_fun<T>()) const;
+			 D die_fun = default_die_fun<typename T::value_type>()) const;
     template <typename T>
     void sync_attributes(T& container, T& dead_vectors, typename T::value_type new_value = typename T::value_type()) const;
 

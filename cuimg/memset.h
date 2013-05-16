@@ -22,7 +22,7 @@ namespace cuimg
   template <typename T>
   void memset(host_image2d<T>& out, int v)
   {
-    ::memset(out.begin(), v, out.pitch() * out.nrows());
+    ::memset(out.data(), v, out.pitch() * (out.nrows() + out.border() * 2));
   }
 
 }
