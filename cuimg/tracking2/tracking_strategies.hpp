@@ -334,19 +334,14 @@ namespace cuimg
 	    i_short2 match = match_res.first;
 	    distance = match_res.second;
 	    if (domain.has(match)
-		//and distance < 300
-		//and part.fault < 1
+		and distance < 600
 		)
 	    {
-	      //if (contrast(match) <= 10.f) part.fault++;
 	      if (contrast(match) < 5.f)
 		pset.remove(i);
 	      else
 	      {
 		auto f = feature(match);
-		// for (unsigned c = 0; c < 16; c++)
-		// 	f[c] = (2*f[c] + pset.features()[i][c]) / 3;
-		//pset.move(i, match, feature(match));
 		pset.move(i, match, f);
 		assert(pset.has(match));
 		assert(pset.dense_particles()[i].age > 0);
