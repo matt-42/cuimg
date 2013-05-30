@@ -334,10 +334,10 @@ namespace cuimg
 	    i_short2 match = match_res.first;
 	    distance = match_res.second;
 	    if (domain.has(match)
-		and distance < 600
+		and distance < 400
 		)
 	    {
-	      if (contrast(match) < 5.f)
+	      if (contrast(match) < 10.f)
 		pset.remove(i);
 	      else
 	      {

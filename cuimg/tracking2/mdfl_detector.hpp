@@ -264,7 +264,8 @@ namespace cuimg
     //FIXME local_jet_static_<0, 0, 1, 1>::run(input, input_s1_, tmp_, 0, dimblock);
     //local_jet_static_<0, 0, 1, 1>::run(input, input_s2_, tmp_, 0, dimblock);
 
-    cv::GaussianBlur(cv::Mat(input), cv::Mat(input_s2_), cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE);
+    cv::Mat cv_s2(input_s2_);
+    cv::GaussianBlur(cv::Mat(input), cv_s2, cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE);
 
     mt_apply2d(sizeof(i_float1), input.domain() - border(8),
 	       [this, &input] (i_int2 p)

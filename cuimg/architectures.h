@@ -26,7 +26,7 @@ namespace cuimg
     template <typename V> struct kernel_image2d { typedef host_image2d<V> ret; };
     template <typename V> struct vector { typedef std::vector<V> ret; };
 
-    static int ncores() { return 4; }
+    static int ncores() { return 2; }
 
     enum { l1_cache_size = 32*1024 };
     //enum { l1_cache_size = 32 * 1024 };

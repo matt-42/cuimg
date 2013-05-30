@@ -79,7 +79,7 @@ namespace cuimg
         keypoints_.push_back(pt);
       }
       //std::cout << pset_.dense_particles().size() << std::endl;
-      calcOpticalFlowPyrLK(cv::Mat(in_prev), cv::Mat(in), keypoints_, new_keypoints_, status, err);
+      calcOpticalFlowPyrLK(cv::Mat(in_prev), cv::Mat(in), keypoints_, new_keypoints_, status, err, cv::Size(21,21), 3);
       matches_.resize(keypoints_.size());
 
       keypoints_.clear();

@@ -3,6 +3,7 @@
 
 # include <cuimg/mt_apply.h>
 # include <cuimg/memset.h>
+# include <cuimg/copy.h>
 
 namespace cuimg
 {
@@ -45,7 +46,10 @@ namespace cuimg
     START_PROF(gradient_compute_saliency);
 
     if (sigma_ > 0.f)
-      cv::GaussianBlur(cv::Mat(input), cv::Mat(input_s2_), cv::Size(7, 7), sigma_, sigma_, cv::BORDER_REPLICATE);
+    {
+      cv::Mat cv_s2(input_s2_);
+      cv::GaussianBlur(cv::Mat(input), cv_s2, cv::Size(7, 7), sigma_, sigma_, cv::BORDER_REPLICATE);
+    }
     else
       copy(input, input_s2_);
 
