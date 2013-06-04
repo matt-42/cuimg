@@ -1,7 +1,10 @@
 #ifndef CUIMG_OMP_APPLY_H_
 # define CUIMG_OMP_APPLY_H_
 
+# ifndef NO_CPP0X
 # include <thread>
+# endif
+
 # include <cuimg/architectures.h>
 # include <cuimg/obox2d.h>
 # include <cuimg/box2d.h>
