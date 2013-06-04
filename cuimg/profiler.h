@@ -68,7 +68,8 @@ namespace cuimg
   profiler::current_time() const
   {
     timespec ts;
-    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
+    clock_gettime(CLOCK_REALTIME, &ts);
+    //clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
     //clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
     return ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
   }
