@@ -15,8 +15,13 @@ namespace cuimg
   void copy(const device_image2d<T>& in, host_image2d<T>& out)
   {
     assert(in.domain() == out.domain());
-    cudaMemcpy2D(out.data(), out.pitch(), in.data(), in.pitch(), in.ncols() * sizeof(T), in.nrows(),
-               cudaMemcpyDeviceToHost);
+    if (in.border() == out.border())
+      cudaMemcpy2D(out.data(), out.pitch(), in.data(), in.pitch(), in.ncols() * sizeof(T), in.nrows(),
+		   cudaMemcpyDeviceToHost);
+    else
+      for (unsigned i = 0; i < in.nrows(); i++)
+	cudaMemcpy(out.row(i), in.row(i), in.ncols() * sizeof(T), cudaMemcpyDeviceToHost);
+
     check_cuda_error();
 
   }
@@ -50,8 +55,12 @@ namespace cuimg
   void copy(const host_image2d<T>& in, device_image2d<T>& out)
   {
     assert(in.domain() == out.domain());
+    if (in.border() == out.border())
     cudaMemcpy2D(out.data(), out.pitch(), in.data(), in.pitch(), in.ncols() * sizeof(T), in.nrows(),
                cudaMemcpyHostToDevice);
+    else
+      for (unsigned i = 0; i < in.nrows(); i++)
+	cudaMemcpy(out.row(i), in.row(i), in.ncols() * sizeof(T), cudaMemcpyHostToDevice);
     check_cuda_error();
   }
 

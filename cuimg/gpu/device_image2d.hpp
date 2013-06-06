@@ -13,18 +13,20 @@ namespace cuimg
 
   template <typename V>
   device_image2d<V>::device_image2d()
-    : data_ptr_(0)
+    : data_ptr_(0),
+      begin_(0),
+      border_(0)
   {
   }
 
   template <typename V>
-  device_image2d<V>::device_image2d(unsigned nrows, unsigned ncols)
-    : domain_(nrows, ncols)
+  device_image2d<V>::device_image2d(unsigned nrows, unsigned ncols, unsigned _border)
+    : domain_(nrows, ncols), border_(_border)
   {
     V* b = 0;
 
 #ifndef NO_CUDA
-    cudaMallocPitch((void**)&b, &pitch_, domain_.ncols() * sizeof(V), domain_.nrows());
+    cudaMallocPitch((void**)&b, &pitch_, (domain_.ncols() + 2 * border_) * sizeof(V), domain_.nrows() + 2 * border_);
     check_cuda_error();
     data_ = PT(b, cudaFree);
 #endif
@@ -32,26 +34,28 @@ namespace cuimg
     assert(b);
 
     data_ptr_ = data_.get();
+    begin_ = (V*)((char*)data_ptr_ + border_ * pitch_ + border_ * sizeof(V));
   }
 
   template <typename V>
   device_image2d<V>::device_image2d(V* data, unsigned nrows, unsigned ncols, unsigned pitch)
     : domain_(nrows, ncols),
       pitch_(pitch),
-      data_ptr_(data)
+      data_ptr_(data),
+      border_(0)
   {
     data_ = PT(data, dummy_free<V>);
   }
 
   template <typename V>
-  device_image2d<V>::device_image2d(const domain_type& d)
-    : domain_(d)
+  device_image2d<V>::device_image2d(const domain_type& d, unsigned _border)
+    : domain_(d),
+      border_(_border)
   {
     V* b = 0;
 
 #ifndef NO_CUDA
-
-    cudaMallocPitch((void**)&b, &pitch_, domain_.ncols() * sizeof(V), domain_.nrows());
+    cudaMallocPitch((void**)&b, &pitch_, (domain_.ncols() + 2 * border_) * sizeof(V), domain_.nrows() + 2 * border_);
     check_cuda_error();
     data_ = PT(b, cudaFree);
 #endif
@@ -59,6 +63,7 @@ namespace cuimg
     assert(b);
 
     data_ptr_ = data_.get();
+    begin_ = (V*)((char*)data_ptr_ + border_ * pitch_ + border_ * sizeof(V));
   }
 
   template <typename V>
@@ -66,7 +71,9 @@ namespace cuimg
     : domain_(img.domain()),
       pitch_(img.pitch()),
       data_(img.data_sptr()),
-      data_ptr_(const_cast<V*>(img.data()))
+      data_ptr_(const_cast<V*>(img.data())),
+      begin_(img.begin()),
+      border_(img.border())
   {
   }
 
@@ -78,6 +85,8 @@ namespace cuimg
     pitch_ = img.pitch();
     data_ = img.data_sptr();
     data_ptr_ = img.data();
+    begin_ = img.begin();
+    border_ = img.border();
     return *this;
   }
 
@@ -86,10 +95,12 @@ namespace cuimg
   void
   device_image2d<V>::swap(device_image2d<V>& o)
   {
-    std::swap(domain_, o.domain);
+    std::swap(domain_, o.domain_);
     std::swap(pitch_, o.pitch_);
     std::swap(data_ptr_, o.data_ptr_);
+    std::swap(begin_, o.begin_);
     data_.swap(o.data_);
+    std::swap(border_, o.border_);
   }
 
   namespace internal
@@ -184,7 +195,7 @@ namespace cuimg
   template <typename V>
   V* device_image2d<V>::begin() const
   {
-    return data_ptr_;
+    return begin_;
   }
 
   template <typename V>
@@ -196,7 +207,7 @@ namespace cuimg
   template <typename V>
   V* device_image2d<V>::end() const
   {
-    return data_ptr_ + (pitch_ * nrows()) / sizeof(V);
+    return begin_ + (pitch_ * nrows()) / sizeof(V);
   }
 
   template <typename V>
@@ -216,7 +227,7 @@ namespace cuimg
   typename device_image2d<V>::PT
   device_image2d<V>::data_sptr()
   {
-    return data_ + pitch_ * nrows();
+    return data_;
   }
 
   template <typename V>
@@ -225,7 +236,7 @@ namespace cuimg
   {
     V res;
 # ifndef NO_CUDA
-    cudaMemcpy(&res, ((char*)data_ptr_) + p.row() * pitch_ + p.col() * sizeof(V),
+    cudaMemcpy(&res, ((char*)begin_) + p.row() * pitch_ + p.col() * sizeof(V),
                sizeof(V), cudaMemcpyDeviceToHost);
 # endif
     return res;
@@ -236,9 +247,23 @@ namespace cuimg
   device_image2d<V>::set_pixel(const point& p, const V& v)
   {
 # ifndef NO_CUDA
-    cudaMemcpy(((char*)data_ptr_) + p.row() * pitch_ + p.col() * sizeof(V), &v,
+    cudaMemcpy(((char*)begin_) + p.row() * pitch_ + p.col() * sizeof(V), &v,
                sizeof(V), cudaMemcpyHostToDevice);
 # endif
+  }
+
+  template <typename V>
+  inline V* device_image2d<V>::row(int i)
+  {
+    assert(begin_);
+    return (V*)(((char*)begin_) + i * pitch_);
+  }
+
+  template <typename V>
+  inline const V* device_image2d<V>::row(int i) const
+  {
+    assert(begin_);
+    return (V*)(((char*)begin_) + i * pitch_);
   }
 
 }

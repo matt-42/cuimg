@@ -218,7 +218,10 @@ namespace cuimg
     /* cv::GaussianBlur(cv::Mat(exact(in)), cv::Mat(tmp), cv::Size(7, 7), 1.5, 1.5, cv::BORDER_REPLICATE); */
 
     typedef typename I::value_type V;
-    mt_apply2d(sizeof(V), exact(out).domain(), mipmap_kernel<V>(exact(in), exact(out)), typename I::architecture());
+    run_kernel2d_functor(mipmap_kernel<V>(exact(in), exact(out)),
+			 exact(out).domain(), typename I::architecture());
+
+    //mt_apply2d(sizeof(V), exact(out).domain(), mipmap_kernel<V>(exact(in), exact(out)), typename I::architecture());
     /* pw_call<mipmap_kernel_sig(I::target, typename I::value_type)>(flag<I::target>(), dimgrid, dimblock, */
     /* 								  exact(in), exact(out)); */
   }

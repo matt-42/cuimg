@@ -520,8 +520,14 @@ namespace cuimg
 	{
 	  assert(ni < nparts);
 	  assert(particles_vec_[ni].age != 1 || i >= v.size());
+#ifndef NO_CPP0X
 	  if (i < v.size())
 	    tmp[ni] = std::move(v[i]);
+#else
+	  if (i < v.size())
+	    tmp[ni] = v[i];
+#endif
+
 	}
 	else if (ni < 0)
 	  die_fun(v[i]);

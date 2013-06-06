@@ -139,53 +139,54 @@ namespace cuimg
     run_kernel2d_functor(make_border_clamp_kernel<I>(img, d),
     			 d,
     			 typename I::architecture());
+    check_cuda_error();
   }
 
 
-  template <typename I>
-  class border_clamp
-  {
-  public:
-    typedef typename I::value_type V;
-    typedef typename I::point P;
+  // template <typename I>
+  // class border_clamp
+  // {
+  // public:
+  //   typedef typename I::value_type V;
+  //   typedef typename I::point P;
 
-    border_clamp(const I& img, int offset)
-      : image_(img),
-	data_(img.begin() + offset),
-	end_(img.end())
-    {
-    }
+  //   border_clamp(const I& img, int offset)
+  //     : image_(img),
+  // 	data_(img.begin() + offset),
+  // 	end_(img.end())
+  //   {
+  //   }
 
-    border_clamp(const I& img, i_int2 offset)
-      : image_(img),
-	data_(img.begin() + img.point_to_index(offset)),
-	end_(img.end())
-    {
-    }
+  //   border_clamp(const I& img, i_int2 offset)
+  //     : image_(img),
+  // 	data_(img.begin() + img.point_to_index(offset)),
+  // 	end_(img.end())
+  //   {
+  //   }
 
-    inline V& operator[](int i)              { return data_[clamp_index(i)]; }
-    inline const V& operator[](int i) const  { return data_[clamp_index(i)]; }
+  //   inline V& operator[](int i)              { return data_[clamp_index(i)]; }
+  //   inline const V& operator[](int i) const  { return data_[clamp_index(i)]; }
 
-  private:
-    inline int clamp_index(int i_)
-    {
-      V* i = data_ + i_;
-      if (i >= image_.begin() && i < end_) return i_;
+  // private:
+  //   inline int clamp_index(int i_)
+  //   {
+  //     V* i = data_ + i_;
+  //     if (i >= image_.begin() && i < end_) return i_;
 
-      P p = image_.index_to_point(i - image_.begin());
-      if (p.r() < 0) p.r() = 0;
-      if (p.r() >= image_.nrows()) p.r() = image_.nrows() - 1;
+  //     P p = image_.index_to_point(i - image_.begin());
+  //     if (p.r() < 0) p.r() = 0;
+  //     if (p.r() >= image_.nrows()) p.r() = image_.nrows() - 1;
 
-      if (p.c() < 0) p.c() = 0;
-      if (p.c() >= image_.ncols()) p.c() = image_.ncols() - 1;
+  //     if (p.c() < 0) p.c() = 0;
+  //     if (p.c() >= image_.ncols()) p.c() = image_.ncols() - 1;
 
-      return image_.point_to_index(p) - (data_ - image_.begin());
-    }
+  //     return image_.point_to_index(p) - (data_ - image_.begin());
+  //   }
 
-    const I& image_;
-    V* data_;
-    V* end_;
-  };
+  //   const I& image_;
+  //   V* data_;
+  //   V* end_;
+  // };
 
 }
 

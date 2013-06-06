@@ -125,16 +125,16 @@ namespace cuimg
 	{
 	  int vp = input_(p);
 	  //res = vp;
-	  for (int i = 0; i < 8; i++)
-	  {
-	    gl8u vn = input_(p + i_int2(c8_h[i])*2);
-	    res += ::abs(vn - vp);
-	  }
-	  // res = ::abs(int(input_(p + i_int2(0,d))) - int(input_(p + i_int2(0,-d)))) +
-	  //   ::abs(int(input_(p + i_int2(-d,0))) - int(input_(p + i_int2(d,0)))) +
-	  //   ::abs(int(input_(p + i_int2(-d,-d))) - int(input_(p + i_int2(d,d)))) +
-	  //   ::abs(int(input_(p + i_int2(-d,d))) - int(input_(p + i_int2(d,-d))))
-	  //   ;
+	  // for (int i = 0; i < 8; i++)
+	  // {
+	  //   gl8u vn = input_(p + i_int2(c8_h[i])*2);
+	  //   res += ::abs(vn - vp);
+	  // }
+	  res = ::abs(int(input_(p + i_int2(0,d))) - int(input_(p + i_int2(0,-d)))) +
+	    ::abs(int(input_(p + i_int2(-d,0))) - int(input_(p + i_int2(d,0)))) +
+	    ::abs(int(input_(p + i_int2(-d,-d))) - int(input_(p + i_int2(d,d)))) +
+	    ::abs(int(input_(p + i_int2(-d,d))) - int(input_(p + i_int2(d,-d))))
+	    ;
 	}
 	out_(p) = res;
       }
@@ -163,6 +163,7 @@ namespace cuimg
     generic_strategy<F, D, P, I>::update(const I& in, particles_type& pset)
     {
       pset.set_flow(flow_);
+
       run_kernel2d_functor(contrast_kernel<I, uint_image2d>(in, contrast_),
 			   contrast_.domain(), architecture());
 
@@ -282,6 +283,7 @@ namespace cuimg
       typename kernel_type<F>::ret feature;
       typename I::kernel_type contrast;
       typename J::kernel_type upper_flow;
+      typedef typename kernel_type<F>::ret::value_type FEAT_TYPE;
       int frame_cpt;
       i_int2 u_camera_motion;
       i_int2 u_prev_camera_motion;
@@ -341,7 +343,7 @@ namespace cuimg
 		pset.remove(i);
 	      else
 	      {
-		auto f = feature(match);
+		FEAT_TYPE f = feature(match);
 		pset.move(i, match, f);
 		assert(pset.has(match));
 		assert(pset.dense_particles()[i].age > 0);
@@ -418,7 +420,7 @@ namespace cuimg
       typename P::kernel_type pset;
       typename F::kernel_type flow;
       typename I::kernel_type multiscale_count;
-
+      typedef typename F::architecture A;
       int flow_ratio;
 
       filter_bad_particles_kernel(P& pset_, F& flow_, I& multiscale_count_, int flow_ratio_)
@@ -444,9 +446,12 @@ namespace cuimg
 	}
 
 	bool alone = true;
-	for_all_in_static_neighb2d(part.pos / flow_ratio, n, c8_h)
+	for (unsigned ni = 0; ni < 8; ni++)
+	{
+	  i_int2 n = part.pos / flow_ratio + arch_neighb2d<A>::get(c8_h, c8, ni);
 	  if (multiscale_count.has(n) && multiscale_count(n) != 0)
 	    alone = false;
+	}
 	if (alone && multiscale_count(part.pos / flow_ratio) == 1)
 	  pset.remove(i);
       }

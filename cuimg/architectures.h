@@ -26,7 +26,7 @@ namespace cuimg
     template <typename V> struct kernel_image2d { typedef host_image2d<V> ret; };
     template <typename V> struct vector { typedef std::vector<V> ret; };
 
-    static int ncores() { return 2; }
+    static int ncores() { return 8; }
 
     enum { l1_cache_size = 32*1024 };
     //enum { l1_cache_size = 32 * 1024 };
@@ -68,6 +68,15 @@ namespace cuimg
 
     return res;
   }
+
+#ifndef NO_CUDA
+  template <typename D>
+  static dim3 dimblock(cuda_gpu, size_t elt_size, const D& domain)
+  {
+    return cuda_gpu::dimblock2d();
+  }
+
+#endif
 
 }
 

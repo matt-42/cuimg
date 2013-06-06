@@ -275,13 +275,13 @@ namespace cuimg
     SCOPE_PROF(fast_compute_saliency);
     input_ = input;
 
-    cv::Mat opencv_s2(input_s2_);
-    cv::GaussianBlur(cv::Mat(input), opencv_s2, cv::Size(11, 11), 1, 1, cv::BORDER_REPLICATE);
+    // cv::Mat opencv_s2(input_s2_);
+    // cv::GaussianBlur(cv::Mat(input), opencv_s2, cv::Size(11, 11), 1, 1, cv::BORDER_REPLICATE);
     //copy(input, input_s2_);
-    fill_border_clamp(input_s2_);
+    //fill_border_clamp(input_s2_);
 
     memset(saliency_, 0);
-    run_kernel2d_functor(compute_saliency_kernel<image2d_gl8u, J>(input_s2_, mask, saliency_, n_, fast_th_),
+    run_kernel2d_functor(compute_saliency_kernel<image2d_gl8u, J>(input, mask, saliency_, n_, fast_th_),
 			 input.domain(), A());
   }
 
@@ -289,7 +289,7 @@ namespace cuimg
 
   template <typename PS, typename I, typename J>
   __global__
-  void select_particles(PS pset, const kernel_image2d<I> saliency, kernel_image2d<J> new_points, box2d domain)
+  void select_particles(PS pset, const kernel_image2d<I> saliency, kernel_image2d<J> new_points, obox2d domain)
   {
     i_int2 p = thread_pos2d();
 

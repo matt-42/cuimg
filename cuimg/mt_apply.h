@@ -35,6 +35,8 @@ namespace cuimg
   /*   std::vector<pthread_t> threads_; */
   /* }; */
 
+#ifdef NO_OPENMP
+
   struct thread_pool
   {
     template <typename F>
@@ -55,7 +57,6 @@ namespace cuimg
     std::vector<std::thread> threads_;
   };
 
-#ifdef NO_OPENMP
   template <typename F>
   inline void mt_apply2d(int elt_size, const obox2d& domain, const F& f_, cpu)
   {

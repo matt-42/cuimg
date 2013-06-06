@@ -7,7 +7,7 @@
 # include <cuimg/gpu/cuda.h>
 # include <iostream>
 # include <cassert>
-
+# include <stdexcept>
 #endif
 
 namespace cuimg
@@ -21,6 +21,7 @@ namespace cuimg
     if(error != cudaSuccess)
     {
       std::cerr << "Cuda error: " << cudaGetErrorString(error) << std::endl;
+      throw std::runtime_error(std::string(cudaGetErrorString(error)));
       exit(1);
       assert(error == cudaSuccess);
     }

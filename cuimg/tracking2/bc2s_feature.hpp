@@ -29,44 +29,43 @@ namespace cuimg
     distance(const O& o, const bc2s& a, const i_short2& n, const unsigned scale = 1)
     {
       int d = 0;
-			int d2 = 0;
+      int d2 = 0;
       const typename O::V* data = &o.s1_(n);
       int idx = o.s1_.point_to_index(n);
 
-      typedef border_clamp<typename O::I> B;
       if (scale == 1)
       {
-				// auto data = B(o.s1_, n);
-				for(int i = 0; i < 8; i ++)
-				{
-					int v = data[o.offsets_s1(i)].x;
-					//int v = o.s1_[idx + o.offsets_s1(i)].x;
-					d += (v - a[i]) * (v - a[i]);
-					//d += ::abs(v - a[i]);
-				}
-				//return sqrt(d) * 6;
+	// auto data = B(o.s1_, n);
+	for(int i = 0; i < 8; i ++)
+	{
+	  int v = data[o.offsets_s1(i)].x;
+	  //int v = o.s1_[idx + o.offsets_s1(i)].x;
+	  d += (v - a[i]) * (v - a[i]);
+	  //d += ::abs(v - a[i]);
+	}
+	//return sqrt(d) * 6;
       }
       //else
-			{
-				{
-					idx = o.s2_.point_to_index(n);
-					//auto data = B(o.s2_, n);
-					data = &o.s2_(n);
-					for(int i = 0; i < 8; i ++)
-					{
-						int v = data[o.offsets_s2(i)].x;
-						//int v = o.s2_[idx + o.offsets_s2(i)].x;
-						//d2 += ::abs(v - a[8+i]);
-						d2 += (v - a[8+i]) * (v - a[8+i]);
-					}
-					//return sqrt(d2) * 6;
-				}
-			}
+      {
+	{
+	  idx = o.s2_.point_to_index(n);
+	  //auto data = B(o.s2_, n);
+	  data = &o.s2_(n);
+	  for(int i = 0; i < 8; i ++)
+	  {
+	    int v = data[o.offsets_s2(i)].x;
+	    //int v = o.s2_[idx + o.offsets_s2(i)].x;
+	    //d2 += ::abs(v - a[8+i]);
+	    d2 += (v - a[8+i]) * (v - a[8+i]);
+	  }
+	  //return sqrt(d2) * 6;
+	}
+      }
 
       // return d / (255.f * 16.f);
       //return d + d2 * 5;
       //return d + 25 * d2 + 2 * 5 * d * d2;
-			return ::sqrt(d) + ::sqrt(d2) * 6;
+      return ::sqrt(d) + ::sqrt(d2) * 6;
       //return sqrt(d) * 6;
     }
 
@@ -523,6 +522,8 @@ namespace cuimg
   /// bc2s_256
   /// ##################
 
+#ifndef NO_CPP0X
+
   template <typename A>
   bc2s_256_feature<A>::bc2s_256_feature(const obox2d& d)
     : s1_(d, 3),
@@ -599,6 +600,8 @@ namespace cuimg
   {
     return bc2s_internals::compute_feature_256(*this, p);
   }
+
+#endif
 
   // ########## bc2s64 feature vector methods. ###########
   // ###################################################

@@ -34,9 +34,9 @@ namespace cuimg
     typedef kernel_image2d<V> kernel_type;
 
     inline device_image2d();
-    inline device_image2d(unsigned nrows, unsigned ncols);
+    inline device_image2d(unsigned nrows, unsigned ncols, unsigned _border = 0);
     inline device_image2d(V* data, unsigned nrows, unsigned ncols, unsigned pitch);
-    inline device_image2d(const domain_type& d);
+    inline device_image2d(const domain_type& d, unsigned border = 0);
 
     void swap(device_image2d<V>& o);
 
@@ -50,6 +50,7 @@ namespace cuimg
     __host__ __device__ inline const domain_type& domain() const;
     __host__ __device__ inline unsigned nrows() const;
     __host__ __device__ inline unsigned ncols() const;
+    __host__ __device__ inline unsigned border() const { return border_; }
     __host__ __device__ inline size_t pitch() const;
 
     __host__ inline V read_back_pixel(const point& p) const;
@@ -66,10 +67,15 @@ namespace cuimg
     __host__ __device__ inline const PT data_sptr() const;
     __host__ __device__ inline PT data_sptr();
 
+    __host__ __device__ inline V* row(int i);
+    __host__ __device__ inline const V* row(int i) const;
+
   private:
     domain_type domain_;
+    unsigned border_;
     size_t pitch_;
     PT data_;
+    V* begin_;
     V* data_ptr_;
   };
 

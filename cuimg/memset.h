@@ -15,7 +15,7 @@ namespace cuimg
   {
     // cudaMemset2D(out.data(), out.pitch(), v,
     //              out.pitch(), out.nrows());
-    cudaMemset(out.begin(), v, out.nrows() * out.pitch());
+    cudaMemset(out.data(), v, out.pitch() * (out.nrows() + out.border() * 2));
     check_cuda_error();
   }
 

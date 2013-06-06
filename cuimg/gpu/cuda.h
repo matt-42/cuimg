@@ -16,9 +16,9 @@
 #ifndef __GNUC__
 # define BOOST_TYPEOF_COMPLIANT
 #endif
-# include <boost/typeof/typeof.hpp>
-# include BOOST_TYPEOF_INCREMENT_REGISTRATION_GROUP()
+//# include <boost/typeof/typeof.hpp>
+//# include BOOST_TYPEOF_INCREMENT_REGISTRATION_GROUP()
 
-BOOST_TYPEOF_REGISTER_TYPE(dim3)
+//BOOST_TYPEOF_REGISTER_TYPE(dim3)
 
 #endif // ! CUIMG_NOCUDA_DEFINES_H_

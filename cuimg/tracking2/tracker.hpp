@@ -55,7 +55,7 @@ namespace cuimg
     copy(in, input_);
     fill_border_clamp(input_);
     if (upper_tracker_)
-      upper_tracker_->subsample_input(in);
+      upper_tracker_->subsample_input(input_);
     return *this;
   }
 
