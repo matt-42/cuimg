@@ -31,7 +31,7 @@ namespace cuimg
       int d = 0;
       int d2 = 0;
       const typename O::V* data = &o.s1_(n);
-      int idx = o.s1_.point_to_index(n);
+      // int idx = o.s1_.point_to_index(n);
 
       if (scale == 1)
       {
@@ -48,7 +48,7 @@ namespace cuimg
       //else
       {
 	{
-	  idx = o.s2_.point_to_index(n);
+	  //idx = o.s2_.point_to_index(n);
 	  //auto data = B(o.s2_, n);
 	  data = &o.s2_(n);
 	  for(int i = 0; i < 8; i ++)
@@ -87,7 +87,7 @@ namespace cuimg
 	for(int i = 0; i < 8; i ++)
 	{
 	  int v = tex2D(bc2s_tex_s2, n.c() + circle_r3[i][1] * 2, n.r() + circle_r3[i][0] * 2).x;
-	  d += ::abs(v - a[8+i]);
+	  d += ::abs(v - a[8+i]) * 5;
 	}
       }
 
@@ -349,7 +349,10 @@ namespace cuimg
   {
     SCOPE_PROF(bc2s_feature::update);
     gaussian_blur(in, s1_, tmp_, kernel_2_);
+    //copy(in, s1_);
     gaussian_blur(s1_, s2_, tmp_, kernel_1_);
+    fill_border_clamp(s1_);
+    fill_border_clamp(s2_);
   }
 
   template <typename A>
@@ -358,6 +361,7 @@ namespace cuimg
   {
     bindTexture2d(s1(), bc2s_tex_s1);
     bindTexture2d(s2(), bc2s_tex_s2);
+    check_cuda_error();
   }
 
 #endif
@@ -431,42 +435,42 @@ namespace cuimg
       s2_(o.s2_)
   {
     return;
-    if (scales.find(o.domain().size()) == scales.end())
-    {
-      unsigned i = scales.size();
-      std::cout << "load- " << i << std::endl;
-      scales[o.domain().size()] = i;
-      switch (scales[o.domain().size()])
-      {
-	case 0:
-	  std::cout << "load 0" << std::endl;
-	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_0, o.offsets_s1_, sizeof(o.offsets_s1_));
-	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_0, o.offsets_s2_, sizeof(o.offsets_s2_));
-	  break;
-	case 1:
-	  std::cout << "load 1" << std::endl;
-	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_1, o.offsets_s1_, sizeof(o.offsets_s1_));
-	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_1, o.offsets_s2_, sizeof(o.offsets_s2_));
-	  break;
-	case 2:
-	  std::cout << "load 2" << std::endl;
-	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_2, o.offsets_s1_, sizeof(o.offsets_s1_));
-	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_2, o.offsets_s2_, sizeof(o.offsets_s2_));
-	  break;
-      }
-    }
-    scaleid_ = scales[o.domain().size()];
+    // if (scales.find(o.domain().size()) == scales.end())
+    // {
+    //   unsigned i = scales.size();
+    //   std::cout << "load- " << i << std::endl;
+    //   scales[o.domain().size()] = i;
+    //   switch (scales[o.domain().size()])
+    //   {
+    // 	case 0:
+    // 	  std::cout << "load 0" << std::endl;
+    // 	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_0, o.offsets_s1_, sizeof(o.offsets_s1_));
+    // 	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_0, o.offsets_s2_, sizeof(o.offsets_s2_));
+    // 	  break;
+    // 	case 1:
+    // 	  std::cout << "load 1" << std::endl;
+    // 	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_1, o.offsets_s1_, sizeof(o.offsets_s1_));
+    // 	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_1, o.offsets_s2_, sizeof(o.offsets_s2_));
+    // 	  break;
+    // 	case 2:
+    // 	  std::cout << "load 2" << std::endl;
+    // 	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_2, o.offsets_s1_, sizeof(o.offsets_s1_));
+    // 	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_2, o.offsets_s2_, sizeof(o.offsets_s2_));
+    // 	  break;
+    //   }
+    // }
+    // scaleid_ = scales[o.domain().size()];
 
-    //if (not cuda_bc2s_offsets_loaded_)
-    {
-      //cuda_bc2s_offsets_loaded_ = true;
-      //cudaMemcpyToSymbol(cuda_bc2s_offsets_s1, o.offsets_s1_, sizeof(o.offsets_s1_));
-      //cudaMemcpyToSymbol(cuda_bc2s_offsets_s2, o.offsets_s2_, sizeof(o.offsets_s2_));
+    // //if (not cuda_bc2s_offsets_loaded_)
+    // {
+    //   //cuda_bc2s_offsets_loaded_ = true;
+    //   //cudaMemcpyToSymbol(cuda_bc2s_offsets_s1, o.offsets_s1_, sizeof(o.offsets_s1_));
+    //   //cudaMemcpyToSymbol(cuda_bc2s_offsets_s2, o.offsets_s2_, sizeof(o.offsets_s2_));
 
-      cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_0, o.offsets_s1_, sizeof(o.offsets_s1_));
-      cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_0, o.offsets_s2_, sizeof(o.offsets_s2_));
+    //   cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_0, o.offsets_s1_, sizeof(o.offsets_s1_));
+    //   cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_0, o.offsets_s2_, sizeof(o.offsets_s2_));
 
-    }
+    // }
   }
 
   __device__ int
@@ -490,32 +494,36 @@ namespace cuimg
     return bc2s_internals::compute_feature_tex(p);
   }
 
-  __device__ int
-  cuda_bc2s_feature::offsets_s1(int o) const
-  {
-    assert(o < 8);
-    return cuda_bc2s_offsets_s1_0[o];
-    switch (scaleid_)
-    {
-      case 0: return cuda_bc2s_offsets_s1_0[o];
-      case 1: return cuda_bc2s_offsets_s1_1[o];
-      case 2: return cuda_bc2s_offsets_s1_2[o];
-    }
-    //return cuda_bc2s_offsets_s1[o];
-  }
+  // __device__ int
+  // cuda_bc2s_feature::offsets_s1(int o) const
+  // {
+  //   assert(o < 8);
+  //   i_int2 p(10,10);
+  //   return &s1_(p + i_int2(circle_r3[o])) - &s1_(p);
+  //   // return cuda_bc2s_offsets_s1_0[o];
+  //   // switch (scaleid_)
+  //   // {
+  //   //   case 0: return cuda_bc2s_offsets_s1_0[o];
+  //   //   case 1: return cuda_bc2s_offsets_s1_1[o];
+  //   //   case 2: return cuda_bc2s_offsets_s1_2[o];
+  //   // }
+  //   //return cuda_bc2s_offsets_s1[o];
+  // }
 
-  __device__ int
-  cuda_bc2s_feature::offsets_s2(int o) const
-  {
-    assert(o < 8);
-    return cuda_bc2s_offsets_s2_0[o];
-    switch (scaleid_)
-    {
-      case 0: return cuda_bc2s_offsets_s2_0[o];
-      case 1: return cuda_bc2s_offsets_s2_1[o];
-      case 2: return cuda_bc2s_offsets_s2_2[o];
-    }
-  }
+  // __device__ int
+  // cuda_bc2s_feature::offsets_s2(int o) const
+  // {
+  //   assert(o < 8);
+  //   i_int2 p(10,10);
+  //   return &s2_(p + 2* i_int2(circle_r3[o])) - &s2_(p);
+  //   // return cuda_bc2s_offsets_s2_0[o];
+  //   // switch (scaleid_)
+  //   // {
+  //   //   case 0: return cuda_bc2s_offsets_s2_0[o];
+  //   //   case 1: return cuda_bc2s_offsets_s2_1[o];
+  //   //   case 2: return cuda_bc2s_offsets_s2_2[o];
+  //   // }
+  // }
 
 #endif
 

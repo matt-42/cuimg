@@ -9,7 +9,7 @@
 # include <cuimg/dsl/binary_mul.h>
 # include <cuimg/dsl/binary_op.h>
 # include <cuimg/dsl/binary_sub.h>
-# include <cuimg/dsl/color_conversion.h>
+//# include <cuimg/dsl/color_conversion.h>
 # include <cuimg/dsl/convolve.h>
 # include <cuimg/dsl/dsl_cast.h>
 # include <cuimg/dsl/eval.h>

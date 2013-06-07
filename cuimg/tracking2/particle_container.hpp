@@ -352,6 +352,7 @@ namespace cuimg
     particles_vec_.resize(particles_vec_.size() + size);
     features_vec_.resize(features_vec_.size() + size);
 
+
     // init new particles
     typedef const typename ::cuimg::kernel_type<F>::ret kernel_feature;
     if (size)

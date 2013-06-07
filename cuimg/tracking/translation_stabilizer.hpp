@@ -23,8 +23,8 @@ namespace cuimg
   inline void
   translation_stabilizer::update(const V& particles)
   {
-    float K = 0.05f;
-    float acc = 0.1f;
+    float K = 0.2f;
+    float acc = 2.9f;
 
     if (correction_.x < 0)
       speed_.x += acc;

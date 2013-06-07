@@ -283,7 +283,8 @@ namespace cuimg
       typename kernel_type<F>::ret feature;
       typename I::kernel_type contrast;
       typename J::kernel_type upper_flow;
-      typedef typename kernel_type<F>::ret::value_type FEAT_TYPE;
+      typedef typename kernel_type<F>::ret KF;
+      typedef bc2s FEAT_TYPE;
       int frame_cpt;
       i_int2 u_camera_motion;
       i_int2 u_prev_camera_motion;
@@ -336,10 +337,10 @@ namespace cuimg
 	    i_short2 match = match_res.first;
 	    distance = match_res.second;
 	    if (domain.has(match)
-		and distance < 400
+		and distance < 800
 		)
 	    {
-	      if (contrast(match) < 10.f)
+	      if (contrast(match) < 3.f)
 		pset.remove(i);
 	      else
 	      {

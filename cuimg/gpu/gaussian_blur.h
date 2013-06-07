@@ -35,7 +35,6 @@ namespace cuimg
     {
       half_width_ = hw;
       int size = 2 * half_width_ + 1;
-      //Npp32s host_kernel[size];
       int* host_kernel = new int[size];
       sum_ = 0;
       for (int i = -half_width_; i <= half_width_; i++)
@@ -47,8 +46,7 @@ namespace cuimg
       check_cuda_error();
       cudaMalloc(&data_, size * sizeof(int));
       check_cuda_error();
-      //cudaMemcpy(data_, host_kernel, size * sizeof(int), cudaMemcpyHostToDevice);
-      cudaMemcpy(data_, host_kernel, 1, cudaMemcpyHostToDevice);
+      cudaMemcpy(data_, host_kernel, size * sizeof(int), cudaMemcpyHostToDevice);
       check_cuda_error();
 
       delete[] host_kernel;

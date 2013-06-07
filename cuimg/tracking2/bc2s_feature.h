@@ -138,14 +138,14 @@ namespace cuimg
 #ifndef NO_CUDA
   template <> struct kernel_type<bc2s_feature<cuda_gpu> > { typedef cuda_bc2s_feature ret; };
 
-  extern __constant__ int cuda_bc2s_offsets_s1_0[8];
-  extern __constant__ int cuda_bc2s_offsets_s2_0[8];
+  // extern __constant__ int cuda_bc2s_offsets_s1_0[8];
+  // extern __constant__ int cuda_bc2s_offsets_s2_0[8];
 
-  extern __constant__ int cuda_bc2s_offsets_s1_2[8];
-  extern __constant__ int cuda_bc2s_offsets_s2_2[8];
+  // extern __constant__ int cuda_bc2s_offsets_s1_2[8];
+  // extern __constant__ int cuda_bc2s_offsets_s2_2[8];
 
-  extern __constant__ int cuda_bc2s_offsets_s1_1[8];
-  extern __constant__ int cuda_bc2s_offsets_s2_1[8];
+  // extern __constant__ int cuda_bc2s_offsets_s1_1[8];
+  // extern __constant__ int cuda_bc2s_offsets_s2_1[8];
 
   class cuda_bc2s_feature
   {
@@ -157,8 +157,8 @@ namespace cuimg
 
     inline __device__ int distance(const bc2s& a, const i_short2& n, unsigned scale = 1);
     inline __device__ bc2s operator()(const i_short2& p) const;
-    inline __host__ __device__ int offsets_s1(int o) const;
-    inline __host__ __device__ int offsets_s2(int o) const;
+    // inline __host__ __device__ int offsets_s1(int o) const;
+    // inline __host__ __device__ int offsets_s2(int o) const;
     inline __host__ __device__ const kernel_image2d<V>& s1() const { return s1_; }
     inline __host__ __device__ const kernel_image2d<V>& s2() const { return s2_; }
     inline __host__ __device__ const obox2d& domain() const { return s1_.domain(); }
@@ -166,8 +166,8 @@ namespace cuimg
   public:
     kernel_image2d<V> s1_;
     kernel_image2d<V> s2_;
-    unsigned scaleid_;
-    static std::map<int, int> scales;
+    // unsigned scaleid_;
+    // static std::map<int, int> scales;
   };
 #endif
 

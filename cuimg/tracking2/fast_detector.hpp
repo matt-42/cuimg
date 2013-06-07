@@ -15,13 +15,13 @@ namespace cuimg
   namespace fast
   {
 
-    #ifdef NO_CUDA
+#ifdef NO_CUDA
     template <typename T>
     inline const T& max(T& a, T& b)
     {
       return std::max(a, b);
     }
-    #endif
+#endif
 
     template <typename I, typename A>
     inline __host__ __device__
@@ -34,126 +34,126 @@ namespace cuimg
       unsigned sum_bright = 0;
       unsigned sum_dark = 0;
 
-			// if (n_ == 15)
-			// {
-			// 	int to_test[3] = {0, 4, 12, 0};
-			// 	for (int i = 0; i < 3; i++)
-			// 	{
-			// 		gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, to_test[i])));
-			// 		int sign = int(vn) > int(vp);
-			// 		unsigned char dist = ::abs(int(vn) - int(vp));
+      // if (n_ == 15)
+      // {
+      // 	int to_test[3] = {0, 4, 12, 0};
+      // 	for (int i = 0; i < 3; i++)
+      // 	{
+      // 		gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, to_test[i])));
+      // 		int sign = int(vn) > int(vp);
+      // 		unsigned char dist = ::abs(int(vn) - int(vp));
 
-			// 		if (dist > fast_th_)
-			// 			if (sign == status) n++;
-			// 			else
-			// 			{
-			// 				if (n > max_n)
-			// 					max_n = n;
-			// 				status = sign;
-			// 				n = 1;
-			// 			}
-			// 		else
-			// 		{
-			// 			if (n > max_n)
-			// 				max_n = n;
-			// 			status = 2;
-			// 		}
-			// 	}
-			// 	if (n < 3) return 0;
-			// }
+      // 		if (dist > fast_th_)
+      // 			if (sign == status) n++;
+      // 			else
+      // 			{
+      // 				if (n > max_n)
+      // 					max_n = n;
+      // 				status = sign;
+      // 				n = 1;
+      // 			}
+      // 		else
+      // 		{
+      // 			if (n > max_n)
+      // 				max_n = n;
+      // 			status = 2;
+      // 		}
+      // 	}
+      // 	if (n < 3) return 0;
+      // }
 
-			if (n_ >= 9)
-			{
-				int to_test[6] = {0, 4, 8, 12, 0, 4};
-				int equals = 0;
-				for (int i = 0; i < 6; i++)
-				{
-					gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, to_test[i])));
-					int sign = int(vn) > int(vp);
-					unsigned char dist = ::abs(int(vn) - int(vp));
+      if (n_ >= 9)
+      {
+      	int to_test[6] = {0, 4, 8, 12, 0, 4};
+      	int equals = 0;
+      	for (int i = 0; i < 6; i++)
+      	{
+      	  gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, to_test[i])));
+      	  int sign = int(vn) > int(vp);
+      	  unsigned char dist = ::abs(int(vn) - int(vp));
 
-					if (dist > fast_th_)
-						if (sign == status) { n++; }
-						else
-						{
-							if (n > max_n)
-								max_n = n;
-							status = sign;
-							n = 1;
-						}
-					else
-					{
-						if (n > max_n)
-							max_n = n;
-						status = 2;
-						equals++;
-						if (i < 4 && n_ >= 12 && equals >= 2) return 0;
-					}
-				}
-				if (n > max_n)
-					max_n = n;
-				if (n_ >= 12 && max_n < 3) return 0;
-				else if (n_ >= 8 && max_n < 2) return 0;
-			}
+      	  if (dist > fast_th_)
+      	    if (sign == status) { n++; }
+      	    else
+      	    {
+      	      if (n > max_n)
+      		max_n = n;
+      	      status = sign;
+      	      n = 1;
+      	    }
+      	  else
+      	  {
+      	    if (n > max_n)
+      	      max_n = n;
+      	    status = 2;
+      	    equals++;
+      	    if (i < 4 && n_ >= 12 && equals >= 2) return 0;
+      	  }
+      	}
+      	if (n > max_n)
+      	  max_n = n;
+      	if (n_ >= 12 && max_n < 3) return 0;
+      	else if (n_ >= 8 && max_n < 2) return 0;
+      }
 
-			n = 0;
-			status = 2;
-			max_n = 0;
+      n = 0;
+      status = 2;
+      max_n = 0;
       for (int i = 0; i < 16; i++)
       {
-				gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, i)));
-				int sign = int(vn) > int(vp);
-				unsigned char dist = ::abs(int(vn) - int(vp));
-				if (dist > fast_th_)
-				{
-					if (sign == status) n++;
-					else
-					{
-						if (n > max_n)
-							max_n = n;
-						status = sign;
-						n = 1;
-					}
+	gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, i)));
+	int sign = int(vn) > int(vp);
+	unsigned char dist = ::abs(int(vn) - int(vp));
+	if (dist > fast_th_)
+	{
+	  if (sign == status) n++;
+	  else
+	  {
+	    if (n > max_n)
+	      max_n = n;
+	    status = sign;
+	    n = 1;
+	  }
 
-					if (vn < vp)
-						sum_dark += dist;
-					else
-						sum_bright += dist;
-				}
-				else
-				{
-					if (n > max_n)
-						max_n = n;
-					status = 2;
-				}
+	  if (vn < vp)
+	    sum_dark += dist;
+	  else
+	    sum_bright += dist;
+	}
+	else
+	{
+	  if (n > max_n)
+	    max_n = n;
+	  status = 2;
+	}
       }
 
       if (n != 16 && status != 2)
       {
-				int i = 0;
-				while (true)
-				{
-					gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, i)));
-					int sign = int(vn) > int(vp);
-					unsigned char dist = ::abs(int(vn) - int(vp));
+	int i = 0;
+	while (true)
+	{
+	  gl8u vn = input_(p + i_int2(arch_neighb2d<A>::get(circle_r3_h, circle_r3, i)));
+	  int sign = int(vn) > int(vp);
+	  unsigned char dist = ::abs(int(vn) - int(vp));
 
-					if (dist <= fast_th_ || sign != status) break;
+	  if (dist <= fast_th_ || sign != status) break;
 
-					n++;
-					i++;
-					assert(i < 16);
-				}
+	  n++;
+	  i++;
+	  assert(i < 16);
+	}
 
       }
 
-
       if (n > max_n)
-				max_n = n;
+	max_n = n;
 
       if (max_n < n_)
-				return 0;
+	return 0;
       else
-				return max(sum_bright, sum_dark);
+	return max(sum_bright, sum_dark);
+	// return sum_bright;
     }
   }
 
@@ -283,6 +283,7 @@ namespace cuimg
     memset(saliency_, 0);
     run_kernel2d_functor(compute_saliency_kernel<image2d_gl8u, J>(input, mask, saliency_, n_, fast_th_),
 			 input.domain(), A());
+
   }
 
 #ifndef NO_CUDA
@@ -293,20 +294,19 @@ namespace cuimg
   {
     i_int2 p = thread_pos2d();
 
-    if (!domain.has(p)) return;
+    p = (p) * 3 + i_int2(1,1);
 
-    if (pset.has(p)) return;
-    if (saliency(p) == 0) return;
+    if (!saliency.has(p)) return;
 
+    float vmin = saliency(p);
+    i_int2 min_p = p;
+    for_all_in_static_neighb2d(p, n, c8)
+      if (vmin < saliency(n)) { vmin = saliency(n); min_p = n; }
 
-    for (int i = 0; i < 8; i++)
-    {
-      i_int2 n(p + i_int2(c8[i]));
-      if (saliency(p) < saliency(n) || pset.has(n))
-	return;
-    }
+    if (pset.has(min_p)) return;
+    if (saliency(min_p) == 0) return;
 
-    new_points(p) = p;
+    new_points(min_p) = min_p;
   }
 
 
@@ -320,7 +320,7 @@ namespace cuimg
     memset(new_points_, 0);
 
 
-    select_particles<<<A::dimgrid2d(saliency_.domain()), A::dimblock2d()>>>
+    select_particles<<<A::dimgrid2d(saliency_.domain()/3), A::dimblock2d()>>>
       (typename PS::kernel_type(pset), mki(saliency_), mki(new_points_),
        new_points_.domain());
 

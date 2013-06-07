@@ -34,28 +34,30 @@ namespace cuimg
 
 }
 
-#ifndef NO_CUDA
-extern __constant__  int c4[4][2];
-extern __constant__ int c5[5][2];
-extern __constant__ int c8[8][2];
-extern __constant__ int c8_it[9][2];
-extern __constant__  int c9[9][2];
-extern __constant__  int c24[24][2];
-extern __constant__  int c25[25][2];
-extern __constant__  int c25x2[25][2];
-extern __constant__  int c49[49][2];
-extern __constant__  int c48[48][2];
-extern __constant__  int c49x2[49][2];
-extern __constant__  int c81[81][2];
-extern __constant__  int c81x2[81][2];
-extern __constant__  int c80[80][2];
-extern __constant__  int circle_r2[8][2];
-extern __constant__ int circle_r3[16][2];
-extern __constant__  int circle_r3_nb[24][2];
-extern __constant__  int circle_r3_wo1[16][2];
-#else
+// #ifndef NO_CUDA
+// extern __constant__  int c4[4][2];
+// extern __constant__ int c5[5][2];
+// extern __constant__ int c8[8][2];
+// extern __constant__ int c8_it[9][2];
+// extern __constant__  int c9[9][2];
+// extern __constant__  int c24[24][2];
+// extern __constant__  int c25[25][2];
+// extern __constant__  int c25x2[25][2];
+// extern __constant__  int c49[49][2];
+// extern __constant__  int c48[48][2];
+// extern __constant__  int c49x2[49][2];
+// extern __constant__  int c81[81][2];
+// extern __constant__  int c81x2[81][2];
+// extern __constant__  int c80[80][2];
+// extern __constant__  int circle_r2[8][2];
+// extern __constant__ int circle_r3[16][2];
+// extern __constant__  int circle_r3_nb[24][2];
+// extern __constant__  int circle_r3_wo1[16][2];
+// #else
+// # include <cuimg/neighb2d_data.cu>
+// #endif
+
 # include <cuimg/neighb2d_data.cu>
-#endif
 
 //namespace cuimg
 //{

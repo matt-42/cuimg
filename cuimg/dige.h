@@ -97,9 +97,12 @@ namespace dg
       bool operator()(const cuda_texture_cat& a,
 		      const cuda_texture_cat& b)
       {
-        return (a.width < b.width) ||
-          (a.height < b.height) ||
-          (a.valuetype < b.valuetype);
+        if (a.width < b.width) return true;
+	else if (a.width == b.width)
+	  if (a.height < b.height) return true;
+	  else if (a.height == b.height)
+	    if (int(a.valuetype) < int(b.valuetype)) return true;
+	return false;
       }
     };
 
@@ -137,13 +140,15 @@ namespace dg
 
     void load()
     {
-      internal::cuda_texture_cat texcat(img_.ncols(), img_.nrows(),
+      unsigned ncols = img_.ncols() + 2*img_.border();
+      unsigned nrows = img_.nrows() + 2*img_.border();
+      internal::cuda_texture_cat texcat(ncols, nrows,
 					ib_to_opengl_internal_type<cuimg::improved_builtin<V, N> >::val);
+
       std::stack<internal::cuda_texture>& stack = internal::textures[texcat];
 
       if (stack.size() == 0)
       {
-        std::cout << "Allocate texture" << std::endl;
         glGenTextures(1, &cuda_tex_.gl_id);
         check_gl_error();
         assert(cuda_tex_.gl_id);
@@ -151,7 +156,7 @@ namespace dg
         /* glPixelStorei(GL_UNPACK_ALIGNMENT,1); */
         glTexImage2D(GL_TEXTURE_2D,
                      0, ib_to_opengl_internal_type<cuimg::improved_builtin<V, N> >::val,
-                     img_.ncols(), img_.nrows(),
+                     ncols, nrows,
                      0, GL_RGBA, GL_FLOAT, 0);
         check_gl_error();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -175,8 +180,8 @@ namespace dg
       cudaArray* cuda_array;
       cudaGraphicsSubResourceGetMappedArray(&cuda_array, cuda_tex_.resource, 0, 0);
       cuimg::check_cuda_error();
-      cudaMemcpy2DToArray(cuda_array, 0, 0, img_.begin(), img_.pitch(),
-                          img_.ncols() * sizeof(cuimg::improved_builtin<V, N>), img_.nrows(),
+      cudaMemcpy2DToArray(cuda_array, 0, 0, img_.data(), img_.pitch(),
+                          ncols * sizeof(cuimg::improved_builtin<V, N>), nrows,
                           cudaMemcpyDeviceToDevice);
       cuimg::check_cuda_error();
       cudaGraphicsUnmapResources(1, &cuda_tex_.resource);
@@ -186,7 +191,7 @@ namespace dg
 
     internal::cuda_texture_cat texcat()
     {
-      return internal::cuda_texture_cat(img_.ncols(), img_.nrows(),
+      return internal::cuda_texture_cat(img_.ncols() + 2 * img_.border(), img_.nrows() + 2 * img_.border(),
                                         ib_to_opengl_internal_type<cuimg::improved_builtin<V, N> >::val);
     }
 
@@ -205,8 +210,8 @@ namespace dg
       return cuda_tex_.gl_id;
     }
 
-    unsigned width() const { return img_.ncols(); }
-    unsigned height() const { return img_.nrows(); }
+    unsigned width() const { return img_.ncols() + 2 * img_.border(); }
+    unsigned height() const { return img_.nrows() + 2 * img_.border(); }
 
   private:
     cuimg::device_image2d<cuimg::improved_builtin<V, N> > img_;
