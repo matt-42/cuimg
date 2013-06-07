@@ -9,7 +9,7 @@
 # include <cuimg/copy.h>
 # include <cuimg/gpu/texture.h>
 
-# include <cuimg/meta_gaussian/meta_gaussian_coefs_1.h>
+//# include <cuimg/meta_gaussian/meta_gaussian_coefs_1.h>
 //# include <cuimg/gpu/local_jet_static.h>
 //#include <cuimg/gpu/gaussian_blur.h>
 
