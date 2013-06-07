@@ -11,4 +11,5 @@ Its main features are:
     - A fast semi dense points tracker
     - Interoperability with OpenCV image types.
 
-An example to use the semi dense tracker can be found 
+An example to use the semi dense tracker can be found here:
+https://github.com/matt-42/cuimg/tree/master/samples/tracking
