@@ -77,9 +77,12 @@ namespace cuimg
 
     dim3 dimblock = ::cuimg::dimblock(cpu(), sizeof(i_uchar1), input.domain());
     mt_apply2d(sizeof(i_float1), input.domain() - border(0),
-	       [this, &input, &offsets] (i_int2 p)
+	       [this, &input, &offsets, &mask] (i_int2 p)
 	       {
-		 saliency_(p) = miel3::compute_saliency(p, input, contrast_th_, offsets);
+		 if (mask(p))
+		   saliency_(p) = miel3::compute_saliency(p, input, contrast_th_, offsets);
+		 else
+		   saliency_(p) = 0;
 	       }, cpu());
 
     END_PROF(miel3_compute_saliency);
@@ -111,7 +114,7 @@ namespace cuimg
 		   if (vmin < saliency_(n)) { vmin = saliency_(n); min_p = n; }
 
                  if (pset.has(min_p)) return;
-                 if (saliency_(min_p) == 0) return;
+                 if (vmin == 0) return;
 
                  new_points_(min_p) = 1;
                }, cpu());

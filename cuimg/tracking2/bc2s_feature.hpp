@@ -40,8 +40,8 @@ namespace cuimg
 	{
 	  int v = data[o.offsets_s1(i)].x;
 	  //int v = o.s1_[idx + o.offsets_s1(i)].x;
-	  d += (v - a[i]) * (v - a[i]);
-	  //d += ::abs(v - a[i]);
+	  //d += (v - a[i]) * (v - a[i]);
+	  d += ::abs(v - a[i]);
 	}
 	//return sqrt(d) * 6;
       }
@@ -55,8 +55,8 @@ namespace cuimg
 	  {
 	    int v = data[o.offsets_s2(i)].x;
 	    //int v = o.s2_[idx + o.offsets_s2(i)].x;
-	    //d2 += ::abs(v - a[8+i]);
-	    d2 += (v - a[8+i]) * (v - a[8+i]);
+	    d2 += ::abs(v - a[8+i]);
+	    //d2 += (v - a[8+i]) * (v - a[8+i]);
 	  }
 	  //return sqrt(d2) * 6;
 	}
@@ -65,7 +65,8 @@ namespace cuimg
       // return d / (255.f * 16.f);
       //return d + d2 * 5;
       //return d + 25 * d2 + 2 * 5 * d * d2;
-      return ::sqrt(d) + ::sqrt(d2) * 6;
+      //return ::sqrt(d) + ::sqrt(d2) * 6;
+      return d + d2;
       //return sqrt(d) * 6;
     }
 

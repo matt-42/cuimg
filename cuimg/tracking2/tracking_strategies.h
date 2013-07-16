@@ -55,6 +55,7 @@ namespace cuimg
 
       inline self& set_detector_frequency(unsigned nframe);
       inline self& set_filtering_frequency(unsigned nframe);
+      inline self& set_k(int k);
 
       inline i_short2 prediction(const particle& p);
 
@@ -103,6 +104,7 @@ namespace cuimg
 
       int detector_frequency_;
       int filtering_frequency_;
+      int k_;
       bool with_merge_;
     };
 

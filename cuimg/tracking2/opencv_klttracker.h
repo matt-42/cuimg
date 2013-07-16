@@ -25,10 +25,12 @@ namespace cuimg
   {
   public:
     typedef particle_container<internal::dummy_feature, particle_f> pset_type;
-    opencv_klttracker(const obox2d& d);
+    opencv_klttracker(const obox2d& d, int fast_threshold = 20);
     ~opencv_klttracker();
 
     opencv_klttracker& set_detector_frequency(unsigned nframe);
+    opencv_klttracker& set_k(int k);
+    opencv_klttracker& set_winsize(int n);
 
     void run(const host_image2d<gl8u>& in);
     void detect_keypoints(const host_image2d<gl8u>& in);
@@ -55,6 +57,8 @@ namespace cuimg
     host_image2d<unsigned char> mask_;
 
     unsigned nframe_;
+    int k_;
+    int winsize_;
     int detector_frequency_;
   };
 

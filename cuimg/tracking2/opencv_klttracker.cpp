@@ -6,10 +6,12 @@
 namespace cuimg
 {
 
-  opencv_klttracker::opencv_klttracker(const obox2d& d)
-    : fast_adapter_(10),
+  opencv_klttracker::opencv_klttracker(const obox2d& d, int fast_threshold)
+    : fast_adapter_(fast_threshold),
       pset_(d),
       mask_(d),
+      k_(25),
+      winsize_(21),
       detector_frequency_(1)
   {
     nframe_ = 0;
@@ -24,6 +26,20 @@ namespace cuimg
   opencv_klttracker::set_detector_frequency(unsigned nframe)
   {
     detector_frequency_ = nframe;
+    return *this;
+  }
+
+  opencv_klttracker&
+  opencv_klttracker::set_k(int k)
+  {
+    k_ = k;
+    return *this;
+  }
+
+  opencv_klttracker&
+  opencv_klttracker::set_winsize(int n)
+  {
+    winsize_ = n;
     return *this;
   }
 
@@ -79,31 +95,35 @@ namespace cuimg
         cv::Point2f pt(pos.y, pos.x);
         keypoints_.push_back(pt);
       }
-      //std::cout << pset_.dense_particles().size() << std::endl;
-      calcOpticalFlowPyrLK(cv::Mat(in_prev), cv::Mat(in), keypoints_, new_keypoints_, status, err, cv::Size(21,21), 3);
-      matches_.resize(keypoints_.size());
 
-      keypoints_.clear();
-      pset_.before_matching();
-      std::fill(matches_.begin(), matches_.end(), -1);
-      for (unsigned i = 0; i < matches_.size(); i++)
+      if (keypoints_.size() > 0)
       {
-        //if (status.at<int>(0,i))
-        if (status[i] && pset.dense_particles()[i].age > 0 && in.has(i_int2(new_keypoints_[i].y, new_keypoints_[i].x)) && err.at<float>(i) < 25)
-        {
-          //std::cout << status.at<int>(0,i) << " " << new_keypoints_[i] << std::endl;
-	  // std::cout << int(err.at<float>(i)) << " " << keypoints_[i] << " " << new_keypoints_[i] << std::endl;
-          pset.move(i, i_float2(new_keypoints_[i].y, new_keypoints_[i].x), 0);
-          keypoints_.push_back(new_keypoints_[i]);
-          matches_[i] = keypoints_.size() - 1;
-        }
-        else
-          // std::cout << "NOT FOUND: "<< status.at<int>(0,i) << " " << new_keypoints_[i] << std::endl;
-          //std::cout << "NOT FOUND: "<< int(status[i]) << " " << new_keypoints_[i] << std::endl;
-          pset.remove(i);
+	//std::cout << pset_.dense_particles().size() << std::endl;
+	calcOpticalFlowPyrLK(cv::Mat(in_prev), cv::Mat(in), keypoints_, new_keypoints_, status, err, cv::Size(winsize_, winsize_), 3);
+	matches_.resize(keypoints_.size());
+
+	keypoints_.clear();
+	pset_.before_matching();
+	std::fill(matches_.begin(), matches_.end(), -1);
+	for (unsigned i = 0; i < matches_.size(); i++)
+	{
+	  //if (status.at<int>(0,i))
+	  if (status[i] && pset.dense_particles()[i].age > 0 && in.has(i_int2(new_keypoints_[i].y, new_keypoints_[i].x)) && err.at<float>(i) < k_)
+	  {
+	    //std::cout << status.at<int>(0,i) << " " << new_keypoints_[i] << std::endl;
+	    // std::cout << int(err.at<float>(i)) << " " << keypoints_[i] << " " << new_keypoints_[i] << std::endl;
+	    pset.move(i, i_float2(new_keypoints_[i].y, new_keypoints_[i].x), 0);
+	    keypoints_.push_back(new_keypoints_[i]);
+	    matches_[i] = keypoints_.size() - 1;
+	  }
+	  else
+	    // std::cout << "NOT FOUND: "<< status.at<int>(0,i) << " " << new_keypoints_[i] << std::endl;
+	    //std::cout << "NOT FOUND: "<< int(status[i]) << " " << new_keypoints_[i] << std::endl;
+	    pset.remove(i);
+	}
+	// std::cout << new_keypoints_.size() << " " << new_keypoints_.size();
+	pset_.after_matching();
       }
-      // std::cout << new_keypoints_.size() << " " << new_keypoints_.size();
-      pset_.after_matching();
     }
 
     //if (nframe_ == 0)

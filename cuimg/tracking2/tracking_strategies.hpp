@@ -61,6 +61,7 @@ namespace cuimg
 	mask_(d, 4),
         detector_frequency_(1),
         filtering_frequency_(1),
+	k_(300),
 	with_merge_(true)
     {
       new_points_map_ = gl8u_image2d(domain_div_up(d, 2*flow_ratio));
@@ -83,6 +84,16 @@ namespace cuimg
       detector_frequency_ = nframe;
       if (upper_)
 	upper_->set_detector_frequency(nframe);
+      return *this;
+    }
+
+    template<typename F, typename D, typename P, typename I>
+    generic_strategy<F, D, P, I>&
+    generic_strategy<F, D, P, I>::set_k(int k)
+    {
+      k_ = k;
+      if (upper_)
+	upper_->set_k(k);
       return *this;
     }
 
@@ -218,11 +229,11 @@ namespace cuimg
       inline __host__ __device__
       void operator()(int i)
       {
-	particle& p = pset_.dense_particles()[i];
-	mask_(p.pos) = false;
-	for(int i = 0; i != 9; i++)
+	i_int2 p = pset_.dense_particles()[i].pos;
+	mask_(p) = 0;
+	for(int i = 0; i != 8; i++)
 	{
-	  i_int2 n(p.pos + i_int2(arch_neighb2d<A>::get(c9_h, c9, i)));
+	  i_int2 n(p + i_int2(arch_neighb2d<A>::get(c8_h, c8, i)));
 	  mask_(n) = 0;
 	}
       }
@@ -290,11 +301,12 @@ namespace cuimg
       i_int2 u_prev_camera_motion;
       int detector_frequency;
       int flow_ratio;
+      int k;
 
     public:
       match_particles_kernel(P& pset_, F& feature_, const I& contrast_, const J& upper_flow_, int frame_cpt_,
 			     i_short2 u_camera_motion_, i_short2 u_prev_camera_motion_,
-			     int detector_frequency_, int flow_ratio_)
+			     int detector_frequency_, int flow_ratio_, int k_)
 	: pset(pset_),
 	  feature(feature_),
 	  contrast(contrast_),
@@ -303,7 +315,8 @@ namespace cuimg
 	  u_camera_motion(u_camera_motion_),
 	  u_prev_camera_motion(u_prev_camera_motion_),
 	  detector_frequency(detector_frequency_),
-	  flow_ratio(flow_ratio_)
+	  flow_ratio(flow_ratio_),
+	  k(k_)
       {
       }
 
@@ -337,8 +350,7 @@ namespace cuimg
 	    i_short2 match = match_res.first;
 	    distance = match_res.second;
 	    if (domain.has(match)
-		and distance < 800
-		)
+		and distance < k)
 	    {
 	      if (contrast(match) < 3.f)
 		pset.remove(i);
@@ -575,7 +587,7 @@ namespace cuimg
       flow_t uf = upper_ ? upper_->flow_ : flow_t();
       match_particles_kernel<F, uint_image2d, flow_t, P> func
 	(pset, feature_, contrast_, uf, frame_cpt_,
-	 ucm, upcm, detector_frequency_, flow_ratio);
+	 ucm, upcm, detector_frequency_, flow_ratio, k_);
       run_kernel1d_functor(func,
 			   pset.dense_particles().size(),
 			   typename particles_type::architecture());
