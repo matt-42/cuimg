@@ -454,7 +454,9 @@ namespace cuimg
 
     particles_vec_[i] = p;
     if ((p.speed.y + p.speed.x) > 0)
+    {
       features_vec_[i] = f;
+    }
 
     sparse_buffer_(dst) = i;
 

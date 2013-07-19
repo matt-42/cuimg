@@ -48,7 +48,8 @@ namespace cuimg
 
     template<typename F, typename D, typename P, typename I>
     generic_strategy<F, D, P, I>::generic_strategy(const obox2d& d)
-      : feature_(d),
+      : prev_input_(d),
+	feature_(d),
 	prev_feature_(d),
 	flow_ratio(8),
         detector_(d),
@@ -173,6 +174,7 @@ namespace cuimg
     void
     generic_strategy<F, D, P, I>::update(const I& in, particles_type& pset)
     {
+      input_ = in;
       pset.set_flow(flow_);
 
       run_kernel2d_functor(contrast_kernel<I, uint_image2d>(in, contrast_),
@@ -210,6 +212,7 @@ namespace cuimg
 
       pset.tick();
       frame_cpt_++;
+      copy(in, prev_input_);
     }
 
 
@@ -286,12 +289,14 @@ namespace cuimg
 
     }
 
-    template<typename F, typename I, typename J, typename P>
+    template<typename F, typename I, typename J, typename K, typename P>
     struct match_particles_kernel
     {
     private:
       typename P::kernel_type pset;
       typename kernel_type<F>::ret feature;
+      typename K::kernel_type input;
+      typename K::kernel_type prev_input;
       typename I::kernel_type contrast;
       typename J::kernel_type upper_flow;
       typedef typename kernel_type<F>::ret KF;
@@ -304,10 +309,13 @@ namespace cuimg
       int k;
 
     public:
-      match_particles_kernel(P& pset_, F& feature_, const I& contrast_, const J& upper_flow_, int frame_cpt_,
+      match_particles_kernel(const K& input_, const K& prev_input_,
+			     P& pset_, F& feature_, const I& contrast_, const J& upper_flow_, int frame_cpt_,
 			     i_short2 u_camera_motion_, i_short2 u_prev_camera_motion_,
 			     int detector_frequency_, int flow_ratio_, int k_)
-	: pset(pset_),
+	: input(input_),
+	  prev_input(prev_input_),
+	  pset(pset_),
 	  feature(feature_),
 	  contrast(contrast_),
 	  upper_flow(upper_flow_),
@@ -338,7 +346,8 @@ namespace cuimg
 	  //pred = motion_based_prediction(part, u_prev_camera_motion, u_camera_motion);
 
 	  // Matching.
-	  float pos_distance = feature.distance(pset.features()[i], part.pos);
+	  //float pos_distance = feature.distance(pset.features()[i], part.pos, 1);
+	  //float pos_distance = 
 	  if (domain.has(pred)
 	      //and (!upper_flow.data() or contrast.nrows() < 400 or upper_flow(pred / (2*flow_ratio)) != NO_FLOW)
 	      )
@@ -349,6 +358,7 @@ namespace cuimg
 	    //std::pair<i_short2, float> match_res = gradient_descent_match(pred, pset.features()[i], feature, 1);
 	    i_short2 match = match_res.first;
 	    distance = match_res.second;
+
 	    if (domain.has(match)
 		and distance < k)
 	    {
@@ -357,6 +367,9 @@ namespace cuimg
 	      else
 	      {
 		FEAT_TYPE f = feature(match);
+		// FEAT_TYPE f = pset.features()[i];
+		// for (unsigned i = 0; i < 16; i++)
+		//   f[i] = (3 * f[i] + nf[i]) / 4;
 		pset.move(i, match, f);
 		assert(pset.has(match));
 		assert(pset.dense_particles()[i].age > 0);
@@ -585,8 +598,8 @@ namespace cuimg
       i_short2 ucm = upper_ ? upper_->camera_motion_ : i_short2(0,0);
       i_short2 upcm = upper_ ? upper_->prev_camera_motion_ : i_short2(0,0);
       flow_t uf = upper_ ? upper_->flow_ : flow_t();
-      match_particles_kernel<F, uint_image2d, flow_t, P> func
-	(pset, feature_, contrast_, uf, frame_cpt_,
+      match_particles_kernel<F, uint_image2d, flow_t, gl8u_image2d, P> func
+	(prev_input_,  input_, pset, feature_, contrast_, uf, frame_cpt_,
 	 ucm, upcm, detector_frequency_, flow_ratio, k_);
       run_kernel1d_functor(func,
 			   pset.dense_particles().size(),

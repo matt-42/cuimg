@@ -8,6 +8,7 @@
 # include <cuimg/gpu/mipmap.h>
 # include <cuimg/copy.h>
 # include <cuimg/gpu/texture.h>
+# include <cuimg/cpu/gaussian_blur.h>
 
 //# include <cuimg/meta_gaussian/meta_gaussian_coefs_1.h>
 //# include <cuimg/gpu/local_jet_static.h>
@@ -221,10 +222,26 @@ namespace cuimg
     run_kernel2d_functor(mipmap_kernel<V>(exact(in), exact(out)),
 			 exact(out).domain(), typename I::architecture());
 
-    //mt_apply2d(sizeof(V), exact(out).domain(), mipmap_kernel<V>(exact(in), exact(out)), typename I::architecture());
-    /* pw_call<mipmap_kernel_sig(I::target, typename I::value_type)>(flag<I::target>(), dimgrid, dimblock, */
-    /* 								  exact(in), exact(out)); */
   }
+
+  /* template <typename I> */
+  /* void gaussian_subsample(const host_image2d<I>& in, */
+  /* 			  host_image2d<I>& out) */
+  /* { */
+  /*   SCOPE_PROF(subsample); */
+  /*   dim3 dimblock = dim3(exact(out).domain().ncols(), 1, 1); */
+  /*   using namespace mipmap_internals; */
+  /*   dim3 dimgrid = grid_dimension(exact(out).domain(), dimblock); */
+
+  /*   host_image2d<I> tmp(in.domain()); */
+  /*   cv::GaussianBlur(cv::Mat(in), cv::Mat(tmp), cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE); */
+
+  /*   [&] (i_int2 p) { out(p) = tmp(p * 2); } >> iterate(out.domain()); */
+  /*   /\* typedef typename I::value_type V; *\/ */
+  /*   /\* run_kernel2d_functor(mipmap_kernel<V>(exact(in), exact(out)), *\/ */
+  /*   /\* 			 exact(out).domain(), typename I::architecture()); *\/ */
+
+  /* } */
 
   template <typename I>
   void update_mipmap_level(const Image2d<I>& in,

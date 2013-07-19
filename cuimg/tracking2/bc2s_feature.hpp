@@ -318,28 +318,12 @@ namespace cuimg
   bc2s_feature<A>::update(const I& in, const cpu&)
   {
     SCOPE_PROF(bc2s_feature::update);
-    dim3 dimblock = ::cuimg::dimblock(cpu(), sizeof(V) + sizeof(i_uchar1), in.domain());
-
-    //local_jet_static_<0, 0, 2, 2>::run(in, s1_, tmp_, 0, dimblock);
-    // local_jet_static_<0, 0, 3, 3>::run(in, s2_, tmp_, 0, dimblock);
-    //local_jet_static_<0, 0, 1, 1>::run(s1_, s2_, tmp_, 0, dimblock);
-
-    // copy(in, s1_);
-    // copy(in, s2_);
-    // fill_border_clamp(s1_);
-    // fill_border_clamp(s2_);
-
     cv::Mat opencv_s1(s1_);
     cv::Mat opencv_s2(s2_);
     cv::GaussianBlur(cv::Mat(in), opencv_s1, cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE);
     fill_border_clamp(s1_);
     cv::GaussianBlur(cv::Mat(s1_), opencv_s2, cv::Size(5, 5), 1.8, 1.8, cv::BORDER_REPLICATE);
     fill_border_clamp(s2_);
-
-    //cv::GaussianBlur(cv::Mat(in), cv::Mat(s2_), cv::Size(5, 5), 2, 2, cv::BORDER_REPLICATE);
-    //cv::GaussianBlur(cv::Mat(in), cv::Mat(s2_), cv::Size(9, 9), 3, 3, cv::BORDER_REPLICATE);
-    // dg::widgets::ImageView("frame") << (*(host_image2d<i_uchar1>*)(&s2_)) << dg::widgets::show;
-    // dg::pause();
   }
 
 #ifndef NO_CUDA
@@ -590,6 +574,7 @@ namespace cuimg
     fill_border_clamp(s1_);
     cv::GaussianBlur(cv::Mat(s1_), opencv_s2, cv::Size(5, 5), 1.8, 1.8, cv::BORDER_REPLICATE);
     fill_border_clamp(s2_);
+
 
     // local_jet_static_<0, 0, 2, 2>::run(in, s1_, tmp_, 0, dimblock);
     // local_jet_static_<0, 0, 3, 3>::run(in, s2_, tmp_, 0, dimblock);
