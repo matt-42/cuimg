@@ -102,6 +102,16 @@ namespace cuimg
   }
 
 
+  template <typename F>
+  unsigned tracker<F>::nparticles() const
+  {
+    if (upper_tracker_)
+      return pset().size() + upper_tracker_->nparticles();
+    else
+      return pset().size();
+  }
+
+
 }
 
 #endif

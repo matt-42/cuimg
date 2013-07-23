@@ -34,6 +34,8 @@ namespace cuimg
 
     void clear();
 
+    unsigned nparticles() const;
+
   private:
     tracker(const obox2d& d, tracker<F>* lower, int nscales);
 

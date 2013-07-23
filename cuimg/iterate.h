@@ -1,5 +1,8 @@
 #ifndef CUIMG_ITERATE_HH
 
+# include <cuimg/box2d.h>
+# include <cuimg/obox2d.h>
+
 namespace cuimg
 {
   template <typename C>

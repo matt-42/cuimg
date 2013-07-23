@@ -84,6 +84,8 @@ namespace cuimg
       void set_with_merge(bool b);
 
     protected:
+      gl8u_image2d prev_input_;
+      gl8u_image2d input_;
       feature_t feature_;
       feature_t prev_feature_;
       detector_t detector_;
