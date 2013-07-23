@@ -359,12 +359,35 @@ namespace cuimg
 	    i_short2 match = match_res.first;
 	    distance = match_res.second;
 
-	    if (domain.has(match)
-		and distance < k)
+	    unsigned n_diff = 0;
+	    FEAT_TYPE prev_feat = pset.features()[i];
+	    FEAT_TYPE match_feat = feature(match);
+	    for (unsigned i = 0; i < 16; i++)
 	    {
-	      if (contrast(match) < 3.f)
-		pset.remove(i);
-	      else
+	      if (::abs(prev_feat[i] - match_feat[i]) > k) n_diff++;
+	    }
+
+	    distance = 0;
+
+	    // if (domain.has(match))
+	    // {
+	    //   for (unsigned i = 0; i < 16; i++)
+	    //   {
+	    // 	i_int2 off = i_int2(circle_r3_h[i]);
+	    // 	//distance += ::abs(prev_input(match + off).x - input(part.pos + off).x);
+	    // 	if (::abs(input(match + off).x - prev_input(part.pos + off).x) > k) n_diff++;
+	    //   }
+	    // }
+
+	    distance /= 16;
+	    if (domain.has(match)
+		//and distance < k
+		and n_diff < 8
+		)
+	    {
+	      // if (contrast(match) < 3.f)
+	      // 	pset.remove(i);
+	      // else
 	      {
 		FEAT_TYPE f = feature(match);
 		// FEAT_TYPE f = pset.features()[i];
