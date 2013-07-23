@@ -12,6 +12,7 @@ namespace cuimg
       mask_(d),
       k_(25),
       winsize_(21),
+      nkeypoints_(8000),
       detector_frequency_(1)
   {
     nframe_ = 0;
@@ -43,6 +44,13 @@ namespace cuimg
     return *this;
   }
 
+  opencv_klttracker&
+  opencv_klttracker::set_nkeypoints(int n)
+  {
+    nkeypoints_ = n;
+    return *this;
+  }
+
   void
   opencv_klttracker::detect_keypoints(const host_image2d<gl8u>& in)
   {
@@ -56,7 +64,6 @@ namespace cuimg
         mask_(n) = 0;
     }
 
-    unsigned nkeypoints = 8000;
     std::vector<cv::KeyPoint> kps;
     //adapter_->detect(cv::Mat(in), kps, mask_);
     fast_adapter_.detect(cv::Mat(in), kps, mask_);
@@ -65,13 +72,13 @@ namespace cuimg
       keypoints_.push_back(p.pt);
       pset_.add(i_float2(p.pt.y, p.pt.x), 0);
     }
-    if (keypoints_.size() > nkeypoints)
-      fast_adapter_.tooMany(nkeypoints * 1.1f, keypoints_.size());
+    if (keypoints_.size() > nkeypoints_)
+      fast_adapter_.tooMany(nkeypoints_ * 1.1f, keypoints_.size());
     else
-      if (keypoints_.size() < nkeypoints)
-	fast_adapter_.tooFew(nkeypoints, keypoints_.size());
+      if (keypoints_.size() < nkeypoints_)
+    	fast_adapter_.tooFew(nkeypoints_, keypoints_.size());
       else
-	fast_adapter_.good();
+    	fast_adapter_.good();
     pset_.after_new_particles();
   }
 
