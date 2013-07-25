@@ -8,7 +8,7 @@
 # include <cuimg/gpu/mipmap.h>
 # include <cuimg/copy.h>
 # include <cuimg/gpu/texture.h>
-# include <cuimg/cpu/gaussian_blur.h>
+//# include <cuimg/cpu/gaussian_blur.h>
 
 //# include <cuimg/meta_gaussian/meta_gaussian_coefs_1.h>
 //# include <cuimg/gpu/local_jet_static.h>

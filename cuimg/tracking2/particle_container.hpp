@@ -453,6 +453,12 @@ namespace cuimg
     // p.next_match_time = frame_cpt_ + 1;
 
     particles_vec_[i] = p;
+
+    //float S = norml2(new_speed);
+    // float S = 0.1;
+    // for (unsigned j = 0; j < 16; j++)
+    //   features_vec_[i][j] = (features_vec_[i][j] * 4.f + f[j] * S) / (S + 4.f);
+
     if ((p.speed.y + p.speed.x) > 0)
     {
       features_vec_[i] = f;
