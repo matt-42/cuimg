@@ -10,8 +10,8 @@ namespace cuimg
     : fast_adapter_(fast_threshold),
       pset_(d),
       mask_(d),
-      k_(25),
-      winsize_(21),
+      k_(40),
+      winsize_(11),
       nkeypoints_(8000),
       detector_frequency_(1)
   {

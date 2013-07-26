@@ -25,7 +25,7 @@ namespace cuimg
   {
   public:
     typedef particle_container<internal::dummy_feature, particle_f> pset_type;
-    opencv_klttracker(const obox2d& d, int fast_threshold = 20);
+    opencv_klttracker(const obox2d& d, int fast_threshold = 30);
     ~opencv_klttracker();
 
     opencv_klttracker& set_detector_frequency(unsigned nframe);

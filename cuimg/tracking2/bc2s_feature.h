@@ -34,6 +34,13 @@ namespace cuimg
       float4 tex_float;
     };
 
+    void update_weights(const bc2s& f);
+
+    union
+    {
+      unsigned char weights[16];
+      float4 packed_weights;
+    };
   };
 
   struct bc2s_256

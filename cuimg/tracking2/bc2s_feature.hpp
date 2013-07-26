@@ -30,6 +30,7 @@ namespace cuimg
     {
       int d = 0;
       int d2 = 0;
+      int wsum = 0;
       const typename O::V* data = &o.s1_(n);
       // int idx = o.s1_.point_to_index(n);
 
@@ -41,7 +42,10 @@ namespace cuimg
 	  int v = data[o.offsets_s1(i)].x;
 	  //int v = o.s1_[idx + o.offsets_s1(i)].x;
 	  //d += (v - a[i]) * (v - a[i]);
-	  d += ::abs(v - a[i]);
+
+	  //d += ::abs(v - a[i]);
+	  d += ::abs(v - a[i]) * a.weights[i];
+	  wsum += a.weights[i];
 	}
 	//return sqrt(d) * 6;
       }
@@ -55,7 +59,12 @@ namespace cuimg
 	  {
 	    int v = data[o.offsets_s2(i)].x;
 	    //int v = o.s2_[idx + o.offsets_s2(i)].x;
-	    d2 += ::abs(v - a[8+i]);
+
+	    //d2 += ::abs(v - a[8+i]);
+
+	    d2 += ::abs(v - a[8+i]) * a.weights[8+i];
+	    wsum += a.weights[8+i];
+
 	    //d2 += (v - a[8+i]) * (v - a[8+i]);
 	  }
 	  //return sqrt(d2) * 6;
@@ -66,7 +75,12 @@ namespace cuimg
       //return d + d2 * 5;
       //return d + 25 * d2 + 2 * 5 * d * d2;
       //return ::sqrt(d) + ::sqrt(d2) * 6;
-      return d + d2;
+      // if (scale == 1)
+      // 	return (d + d2) / 8;
+      // else
+      // 	return (d + d2) / (8);
+
+      return (d + d2) / 255;
       //return sqrt(d) * 6;
     }
 
@@ -601,22 +615,27 @@ namespace cuimg
   // ###################################################
 
   bc2s::bc2s()
-  {}
+  {
+    memset(weights, 255, sizeof(weights));
+  }
 
   bc2s::bc2s(const float4& o)
   {
     tex_float = o;
+    memset(weights, 255, sizeof(weights));
   }
 
   bc2s::bc2s(const bc2s& o)
   {
     tex_float = o.tex_float;
+    packed_weights = o.packed_weights;
   }
 
   bc2s&
   bc2s::operator=(const bc2s& o)
   {
     tex_float = o.tex_float;
+    packed_weights = o.packed_weights;
     return *this;
   }
 
@@ -635,6 +654,25 @@ namespace cuimg
   }
 
 
+  void
+  bc2s::update_weights(const bc2s& f)
+  {
+    int best = 999;
+    for (unsigned i = 0; i < 16; i++)
+    {
+      int d = ::abs(f[i] - distances[i]);
+      if (d < best) best = d;
+    }
+
+    for (unsigned i = 0; i < 16; i++)
+    {
+      int d = ::abs(f[i] - distances[i]);
+      //weights[i] = (weights[i] + 255.f / ((d - best)/1.f + 1)) / 2;
+      weights[i] = 255.f / ((d - best)/5.f + 1);
+      //weights[i] = 255.f / (d/5.f + 1);
+      //weights[i] = 255;
+    }
+  }
 
 
   // ########## bc2s_256 feature vector methods. ###########

@@ -360,14 +360,33 @@ namespace cuimg
 	    distance = match_res.second;
 
 	    unsigned n_diff = 0;
+	    // FEAT_TYPE prev_feat = pset.features()[i];
+	    // FEAT_TYPE match_feat = feature(match);
+	    // for (unsigned i = 8; i < 16; i++)
+	    // {
+	    //   if (::abs(prev_feat[i] - match_feat[i]) > k) n_diff++;
+	    // }
+
+
+	    distance = 0;
+	    unsigned cpt = 0;
 	    FEAT_TYPE prev_feat = pset.features()[i];
 	    FEAT_TYPE match_feat = feature(match);
 	    for (unsigned i = 0; i < 16; i++)
 	    {
-	      if (::abs(prev_feat[i] - match_feat[i]) > k) n_diff++;
+	      if (prev_feat.weights[i] > 150)
+	      {
+	    	cpt++;
+	    	if (::abs(prev_feat[i] - match_feat[i]) > k) n_diff++;
+	      }
+	      // {
+	      // 	distance += ::abs(prev_feat[i] - match_feat[i]);
+	      // 	cpt++;
+	      // }
 	    }
 
-	    distance = 0;
+	    //distance /= cpt;
+	    // distance = 0;
 
 	    // if (domain.has(match))
 	    // {
@@ -379,15 +398,16 @@ namespace cuimg
 	    //   }
 	    // }
 
-	    distance /= 16;
+	    //distance /= 8;
 	    if (domain.has(match)
 		//and distance < k
-		and n_diff < 8
+		//and n_diff < 4
+		and n_diff < cpt/2
 		)
 	    {
-	      // if (contrast(match) < 3.f)
-	      // 	pset.remove(i);
-	      // else
+	      if (contrast(match) < 3.f)
+	      	pset.remove(i);
+	      else
 	      {
 		FEAT_TYPE f = feature(match);
 		// FEAT_TYPE f = pset.features()[i];
