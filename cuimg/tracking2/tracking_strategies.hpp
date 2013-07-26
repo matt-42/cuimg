@@ -295,8 +295,8 @@ namespace cuimg
     private:
       typename P::kernel_type pset;
       typename kernel_type<F>::ret feature;
+      typename kernel_type<F>::ret prev_feature;
       typename K::kernel_type input;
-      typename K::kernel_type prev_input;
       typename I::kernel_type contrast;
       typename J::kernel_type upper_flow;
       typedef typename kernel_type<F>::ret KF;
@@ -309,13 +309,13 @@ namespace cuimg
       int k;
 
     public:
-      match_particles_kernel(const K& input_, const K& prev_input_,
-			     P& pset_, F& feature_, const I& contrast_, const J& upper_flow_, int frame_cpt_,
+      match_particles_kernel(const K& input_,
+			     P& pset_, F& prev_feature_, F& feature_, const I& contrast_, const J& upper_flow_, int frame_cpt_,
 			     i_short2 u_camera_motion_, i_short2 u_prev_camera_motion_,
 			     int detector_frequency_, int flow_ratio_, int k_)
 	: input(input_),
-	  prev_input(prev_input_),
 	  pset(pset_),
+	  prev_feature(prev_feature_),
 	  feature(feature_),
 	  contrast(contrast_),
 	  upper_flow(upper_flow_),
@@ -372,7 +372,8 @@ namespace cuimg
 	    unsigned cpt = 0;
 	    FEAT_TYPE prev_feat = pset.features()[i];
 	    FEAT_TYPE match_feat = feature(match);
-	    for (unsigned i = 0; i < 16; i++)
+
+	    for (unsigned i = 8; i < 16; i++)
 	    {
 	      if (prev_feat.weights[i] > 150)
 	      {
@@ -392,9 +393,22 @@ namespace cuimg
 	    // {
 	    //   for (unsigned i = 0; i < 16; i++)
 	    //   {
-	    // 	i_int2 off = i_int2(circle_r3_h[i]);
-	    // 	//distance += ::abs(prev_input(match + off).x - input(part.pos + off).x);
-	    // 	if (::abs(input(match + off).x - prev_input(part.pos + off).x) > k) n_diff++;
+	    // 	i_int2 off = i_int2(circle_r3_h[i])*2;
+	    // 	distance += ::abs(input(match + off).x - prev_input(part.pos + off).x);
+	    // 	//if (::abs(input(match + off).x - prev_input(part.pos + off).x) > k) n_diff++;
+	    //   }
+	    // }
+
+	    // if (domain.has(match))
+	    // {
+	    //   n_diff = 0;
+	    //   for (int dr = -5; dr <= 5; dr++)
+	    //   for (int dc = -5; dc <= 5; dc++)
+	    //   {
+	    // 	i_int2 off = i_int2(dr, dc);
+	    // 	int d = ::abs(feature.s2()(match + off).x - prev_feature.s2()(part.pos + off).x);
+	    // 	distance += d;
+	    // 	if (d > k) n_diff++;
 	    //   }
 	    // }
 
@@ -642,7 +656,7 @@ namespace cuimg
       i_short2 upcm = upper_ ? upper_->prev_camera_motion_ : i_short2(0,0);
       flow_t uf = upper_ ? upper_->flow_ : flow_t();
       match_particles_kernel<F, uint_image2d, flow_t, gl8u_image2d, P> func
-	(prev_input_,  input_, pset, feature_, contrast_, uf, frame_cpt_,
+	(input_, pset, prev_feature_,  feature_, contrast_, uf, frame_cpt_,
 	 ucm, upcm, detector_frequency_, flow_ratio, k_);
       run_kernel1d_functor(func,
 			   pset.dense_particles().size(),
