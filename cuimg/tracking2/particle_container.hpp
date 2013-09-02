@@ -462,7 +462,7 @@ namespace cuimg
     if ((p.speed.y + p.speed.x) > 0)
     {
       feature_type f_ = f;
-      f_.update_weights(features_vec_[i]);
+      // f_.update_weights(features_vec_[i]);
       features_vec_[i] = f_;
       //features_vec_[i].update_weights(f);
     }
