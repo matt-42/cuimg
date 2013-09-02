@@ -309,6 +309,7 @@ OPENCV_TYPEOF(i_##T##4, CV_##CV##C4);
  OPENCV_TYPEOF_(unsigned short, ushort, 16U);
  OPENCV_TYPEOF_(short, short, 16S);
  OPENCV_TYPEOF_(float, float, 32S);
+ OPENCV_TYPEOF_(int, int, 32S);
 
  
 #endif

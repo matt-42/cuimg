@@ -264,6 +264,8 @@ namespace cuimg
     {
       i_int2 o = circle_r3_h[i];
       i_int2 o2 = o*2;
+      // i_int2 o = c8_h[i/2];
+      // i_int2 o2 = i_int2(circle_r3_h[i]) * 2;
 
       offsets_s1_[i/2] = (int(s1_.pitch()) * o.r()) / sizeof(V) + o.c();
       offsets_s2_[i/2] = (int(s2_.pitch()) * o2.r()) / sizeof(V) + o2.c();
@@ -616,13 +618,13 @@ namespace cuimg
 
   bc2s::bc2s()
   {
-    memset(weights, 255, sizeof(weights));
+    ::memset(weights, 255, sizeof(weights));
   }
 
   bc2s::bc2s(const float4& o)
   {
     tex_float = o;
-    memset(weights, 255, sizeof(weights));
+    ::memset(weights, 255, sizeof(weights));
   }
 
   bc2s::bc2s(const bc2s& o)
