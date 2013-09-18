@@ -59,6 +59,12 @@ namespace cuimg
   }
 
   inline __host__ __device__
+  bool operator!=(const obox2d& a, const obox2d& b)
+  {
+    return a.nrows() != b.nrows() || a.ncols() != b.ncols();
+  }
+
+  inline __host__ __device__
   obox2d operator/(const obox2d& a, const float x)
   {
     return obox2d(a.nrows() / x, a.ncols() / x);

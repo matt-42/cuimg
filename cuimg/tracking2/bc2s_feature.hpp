@@ -337,8 +337,10 @@ namespace cuimg
     cv::Mat opencv_s1(s1_);
     cv::Mat opencv_s2(s2_);
     cv::GaussianBlur(cv::Mat(in), opencv_s1, cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE);
+    //cv::blur(cv::Mat(in), opencv_s1, cv::Size(3, 3), cv::Point(-1,-1), cv::BORDER_REPLICATE);
     fill_border_clamp(s1_);
     cv::GaussianBlur(cv::Mat(s1_), opencv_s2, cv::Size(5, 5), 1.8, 1.8, cv::BORDER_REPLICATE);
+    //cv::blur(cv::Mat(s1_), opencv_s2, cv::Size(5, 5), cv::Point(-1,-1), cv::BORDER_REPLICATE);
     fill_border_clamp(s2_);
   }
 

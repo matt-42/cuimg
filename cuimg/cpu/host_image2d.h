@@ -24,6 +24,7 @@ namespace cuimg
   template <typename V>
   class kernel_image2d;
 
+
   template <typename V>
   class host_image2d : public Image2d<host_image2d<V> >
   {

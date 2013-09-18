@@ -27,12 +27,6 @@ namespace cuimg
 
 
   inline __host__ __device__
-  bool operator==(const box2d& a, const box2d& b)
-  {
-    return a.nrows() == b.nrows() && a.ncols() == b.ncols();
-  }
-
-  inline __host__ __device__
   box2d operator-(const obox2d& d, const border& bd)
   {
     int b = bd.thickness();

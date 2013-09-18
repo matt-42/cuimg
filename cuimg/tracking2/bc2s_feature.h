@@ -34,6 +34,7 @@ namespace cuimg
       float4 tex_float;
     };
 
+    inline __host__ __device__
     void update_weights(const bc2s& f);
 
     union
