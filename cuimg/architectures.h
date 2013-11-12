@@ -2,6 +2,7 @@
 # define CUIMG_ARCHITECTURES_H_
 
 # include <cassert>
+# include <vector>
 
 # include <cuimg/gpu/cuda.h>
 # include <cuimg/obox2d.h>
