@@ -42,39 +42,39 @@ namespace cuimg
 
       if (scale == 1)
       {
-	// auto data = B(o.s1_, n);
-	for(int i = 0; i < 8; i ++)
-	{
-	  int v = data[o.offsets_s1(i)].x;
-	  //int v = o.s1_[idx + o.offsets_s1(i)].x;
-	  //d += (v - a[i]) * (v - a[i]);
+        // auto data = B(o.s1_, n);
+        for(int i = 0; i < 8; i ++)
+        {
+          int v = data[o.offsets_s1(i)].x;
+          //int v = o.s1_[idx + o.offsets_s1(i)].x;
+          //d += (v - a[i]) * (v - a[i]);
 
-	  //d += ::abs(v - a[i]);
-	  d += ::abs(v - a[i]) * a.weights[i];
-	  wsum += a.weights[i];
-	}
-	//return sqrt(d) * 6;
+          //d += ::abs(v - a[i]);
+          d += ::abs(v - a[i]) * a.weights[i];
+          wsum += a.weights[i];
+        }
+        //return sqrt(d) * 6;
       }
       //else
       {
-	{
-	  //idx = o.s2_.point_to_index(n);
-	  //auto data = B(o.s2_, n);
-	  data = &o.s2_(n);
-	  for(int i = 0; i < 8; i ++)
-	  {
-	    int v = data[o.offsets_s2(i)].x;
-	    //int v = o.s2_[idx + o.offsets_s2(i)].x;
+        {
+          //idx = o.s2_.point_to_index(n);
+          //auto data = B(o.s2_, n);
+          data = &o.s2_(n);
+          for(int i = 0; i < 8; i ++)
+          {
+            int v = data[o.offsets_s2(i)].x;
+            //int v = o.s2_[idx + o.offsets_s2(i)].x;
 
-	    //d2 += ::abs(v - a[8+i]);
+            //d2 += ::abs(v - a[8+i]);
 
-	    d2 += ::abs(v - a[8+i]) * a.weights[8+i];
-	    wsum += a.weights[8+i];
+            d2 += ::abs(v - a[8+i]) * a.weights[8+i];
+            wsum += a.weights[8+i];
 
-	    //d2 += (v - a[8+i]) * (v - a[8+i]);
-	  }
-	  //return sqrt(d2) * 6;
-	}
+            //d2 += (v - a[8+i]) * (v - a[8+i]);
+          }
+          //return sqrt(d2) * 6;
+        }
       }
 
       // return d / (255.f * 16.f);
@@ -82,9 +82,9 @@ namespace cuimg
       //return d + 25 * d2 + 2 * 5 * d * d2;
       //return ::sqrt(d) + ::sqrt(d2) * 6;
       // if (scale == 1)
-      // 	return (d + d2) / 8;
+      //   return (d + d2) / 8;
       // else
-      // 	return (d + d2) / (8);
+      //   return (d + d2) / (8);
 
       return (d + d2) / 255;
       //return sqrt(d) * 6;
@@ -97,19 +97,19 @@ namespace cuimg
       int d = 0;
       if (scale == 1)
       {
-	for(int i = 0; i < 8; i ++)
-	{
-	  int v = tex2D(bc2s_tex_s1, n.c() + circle_r3[i][1], n.r() + circle_r3[i][0]).x;
-	  d += ::abs(v - a[i]);
-	}
+        for(int i = 0; i < 8; i ++)
+        {
+          int v = tex2D(bc2s_tex_s1, n.c() + circle_r3[i][1], n.r() + circle_r3[i][0]).x;
+          d += ::abs(v - a[i]);
+        }
       }
       //else
       {
-	for(int i = 0; i < 8; i ++)
-	{
-	  int v = tex2D(bc2s_tex_s2, n.c() + circle_r3[i][1] * 2, n.r() + circle_r3[i][0] * 2).x;
-	  d += ::abs(v - a[8+i]) * 5;
-	}
+        for(int i = 0; i < 8; i ++)
+        {
+          int v = tex2D(bc2s_tex_s2, n.c() + circle_r3[i][1] * 2, n.r() + circle_r3[i][0] * 2).x;
+          d += ::abs(v - a[8+i]) * 5;
+        }
       }
 
       // return d / (255.f * 16.f);
@@ -127,16 +127,16 @@ namespace cuimg
       const typename O::V* data = &o.s1_(n);
       for(int i = 0; i < 8; i ++)
       {
-	// assert(o.s1_.begin() <= data + o.offsets_s1(i));
-	// assert(o.s1_.end() > data + o.offsets_s1(i));
+        // assert(o.s1_.begin() <= data + o.offsets_s1(i));
+        // assert(o.s1_.end() > data + o.offsets_s1(i));
         b[i] = data[o.offsets_s1(i)].x;
       }
 
       data = &o.s2_(n);
       for(int i = 0; i < 8; i ++)
       {
-	// assert(o.s2_.begin() <= data + o.offsets_s2(i));
-	// assert(o.s2_.end() > data + o.offsets_s2(i));
+        // assert(o.s2_.begin() <= data + o.offsets_s2(i));
+        // assert(o.s2_.end() > data + o.offsets_s2(i));
         b[i+8] = data[o.offsets_s2(i)].x;
       }
 
@@ -151,7 +151,7 @@ namespace cuimg
 
       for(int i = 0; i < 8; i ++)
       {
-	b[i] = tex2D(bc2s_tex_s1, n.c() + circle_r3[i][1], n.r() + circle_r3[i][0]).x;
+        b[i] = tex2D(bc2s_tex_s1, n.c() + circle_r3[i][1], n.r() + circle_r3[i][0]).x;
       }
 
       for(int i = 0; i < 8; i ++)
@@ -235,7 +235,7 @@ namespace cuimg
   {
     SCOPE_PROF(bc2s_feature::update);
 
-    #ifdef WITH_OPENCV
+#ifdef WITH_OPENCV
     cv::Mat opencv_s1(s1_);
     cv::Mat opencv_s2(s2_);
     cv::GaussianBlur(cv::Mat(in), opencv_s1, cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE);
@@ -243,13 +243,13 @@ namespace cuimg
     cv::GaussianBlur(cv::Mat(s1_), opencv_s2, cv::Size(5, 5), 1.8, 1.8, cv::BORDER_REPLICATE);
     fill_border_clamp(s2_);
 
-    #else
+#else
 
     gaussian_blur_sigma1(in, s1_, tmp_);
     gaussian_blur_sigma1(s1_, s2_, tmp_);
     fill_border_clamp(s1_);
     fill_border_clamp(s2_);
-    #endif
+#endif
   }
 
 #ifndef NO_CUDA
@@ -335,21 +335,21 @@ namespace cuimg
     //   scales[o.domain().size()] = i;
     //   switch (scales[o.domain().size()])
     //   {
-    // 	case 0:
-    // 	  std::cout << "load 0" << std::endl;
-    // 	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_0, o.offsets_s1_, sizeof(o.offsets_s1_));
-    // 	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_0, o.offsets_s2_, sizeof(o.offsets_s2_));
-    // 	  break;
-    // 	case 1:
-    // 	  std::cout << "load 1" << std::endl;
-    // 	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_1, o.offsets_s1_, sizeof(o.offsets_s1_));
-    // 	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_1, o.offsets_s2_, sizeof(o.offsets_s2_));
-    // 	  break;
-    // 	case 2:
-    // 	  std::cout << "load 2" << std::endl;
-    // 	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_2, o.offsets_s1_, sizeof(o.offsets_s1_));
-    // 	  cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_2, o.offsets_s2_, sizeof(o.offsets_s2_));
-    // 	  break;
+    //   case 0:
+    //     std::cout << "load 0" << std::endl;
+    //     cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_0, o.offsets_s1_, sizeof(o.offsets_s1_));
+    //     cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_0, o.offsets_s2_, sizeof(o.offsets_s2_));
+    //     break;
+    //   case 1:
+    //     std::cout << "load 1" << std::endl;
+    //     cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_1, o.offsets_s1_, sizeof(o.offsets_s1_));
+    //     cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_1, o.offsets_s2_, sizeof(o.offsets_s2_));
+    //     break;
+    //   case 2:
+    //     std::cout << "load 2" << std::endl;
+    //     cudaMemcpyToSymbol(cuda_bc2s_offsets_s1_2, o.offsets_s1_, sizeof(o.offsets_s1_));
+    //     cudaMemcpyToSymbol(cuda_bc2s_offsets_s2_2, o.offsets_s2_, sizeof(o.offsets_s2_));
+    //     break;
     //   }
     // }
     // scaleid_ = scales[o.domain().size()];
@@ -478,6 +478,8 @@ namespace cuimg
       //weights[i] = 255.f / (d/5.f + 1);
       //weights[i] = 255;
     }
+	}
+
 }
 
 #endif

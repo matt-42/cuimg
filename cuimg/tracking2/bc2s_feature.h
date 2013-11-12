@@ -138,13 +138,3 @@ namespace cuimg
 # include <cuimg/tracking2/bc2s_feature.hpp>
 
 #endif
-
-
-
-
-
-
-
-
-
-
