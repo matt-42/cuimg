@@ -2,13 +2,7 @@
 #include <vector>
 
 #include <cuimg/profiler.h>
-#include <cuimg/video_capture.h>
-#include <cuimg/improved_builtin.h>
-#include <cuimg/target.h>
-
-#include <cuimg/copy.h>
 #include <cuimg/dsl/all.h>
-#include <cuimg/gpu/device_image2d.h>
 #include <cuimg/cpu/host_image2d.h>
 
 #include <cuimg/tracking2/tracker.h>
