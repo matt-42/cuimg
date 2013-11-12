@@ -13,3 +13,9 @@ Its main features are:
 
 An example to use the semi dense tracker is available here:
 https://github.com/matt-42/cuimg/tree/master/samples/tracking
+
+
+Dependencies:
+    - Boost
+    - OpenCV
+    - Cuda (optional, disable it with -DNO_CUDA )

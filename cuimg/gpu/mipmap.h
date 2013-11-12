@@ -3,6 +3,8 @@
 
 //# include <opencv2/opencv.hpp>
 
+# include <cuimg/profiler.h>
+
 # include <cuimg/image_traits.h>
 # include <cuimg/util.h>
 # include <cuimg/gpu/mipmap.h>

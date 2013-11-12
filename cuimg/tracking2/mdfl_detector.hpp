@@ -246,56 +246,6 @@ namespace cuimg
 
   }
 
-
-  mdfl_2s_detector::mdfl_2s_detector(const obox2d& d)
-    : mdfl_1s_detector(d),
-      input_s1_(d)
-  {
-  }
-
-
-  template <typename J>
-  void
-  mdfl_2s_detector::update(const host_image2d<gl8u>& input, const J& mask)
-  {
-    START_PROF(mdfl2s_compute_saliency);
-
-    dim3 dimblock = ::cuimg::dimblock(cpu(), sizeof(i_uchar1), input.domain());
-    //FIXME local_jet_static_<0, 0, 1, 1>::run(input, input_s1_, tmp_, 0, dimblock);
-    //local_jet_static_<0, 0, 1, 1>::run(input, input_s2_, tmp_, 0, dimblock);
-
-    cv::Mat cv_s2(input_s2_);
-    cv::GaussianBlur(cv::Mat(input), cv_s2, cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE);
-
-    mt_apply2d(sizeof(i_float1), input.domain() - border(8),
-	       [this, &input] (i_int2 p)
-	       {
-		 // std::pair<int, int> r1 = mdfl::compute_saliency(p, input, 1, contrast_th_);
-		 // std::pair<int, int> r2 = mdfl::compute_saliency(p, input_s2_, 2, contrast_th_);
-		 // int c = std::min(r1.second, r2.second);
-		 // contrast_(p) = c;
-		 // if (c > 0)
-		 //   saliency_(p) = 255 * std::min(r1.first, r2.first) / c;
-
-		 std::pair<int, int> r1 = mdfl::compute_saliency(p, input, 1, contrast_th_);
-		 std::pair<int, int> r2 = mdfl::compute_saliency(p, input_s2_, 2, contrast_th_);
-		 int s1 = 0;
-		 if (r1.second > 0) s1 = 255 * r1.first / r1.second;
-		 //if (r1.second > 0) s1 = r1.first;
-		 int s2 = 0;
-		 if (r2.second > 0) s2 = 255 * r2.first / r2.second;
-		 //if (r2.second > 0) s2 = r2.first;
-		 int c = std::max(r1.second, r2.second);
-		 contrast_(p) = c;
-		 if (c > 0)
-		   saliency_(p) = std::max(s1, s2);
-		 else
-		   saliency_(p) = 0;
-	       }, cpu());
-
-    END_PROF(mdfl2s_compute_saliency);
-  }
-
 #endif
 
 }

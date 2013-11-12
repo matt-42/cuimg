@@ -4,6 +4,7 @@
 # include <cuimg/gpu/cuda.h>
 # include <cuimg/point2d.h>
 # include <cuimg/neighb2d.h>
+# include <cuimg/box2d.h>
 
 namespace cuimg
 {
@@ -124,6 +125,21 @@ namespace cuimg
         error = error - 1.0;
       }
     }
+  }
+
+  template <typename I, typename V>
+    __host__ __device__ void draw_box2d(I& out, const box2d& bb, const V& value)
+  {
+    i_int2 diag = bb.p2() - bb.p1();
+    i_int2 a(bb.p1());
+    i_int2 b(a + i_int2(diag.r(), 0));
+    i_int2 c(b + i_int2(0 , diag.c()));
+    i_int2 d(a + i_int2(0 , diag.c()));
+
+    draw_line2d(out, a, b, value);
+    draw_line2d(out, b, c, value);
+    draw_line2d(out, d, c, value);
+    draw_line2d(out, d, a, value);
   }
 
 }

@@ -154,7 +154,7 @@ namespace cuimg
   grid2d_iterator&
   grid2d_iterator::operator++()
   {
-    if (cell_.p1().c() <= (line_end_ - cell_nc_))
+    if (cell_.p1().c() < (line_end_ - cell_nc_))
     {
       cell_.p1().c() += cell_nc_;
       cell_.p2().c() += cell_nc_;

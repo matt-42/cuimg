@@ -11,14 +11,12 @@
 # include <cuimg/gl.h>
 
 # include <cuimg/tracking2/bc2s_feature.h>
-# include <cuimg/tracking2/mdfl_detector.h>
 # include <cuimg/tracking2/miel2_detector.h>
 # include <cuimg/tracking2/miel3_detector.h>
 # include <cuimg/tracking2/fast_detector.h>
 # include <cuimg/tracking2/fastnc_detector.h>
 # include <cuimg/tracking2/dense_detector.h>
 # include <cuimg/tracking2/regular_detector.h>
-# include <cuimg/tracking2/gradient_detector.h>
 # include <cuimg/tracking2/particle_container.h>
 # include <cuimg/tracking2/dominant_speed_estimator.h>
 # include <cuimg/tracking2/rigid_transform_estimator.h>
@@ -110,65 +108,6 @@ namespace cuimg
       bool with_merge_;
     };
 
-    struct bc2s_mdfl_gradient_cpu
-      : public generic_strategy<bc2s_feature<cpu>, mdfl_1s_detector,
-    				particle_container<bc2s_feature<cpu>, particle, cpu>,
-    				host_image2d<gl8u> >
-    {
-    public:
-      typedef generic_strategy<bc2s_feature<cpu>, mdfl_1s_detector,
-    			       particle_container<bc2s_feature<cpu>, particle, cpu>,
-    			       host_image2d<gl8u> > super;
-
-      inline bc2s_mdfl_gradient_cpu(const obox2d& o);
-
-      inline void init();
-    };
-
-
-    /* struct bc2s_mdfl_gradient_cpu */
-    /*   : public generic_strategy<bc2s_256_feature<host_image2d>, mdfl_1s_detector, */
-    /* 				particle_container<bc2s_256_feature<host_image2d> >, */
-    /* 				host_image2d<gl8u> > */
-    /* { */
-    /* public: */
-    /*   typedef generic_strategy<bc2s_256_feature<host_image2d>, mdfl_1s_detector, */
-    /* 			       particle_container<bc2s_256_feature<host_image2d> >, */
-    /* 			       host_image2d<gl8u> > super; */
-
-    /*   inline bc2s_mdfl_gradient_cpu(const obox2d& o); */
-
-    /*   inline void init(); */
-    /* }; */
-
-
-    struct bc2s64_mdfl_gradient_cpu
-      : public generic_strategy<bc2s64_feature<cpu>, mdfl_1s_detector,
-				particle_container<bc2s64_feature<cpu> >,
-				host_image2d<gl8u> >
-    {
-    public:
-      typedef generic_strategy<bc2s64_feature<cpu>, mdfl_1s_detector,
-			       particle_container<bc2s64_feature<cpu> >,
-			       host_image2d<gl8u> > super;
-
-      inline bc2s64_mdfl_gradient_cpu(const obox2d& o);
-    };
-
-
-    struct bc2s_mdfl2s_gradient_cpu
-      : public generic_strategy<bc2s_feature<cpu>, mdfl_2s_detector,
-				particle_container<bc2s_feature<cpu> >,
-				host_image2d<gl8u> >
-    {
-    public:
-      typedef generic_strategy<bc2s_feature<cpu>, mdfl_2s_detector,
-			       particle_container<bc2s_feature<cpu> >,
-			       host_image2d<gl8u> > super;
-
-      inline bc2s_mdfl2s_gradient_cpu(const obox2d& o) : super(o) {}
-      inline void init() {};
-    };
 
     struct bc2s_miel2_gradient_cpu
       : public generic_strategy<bc2s_feature<cpu>, miel2_1s_detector,
@@ -196,19 +135,6 @@ namespace cuimg
 
       inline bc2s_miel3_gradient_cpu(const obox2d& o) : super(o) {}
       inline void init() {};
-    };
-
-    struct bc2s_mdfl_gradient_multiscale_prediction_cpu
-      : public bc2s_mdfl_gradient_cpu
-    {
-    public:
-
-      inline bc2s_mdfl_gradient_multiscale_prediction_cpu(const obox2d& d)
-	: bc2s_mdfl_gradient_cpu(d) {}
-
-      inline i_short2 prediction(const particle& p);
-      inline void match_particles(particles_type& pset);
-      inline void update(const input& in, particles_type& pset);
     };
 
     struct bc2s_fast_gradient_cpu
@@ -257,21 +183,6 @@ namespace cuimg
       inline void init() {}
     };
 
-    struct bc2s_gradient_gradient_cpu
-      : public generic_strategy<bc2s_feature<cpu>, gradient_detector,
-				particle_container<bc2s_feature<cpu> >,
-				host_image2d<gl8u> >
-    {
-    public:
-      typedef generic_strategy<bc2s_feature<cpu>, gradient_detector,
-			       particle_container<bc2s_feature<cpu> >,
-			       host_image2d<gl8u> > super;
-
-      inline bc2s_gradient_gradient_cpu(const obox2d& o) :super(o) {}
-
-      inline void init() {}
-    };
-    
     #ifndef NO_CUDA
     struct bc2s_fast_gradient_gpu
       : public generic_strategy<bc2s_feature<cuda_gpu>, fast_detector<cuda_gpu>,
@@ -315,35 +226,6 @@ namespace cuimg
 			       host_image2d<gl8u> > super;
 
       inline bc2s_dense_gradient_cpu(const obox2d& o) : super(o) {}
-      inline void init() {}
-    };
-
-    struct bc2s_256_dense_gradient_cpu
-      : public generic_strategy<bc2s_256_feature<cpu>, dense_detector,
-				particle_container<bc2s_256_feature<cpu> >,
-				host_image2d<gl8u> >
-    {
-    public:
-      typedef generic_strategy<bc2s_256_feature<cpu>, dense_detector,
-			       particle_container<bc2s_256_feature<cpu> >,
-			       host_image2d<gl8u> > super;
-
-      inline bc2s_256_dense_gradient_cpu(const obox2d& o) : super(o) {}
-      inline void init() {}
-    };
-
-
-    struct bc2s_256_miel2_gradient_cpu
-      : public generic_strategy<bc2s_256_feature<cpu>, miel2_1s_detector,
-				particle_container<bc2s_256_feature<cpu> >,
-				host_image2d<gl8u> >
-    {
-    public:
-      typedef generic_strategy<bc2s_256_feature<cpu>, miel2_1s_detector,
-			       particle_container<bc2s_256_feature<cpu> >,
-			       host_image2d<gl8u> > super;
-
-      inline bc2s_256_miel2_gradient_cpu(const obox2d& o) : super(o) {}
       inline void init() {}
     };
 

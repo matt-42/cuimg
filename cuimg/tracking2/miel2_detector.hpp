@@ -84,8 +84,13 @@ namespace cuimg
       offsets[i] = (int(input.pitch()) * o.r()) / sizeof(gl8u) + o.c();
     }
 
-    cv::Mat opencv_s2(input_s2_);
-    cv::GaussianBlur(cv::Mat(input), opencv_s2, cv::Size(11, 11), 1, 1, cv::BORDER_REPLICATE);
+    #ifdef WITH_OPENCV
+      cv::Mat opencv_s2(input_s2_);
+      cv::GaussianBlur(cv::Mat(input), opencv_s2, cv::Size(11, 11), 1, 1, cv::BORDER_REPLICATE);
+    #else
+      // FIXME
+    #endif
+
     fill_border_clamp(input_s2_);
 
     dim3 dimblock = ::cuimg::dimblock(cpu(), sizeof(i_uchar1), input.domain());

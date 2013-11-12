@@ -76,6 +76,7 @@ namespace cuimg
 
     typedef A architecture;
     typedef kernel_particle_container<F, P, A> kernel_type;
+    kernel_type to_kernel_type() { return *this; }
 
     particle_container(const obox2d& d);
 

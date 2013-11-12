@@ -44,53 +44,6 @@ namespace cuimg
     };
   };
 
-  struct bc2s_256
-  {
-    inline __host__ __device__ bc2s_256();
-    inline __host__ __device__ bc2s_256(const bc2s_256& o);
-
-    inline __host__ __device__
-    bc2s_256& operator=(const bc2s_256& o);
-
-    inline __host__ __device__
-    const unsigned char& operator[](const unsigned i) const;
-
-    inline __host__ __device__
-    unsigned char& operator[](const unsigned i);
-
-    union
-    {
-      unsigned char distances[32];
-      float4 tex_float[2];
-    };
-
-  };
-
-
-  struct bc2s64
-  {
-    inline __host__ __device__ bc2s64();
-    //inline __host__ __device__ bc2s64(const float2& o);
-    inline __host__ __device__ bc2s64(const bc2s64& o);
-
-    inline __host__ __device__
-    bc2s64& operator=(const bc2s64& o);
-
-    inline __host__ __device__
-    const unsigned char& operator[](const unsigned i) const;
-
-    inline __host__ __device__
-    unsigned char& operator[](const unsigned i);
-
-    union
-    {
-      unsigned char distances[8];
-      double tex_float;
-      //float2 tex_float;
-    };
-
-  };
-
 #ifndef NO_CUDA
   class cuda_bc2s_feature;
 #endif
@@ -179,60 +132,19 @@ namespace cuimg
   };
 #endif
 
-  template <typename A>
-  class bc2s_256_feature
-  {
-  public:
-    typedef A architecture;
-    typedef gl8u V;
-    typedef typename A::template image2d<V>::ret I;
-    typedef bc2s_256 value_type;
-    bc2s_256_feature(const obox2d& o);
-    bc2s_256_feature(const bc2s_256_feature<A>& f);
-    bc2s_256_feature& operator=(const bc2s_256_feature<A>& f);
-
-    inline const obox2d& domain() const { return s1_.domain(); }
-
-    void update(const I& in, const cpu&);
-    int distance(const bc2s_256& a, const i_short2& n, unsigned scale = 1);
-    bc2s_256 operator()(const i_short2& p) const;
-
-    const I& s1() const { return s1_; }
-    const I& s2() const { return s2_; }
-
-    inline int border_needed() const { return 6; }
-
-    inline int offsets_s1(int o) const { return offsets_s1_[o]; }
-    inline int offsets_s2(int o) const { return offsets_s2_[o]; }
-
-    void swap(bc2s_256_feature<A>& o);
-    void bind() {}
-
-  public:
-    I s1_;
-    I s2_;
-    I tmp_;
-    int offsets_s1_[16];
-    int offsets_s2_[16];
-  };
-
-
-  template <typename A>
-  class bc2s64_feature : public bc2s_feature<A>
-  {
-  public:
-    typedef bc2s64 value_type;
-
-    typedef gl8u V;
-    bc2s64_feature(const obox2d& o);
-
-    int distance(const bc2s64& a, const i_short2& n);
-    bc2s64 operator()(const i_short2& p) const;
-  };
 
 }
 
 # include <cuimg/tracking2/bc2s_feature.hpp>
 
 #endif
+
+
+
+
+
+
+
+
+
 

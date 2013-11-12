@@ -116,7 +116,7 @@ namespace cuimg
       cell_nr_(cell_nr),
       cell_nc_(cell_nc)
     {
-      int nr = 1 + idivup(b.nrows(), cell_nr_);
+      int nr = idivup(b.nrows(), cell_nr_);
       end_ = box2d(b.p1() + i_int2(cell_nr_ * nr, 0),
 		   b.p1() + i_int2(cell_nr_ * (nr+1), cell_nc_));
     }

@@ -35,6 +35,30 @@ namespace cuimg
   /*   std::vector<pthread_t> threads_; */
   /* }; */
 
+#ifdef MONO_THREAD
+  template <typename ARCH, typename F>
+  inline void mt_apply2d(int elt_size, const obox2d& domain, const F& f_, ARCH = cpu())
+  {
+    F& f = *const_cast<F*>(&f_);
+    dim3 dimblock = ::cuimg::dimblock(ARCH(), elt_size, domain);
+    for (unsigned r = 0; r < domain.nrows(); r++)
+      for (unsigned c = 0; c < domain.ncols(); c++)
+        f(i_int2(r, c));
+  }
+
+
+  template <typename ARCH, typename F>
+  inline void mt_apply2d(int elt_size, const box2d& domain, const F& f_, ARCH = cpu())
+  {
+    F& f = *const_cast<F*>(&f_);
+    dim3 dimblock = ::cuimg::dimblock(ARCH(), elt_size, domain);
+    for (int r = domain.p1().r(); r <= domain.p2().r(); r++)
+      for (int c = domain.p1().c(); c <= domain.p2().c(); c++)
+        f(i_int2(r, c));
+  }
+
+#else
+  
 #ifdef NO_OPENMP
 
   struct thread_pool
@@ -118,6 +142,9 @@ namespace cuimg
         f(i_int2(r, c));
   }
 #endif
+#endif
+
+
 
   template <typename ARCH, typename F>
   inline void st_apply2d(int elt_size, const box2d& domain, const F& f, ARCH = cpu())

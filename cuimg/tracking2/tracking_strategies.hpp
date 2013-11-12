@@ -17,24 +17,6 @@ namespace cuimg
   namespace tracking_strategies
   {
 
-    bc2s_mdfl_gradient_cpu::bc2s_mdfl_gradient_cpu(const obox2d& d)
-      : super(d)
-    {
-    }
-
-    bc2s64_mdfl_gradient_cpu::bc2s64_mdfl_gradient_cpu(const obox2d& d)
-      : super(d)
-    {
-    }
-
-    void
-    bc2s_mdfl_gradient_cpu::init()
-    {
-      detector_
-        .set_contrast_threshold(60)
-        .set_dev_threshold(0.5f);
-    }
-
 
     bc2s_fast_gradient_cpu::bc2s_fast_gradient_cpu(const obox2d& d)
       : super(d)
