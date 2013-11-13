@@ -104,7 +104,6 @@ int main(int argc, char* argv[])
   cv::namedWindow("Video");
   while (video.read(input_)) // For each frame
   {
-    std::cout << "Read new image" << std::endl;
     cv::imshow("Video", input_);
     cv::waitKey(10);
     host_image2d<i_uchar3> frame(input_);
