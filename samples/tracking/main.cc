@@ -1,12 +1,12 @@
 #include <iostream>
 #include <vector>
 #include <sys/time.h>
+
 #include <cuimg/profiler.h>
 #include <cuimg/dsl/all.h>
 #include <cuimg/cpu/host_image2d.h>
 
 #include <cuimg/tracking2/tracker.h>
-
 
 using namespace cuimg;
 
@@ -112,6 +112,7 @@ int main(int argc, char* argv[])
     int64_t t = get_systemtime_usecs();
     tr1.run(frame_gl);
     std::cout << "tr1.run took " << (get_systemtime_usecs() - t)/1000.0 << "ms" << std::endl;
+ 
     for (unsigned s = 0; s < NSCALES; s++)
     {
       // Sync trajectories buffer with particles
