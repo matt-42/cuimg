@@ -101,12 +101,12 @@ int main(int argc, char* argv[])
   std::vector<std::vector<trajectory> > trajectories(NSCALES);
 
   cv::Mat input_;
-  cv::namedWindow("test");
+  cv::namedWindow("Video");
   while (video.read(input_)) // For each frame
   {
     std::cout << "Read new image" << std::endl;
-    cv::imshow("test", input_);
-    cv::waitKey(100);
+    cv::imshow("Video", input_);
+    cv::waitKey(10);
     host_image2d<i_uchar3> frame(input_);
     frame_gl = get_x(frame); // Basic Gray level conversion.
     int64_t t = get_systemtime_usecs();
