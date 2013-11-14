@@ -79,6 +79,7 @@ install(DIRECTORY cuimg DESTINATION include
 install(DIRECTORY cuimg DESTINATION include
   FILES_MATCHING PATTERN "*.hpp")
 
+add_subdirectory(samples/tracking)
 
 #ENABLE_TESTING()
 
