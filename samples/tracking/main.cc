@@ -1,20 +1,21 @@
 #include <iostream>
 #include <vector>
+#include <sys/time.h>
 
 #include <cuimg/profiler.h>
-#include <cuimg/video_capture.h>
-#include <cuimg/improved_builtin.h>
-#include <cuimg/target.h>
-
-#include <cuimg/copy.h>
 #include <cuimg/dsl/all.h>
-#include <cuimg/gpu/device_image2d.h>
 #include <cuimg/cpu/host_image2d.h>
 
 #include <cuimg/tracking2/tracker.h>
 
-
 using namespace cuimg;
+
+int64_t get_systemtime_usecs()
+{
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return (int64_t) tv.tv_sec * 1000000LL + (int64_t) tv.tv_usec;
+}
 
 // trajectory store a short term trajectory.
 struct trajectory
@@ -100,12 +101,17 @@ int main(int argc, char* argv[])
   std::vector<std::vector<trajectory> > trajectories(NSCALES);
 
   cv::Mat input_;
+  cv::namedWindow("Video");
   while (video.read(input_)) // For each frame
   {
+    cv::imshow("Video", input_);
+    cv::waitKey(10);
     host_image2d<i_uchar3> frame(input_);
     frame_gl = get_x(frame); // Basic Gray level conversion.
+    int64_t t = get_systemtime_usecs();
     tr1.run(frame_gl);
-
+    std::cout << "tr1.run took " << (get_systemtime_usecs() - t)/1000.0 << "ms" << std::endl;
+ 
     for (unsigned s = 0; s < NSCALES; s++)
     {
       // Sync trajectories buffer with particles
