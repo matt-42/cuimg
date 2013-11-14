@@ -5,6 +5,7 @@
 #include <cuimg/profiler.h>
 #include <cuimg/dsl/all.h>
 #include <cuimg/cpu/host_image2d.h>
+#include <cuimg/draw.h>
 
 #include <cuimg/tracking2/tracker.h>
 
@@ -66,6 +67,7 @@ int main(int argc, char* argv[])
   else
   {
     std::cout << "Usage: ./tracking_qt video_file nscales detector_threshold" << std::endl;
+    std::cout << "Hint for a first run: nscale = 3, detector_threshold = 20 " << std::endl;
     return -1;
   }
 
@@ -87,12 +89,14 @@ int main(int argc, char* argv[])
   obox2d domain(video.get(CV_CAP_PROP_FRAME_HEIGHT), video.get(CV_CAP_PROP_FRAME_WIDTH));
   host_image2d<gl8u> frame_gl(domain);
 
+  host_image2d<i_uchar3> display(domain);
+
   // Tracker definition
   typedef tracker<tracking_strategies::bc2s_fast_gradient_cpu> T1;
   T1 tr1(domain, NSCALES);
 
   // Tracker settings
-  tr1.strategy().set_detector_frequency(1);
+  tr1.strategy().set_detector_frequency(10);
   tr1.strategy().set_filtering_frequency(1);
   for (unsigned s = 0; s < NSCALES; s++)
     tr1.scale(s).strategy().detector().set_n(9).set_fast_threshold(detector_threshold);
@@ -101,17 +105,14 @@ int main(int argc, char* argv[])
   std::vector<std::vector<trajectory> > trajectories(NSCALES);
 
   cv::Mat input_;
-  cv::namedWindow("Video");
   while (video.read(input_)) // For each frame
   {
-    cv::imshow("Video", input_);
-    cv::waitKey(10);
     host_image2d<i_uchar3> frame(input_);
     frame_gl = get_x(frame); // Basic Gray level conversion.
     int64_t t = get_systemtime_usecs();
     tr1.run(frame_gl);
     std::cout << "tr1.run took " << (get_systemtime_usecs() - t)/1000.0 << "ms" << std::endl;
- 
+
     for (unsigned s = 0; s < NSCALES; s++)
     {
       // Sync trajectories buffer with particles
@@ -119,6 +120,19 @@ int main(int argc, char* argv[])
       // Update trajectories.
       update_trajectories(trajectories[s], tr1.scale(s).pset());
     }
+
+    // Display trajectories at the finest scale.
+    copy(frame, display);
+    for (auto& t : trajectories[0]) if (t.history.size() > 0)
+    {
+      auto& v = t.history;
+      for (int i = std::max(int(v.size() - 10), 0); i < v.size() - 1; i++)
+	draw_line2d(display, v[i], v[i+1], i_uchar3(0,0,0));
+      draw_c8(display, v.back(), i_uchar3(0,0,255));
+    }
+
+    cv::imshow("Trajectories", cv::Mat(display));
+    cv::waitKey(10);
   }
 
   return 0;
