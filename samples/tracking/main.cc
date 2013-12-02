@@ -62,29 +62,35 @@ int main(int argc, char* argv[])
 
   if (argc == 4)
   {
-    video.open(argv[1]);
+    video.open(argv[3]);
+  }
+  else if (argc == 3)
+  {
+    // try open camera
+    video.open(0);
   }
   else
   {
-    std::cout << "Usage: ./tracking_qt video_file nscales detector_threshold" << std::endl;
+    std::cout << "Usage: ./tracking_sample nscales detector_threshold [video_file]" << std::endl;
     std::cout << "Hint for a first run: nscale = 3, detector_threshold = 20 " << std::endl;
     return -1;
   }
 
   if(!video.isOpened())
   {
-    std::cout << "Cannot open " << argv[1] << std::endl;
+    std::cout << "Cannot open " << argv[3] << std::endl;
     return -1;
   }
 
-  int NSCALES = atoi(argv[2]);
+  int NSCALES = atoi(argv[1]);
   if (NSCALES <= 0 or NSCALES >= 10)
   {
-    std::cout << "NSCALE should be > 0 and < 10, got " << argv[2] << std::endl;
+    std::cout << "NSCALE should be > 0 and < 10, got " << argv[1] << std::endl;
     return -1;
   }
 
-  int detector_threshold = atoi(argv[3]);
+  // Detector threshold (lower it for more points) - 50 for example
+  int detector_threshold = atoi(argv[2]);
 
   obox2d domain(video.get(CV_CAP_PROP_FRAME_HEIGHT), video.get(CV_CAP_PROP_FRAME_WIDTH));
   host_image2d<gl8u> frame_gl(domain);
