@@ -129,12 +129,15 @@ int main(int argc, char* argv[])
 
     // Display trajectories at the finest scale.
     copy(frame, display);
-    for (auto& t : trajectories[0]) if (t.history.size() > 0)
+    for (auto& t : trajectories[0])
     {
-      auto& v = t.history;
-      for (int i = std::max(int(v.size() - 10), 0); i < v.size() - 1; i++)
-	draw_line2d(display, v[i], v[i+1], i_uchar3(0,0,0));
-      draw_c8(display, v.back(), i_uchar3(0,0,255));
+      if (t.history.size() > 0)
+      {
+        auto& v = t.history;
+        for (int i = std::max(int(v.size() - 10), 0); i < v.size() - 1; i++)
+          draw_line2d(display, v[i], v[i+1], i_uchar3(0,0,0));
+        draw_c8(display, v.back(), i_uchar3(0,0,255));
+      }
     }
 
     cv::imshow("Trajectories", cv::Mat(display));
