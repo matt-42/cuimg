@@ -62,29 +62,35 @@ int main(int argc, char* argv[])
 
   if (argc == 4)
   {
-    video.open(argv[1]);
+    video.open(argv[3]);
+  }
+  else if (argc == 3)
+  {
+    // try open camera
+    video.open(0);
   }
   else
   {
-    std::cout << "Usage: ./tracking_qt video_file nscales detector_threshold" << std::endl;
+    std::cout << "Usage: ./tracking_sample nscales detector_threshold [video_file]" << std::endl;
     std::cout << "Hint for a first run: nscale = 3, detector_threshold = 20 " << std::endl;
     return -1;
   }
 
   if(!video.isOpened())
   {
-    std::cout << "Cannot open " << argv[1] << std::endl;
+    std::cout << "Cannot open " << argv[3] << std::endl;
     return -1;
   }
 
-  int NSCALES = atoi(argv[2]);
+  int NSCALES = atoi(argv[1]);
   if (NSCALES <= 0 or NSCALES >= 10)
   {
-    std::cout << "NSCALE should be > 0 and < 10, got " << argv[2] << std::endl;
+    std::cout << "NSCALE should be > 0 and < 10, got " << argv[1] << std::endl;
     return -1;
   }
 
-  int detector_threshold = atoi(argv[3]);
+  // Detector threshold (lower it for more points) - 50 for example
+  int detector_threshold = atoi(argv[2]);
 
   obox2d domain(video.get(CV_CAP_PROP_FRAME_HEIGHT), video.get(CV_CAP_PROP_FRAME_WIDTH));
   host_image2d<gl8u> frame_gl(domain);
@@ -123,12 +129,15 @@ int main(int argc, char* argv[])
 
     // Display trajectories at the finest scale.
     copy(frame, display);
-    for (auto& t : trajectories[0]) if (t.history.size() > 0)
+    for (auto& t : trajectories[0])
     {
-      auto& v = t.history;
-      for (int i = std::max(int(v.size() - 10), 0); i < v.size() - 1; i++)
-	draw_line2d(display, v[i], v[i+1], i_uchar3(0,0,0));
-      draw_c8(display, v.back(), i_uchar3(0,0,255));
+      if (t.history.size() > 0)
+      {
+        auto& v = t.history;
+        for (int i = std::max(int(v.size() - 10), 0); i < v.size() - 1; i++)
+          draw_line2d(display, v[i], v[i+1], i_uchar3(0,0,0));
+        draw_c8(display, v.back(), i_uchar3(0,0,255));
+      }
     }
 
     cv::imshow("Trajectories", cv::Mat(display));
