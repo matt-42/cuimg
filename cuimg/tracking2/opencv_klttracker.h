@@ -32,6 +32,7 @@ namespace cuimg
     opencv_klttracker& set_k(int k);
     opencv_klttracker& set_winsize(int n);
     opencv_klttracker& set_nkeypoints(int n);
+    opencv_klttracker& set_nscales(unsigned int n);
 
     void run(const host_image2d<gl8u>& in);
     void detect_keypoints(const host_image2d<gl8u>& in);
@@ -62,6 +63,7 @@ namespace cuimg
     int winsize_;
     int nkeypoints_;
     int detector_frequency_;
+    int nscales_;
   };
 
 }

@@ -13,7 +13,8 @@ namespace cuimg
       k_(40),
       winsize_(11),
       nkeypoints_(8000),
-      detector_frequency_(1)
+      detector_frequency_(1),
+      nscales_(3)
   {
     nframe_ = 0;
     adapter_ = cv::AdjusterAdapter::create("FAST");
@@ -27,6 +28,13 @@ namespace cuimg
   opencv_klttracker::set_detector_frequency(unsigned nframe)
   {
     detector_frequency_ = nframe;
+    return *this;
+  }
+
+  opencv_klttracker&
+  opencv_klttracker::set_nscales(unsigned n)
+  {
+    nscales_ = n;
     return *this;
   }
 
@@ -106,7 +114,7 @@ namespace cuimg
       if (keypoints_.size() > 0)
       {
 	//std::cout << pset_.dense_particles().size() << std::endl;
-	calcOpticalFlowPyrLK(cv::Mat(in_prev), cv::Mat(in), keypoints_, new_keypoints_, status, err, cv::Size(winsize_, winsize_), 3);
+	calcOpticalFlowPyrLK(cv::Mat(in_prev), cv::Mat(in), keypoints_, new_keypoints_, status, err, cv::Size(winsize_, winsize_), nscales_);
 	matches_.resize(keypoints_.size());
 
 	keypoints_.clear();
