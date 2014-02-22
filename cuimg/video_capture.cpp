@@ -90,12 +90,10 @@ namespace cuimg
     return *this;
   }
 
-
   video_capture&
   video_capture::operator>>(host_image2d<i_uchar3>& img)
   {
      cap_->set(CV_CAP_PROP_FORMAT, CV_8UC3);
-
     // assert(img.data());
     // assert(cap_);
     // static cv::Mat m;

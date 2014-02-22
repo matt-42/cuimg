@@ -2,7 +2,9 @@
 # define CUIMG_OMP_APPLY_H_
 
 # ifndef NO_CPP0X
+# ifndef NO_OPENMP
 # include <thread>
+# endif
 # endif
 
 # include <cuimg/architectures.h>

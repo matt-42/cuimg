@@ -142,6 +142,12 @@ namespace cuimg
     draw_line2d(out, d, a, value);
   }
 
+  template <typename I, typename V>
+    __host__ __device__ void fill_box2d(I& out, const box2d& bb, const V& value)
+  {
+    for (auto p : bb) if (out.has(p)) out(p) = value;
+  }
+
 }
 
 #endif
