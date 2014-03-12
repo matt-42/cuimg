@@ -9,31 +9,131 @@ namespace cuimg
   namespace tracking_strategies
   {
 
+    // template <typename F, typename GD>
+    // inline __host__ __device__
+    // std::pair<i_short2, float> iterative_lk_match(i_short2 p, i_short2 prediction_, F A, F B, GD Ag,
+		// 																							i_int2* window,
+		// 																							int* offsets, int* offsets_G, int offsets_n)
+    // {
+		// 	assert(A.domain() == B.domain());
+		// 	assert(Ag.domain() == B.domain());
+		// 	assert(A.border() == B.border());
+		// 	assert(Ag.border() == B.border());
+
+    //   // Image difference.
+
+    //   // Gradient matrix
+
+    //   Eigen::Matrix2d G = Eigen::Matrix2d::Zero();
+    //   int cpt = 0;
+
+		// 	auto* Ag_p = &Ag(p);
+		// 	auto* A_p = &A(p);
+
+    //   for(int i = 0; i < offsets_n; i ++)
+    //   {
+		// 			Eigen::Matrix2d m;
+		// 			double gx = Ag_p[offsets_G[i]][0] / 2.;
+		// 			double gy = Ag_p[offsets_G[i]][1] / 2.;
+		// 			m <<
+		// 				gx * gx, gx * gy,
+		// 				gx * gy, gy * gy;
+		// 			G += m;
+		// 			cpt++;
+		// 		}
+    //   }
+
+    //   G /= cpt;
+
+    //   //if (fabs(G.determinant()) < 0.0001)
+    //   auto ev = G.eigenvalues();
+    //   float min_ev = 999999;
+    //   for (int i = 0; i < ev.size(); i++)
+		// 		if (fabs(ev[i].real()) < min_ev) min_ev = fabs(ev[i].real());
+
+    //   if (min_ev < 0.0001)
+    //   {
+    //   	return std::pair<i_short2, float>(i_short2(-1,-1), 1000);
+    //   }
+
+    //   Eigen::Matrix2d G1 = G.inverse();
+
+    //   i_int2 v = prediction_;
+    //   Eigen::Vector2d nk = Eigen::Vector2d::Ones();
+
+    //   i_int2 gs[offsets_n];
+    //   i_uchar1 as[offsets_n];
+    //   for(int i = 0; i < offsets_n; i ++)
+    //   {
+		// 		gs[i] = Ag_p[offsets_G[i]];
+		// 		as[i] = A_p[offsets[i]];
+    //   }
+
+    //   for (int k = 0; k < 3 && nk.norm() >= 1; k++)
+    //   {
+		// 		Eigen::Vector2d bk = Eigen::Vector2d::Zero();
+		// 		// Temporal difference.
+		// 		cpt = 0;
+		// 		for(int i = 0; i < offsets_n; i ++)
+		// 		{
+		// 			//i_int2 n1 = p + i_int2(circle_r3[i]);
+		// 			i_int2 n2 = v + i_int2(circle_r3[i]);
+		// 			if (B.has(n2))
+		// 			{
+		// 				auto& g = gs[i];
+		// 				double dt = (as[i] - B(n2)).x;
+		// 				bk += Eigen::Vector2d(g[0] * dt, g[1] * dt);
+		// 				cpt++;
+		// 			}
+		// 		}
+		// 		bk /= cpt;
+
+		// 		nk = G1 * bk;
+		// 		v += i_int2(nk[0], nk[1]);
+    //   }
+
+    //   float err = 0;
+    //   for(int i = 0; i < offsets_n; i ++)
+    //   {
+		// 		//i_int2 n1 = p + i_int2(circle_r3[i]);
+		// 		i_int2 n2 = v + i_int2(circle_r3[i]);
+		// 		if (B.has(n2))
+		// 		{
+		// 			err += fabs((as[i] - B(n2)).x);
+		// 			cpt++;
+		// 		}
+    //   }
+
+    //   //std::cout << v << std::endl;
+    //   return std::pair<i_short2, float>(v, err / cpt);
+    // }
+
+
     template <typename F, typename GD>
     inline __host__ __device__
-    std::pair<i_short2, float> iterative_lk_match(i_short2 p, i_short2 prediction_, F A, F B, GD Ag)
+    std::pair<i_short2, float> iterative_lk_match_5x5(i_short2 p, i_short2 prediction_, F A, F B, GD Ag)
     {
       // Image difference.
 
       // Gradient matrix
 
-      Eigen::Matrix2d G = Eigen::Matrix2d::Zero();
+      Eigen::Matrix2f G = Eigen::Matrix2f::Zero();
       int cpt = 0;
-      for(int i = 0; i < 16; i ++)
+      for(int r = -3; r <= 3; r+=2)
+      for(int c = -2; c <= 2; c++)
       {
-	i_int2 n = p + i_int2(circle_r3[i]);
-
-	if (A.has(n))
-	{
-	  Eigen::Matrix2d m;
-	  double gx = Ag(n)[0] / 2.;
-	  double gy = Ag(n)[1] / 2.;
-	  m <<
-	    gx * gx, gx * gy,
-	    gx * gy, gy * gy;
-	  G += m;
-	  cpt++;
-	}
+				i_int2 n = p + i_int2(r, c);
+				if (A.has(n))
+				{
+					Eigen::Matrix2f m;
+					float gx = Ag(n)[0] / 2.;
+					float gy = Ag(n)[1] / 2.;
+					m <<
+						gx * gx, gx * gy,
+						gx * gy, gy * gy;
+					G += m;
+					cpt++;
+				}
       }
 
       G /= cpt;
@@ -42,68 +142,81 @@ namespace cuimg
       auto ev = G.eigenvalues();
       float min_ev = 999999;
       for (int i = 0; i < ev.size(); i++)
-	if (fabs(ev[i].real()) < min_ev) min_ev = fabs(ev[i].real());
+				if (fabs(ev[i].real()) < min_ev) min_ev = fabs(ev[i].real());
 
-      if (min_ev < 0.0001)
+      if (min_ev < 0.1)
       {
       	return std::pair<i_short2, float>(i_short2(-1,-1), 1000);
       }
 
-      Eigen::Matrix2d G1 = G.inverse();
+      Eigen::Matrix2f G1 = G.inverse();
 
       i_int2 v = prediction_;
-      Eigen::Vector2d nk = Eigen::Vector2d::Ones();
+      Eigen::Vector2f nk = Eigen::Vector2f::Ones();
 
-      i_int2 gs[16];
-      i_uchar1 as[16];
-      for(int i = 0; i < 16; i ++)
+
+      i_int2 gs[5*7];
+      i_uchar1 as[5*7];
+      for(int r = -3; r <= 3; r+=2)
+      for(int c = -2; c <= 2; c++)
       {
-	i_int2 n = p + i_int2(circle_r3[i]);
-	if (Ag.has(n))
-	{
-	  gs[i] = Ag(n);
-	  as[i] = A(n);
-	}
+				i_int2 n = p + i_int2(r, c);
+				int i = (r+3) * 5 + (c+2);
+				if (Ag.has(n))
+				{
+					gs[i] = Ag(n);
+					as[i] = A(n);
+				}
       }
 
       for (int k = 0; k < 10 && nk.norm() >= 1; k++)
       {
-	Eigen::Vector2d bk = Eigen::Vector2d::Zero();
-	// Temporal difference.
-	cpt = 0;
-	for(int i = 0; i < 16; i ++)
-	{
-	  i_int2 n1 = p + i_int2(circle_r3[i]);
-	  i_int2 n2 = v + i_int2(circle_r3[i]);
-	  if (A.has(n1) and B.has(n2))
-	  {
-	    auto& g = gs[i];
-	    double dt = (as[i] - B(n2)).x;
-	    bk += Eigen::Vector2d(g[0] * dt, g[1] * dt);
-	    cpt++;
-	  }
-	}
-	bk /= cpt;
+				Eigen::Vector2f bk = Eigen::Vector2f::Zero();
+				// Temporal difference.
+				cpt = 0;
+				int i = 0;
+				for(int r = -3; r <= 3; r+=2)
+				{
+					auto* row = &B(v + i_int2(r, 0));
+					for(int c = -2; c <= 2; c++)
+					{
+						//i_int2 n1 = p + i_int2(r, c);
+						i_int2 n2 = v + i_int2(r, c);
+						if (B.has(n2))
+						{
+							auto g = gs[i];
+							float dt = (as[i] - row[c]).x;
+							bk += Eigen::Vector2f(g[0] * dt, g[1] * dt);
+							cpt++;
+						}
+						i++;
+					}
+					i += 5;
+				}
+				bk /= cpt;
 
-	nk = G1 * bk;
-	v += i_int2(nk[0], nk[1]);
+				nk = G1 * bk;
+				v += i_int2(nk[0], nk[1]);
       }
 
       float err = 0;
-      for(int i = 0; i < 16; i ++)
-      {
-	i_int2 n1 = p + i_int2(circle_r3[i]);
-	i_int2 n2 = v + i_int2(circle_r3[i]);
-	if (A.has(n1) and B.has(n2))
-	{
-	  err += fabs((as[i] - B(n2)).x);
-	  cpt++;
-	}
+			for(int r = -3; r <= 3; r+=2)
+  		for(int c = -2; c <= 2; c++)
+			{
+				i_int2 n2 = v + i_int2(r, c);
+				int i = (r+3) * 5 + (c+2);
+				if (B.has(n2))
+				{
+					err += fabs((as[i] - B(n2)).x);
+					cpt++;
+				}
       }
 
-      //std::cout << v << std::endl;
+			//err = 0;
+			//std::cout << err << std::endl;
       return std::pair<i_short2, float>(v, err / cpt);
     }
+
 
     template <typename F, typename GD>
     inline __host__ __device__
@@ -117,19 +230,19 @@ namespace cuimg
       int cpt = 0;
       for(int i = 0; i < 8; i ++)
       {
-	i_int2 n = p + i_int2(circle_r3[i*2]);
+				i_int2 n = p + i_int2(circle_r3[i*2]);
 
-	if (A.has(n))
-	{
-	  Eigen::Matrix2f m;
-	  float gx = Ag(n)[0] / 2;
-	  float gy = Ag(n)[1] / 2;
-	  m <<
-	    gx * gx, gx * gy,
-	    gx * gy, gy * gy;
-	  G += m;
-	  cpt++;
-	}
+				if (A.has(n))
+				{
+					Eigen::Matrix2f m;
+					float gx = Ag(n)[0] / 2.;
+					float gy = Ag(n)[1] / 2.;
+					m <<
+						gx * gx, gx * gy,
+						gx * gy, gy * gy;
+					G += m;
+					cpt++;
+				}
       }
 
       G /= cpt;
@@ -138,9 +251,8 @@ namespace cuimg
       auto ev = G.eigenvalues();
       float min_ev = 999999;
       for (int i = 0; i < ev.size(); i++)
-	if (fabs(ev[i].real()) < min_ev) min_ev = fabs(ev[i].real());
+				if (fabs(ev[i].real()) < min_ev) min_ev = fabs(ev[i].real());
 
-      std::cout << min_ev<< std::endl;
       if (min_ev < 0.001)
       {
       	return std::pair<i_short2, float>(i_short2(-1,-1), 1000);
@@ -151,32 +263,46 @@ namespace cuimg
       i_int2 v = prediction_;
       Eigen::Vector2f nk = Eigen::Vector2f::Ones();
 
-      for (int k = 0; k < 10 && nk.norm() >= 1; k++)
-      {
-	Eigen::Vector2f bk = Eigen::Vector2f::Zero();
-	// Temporal difference.
-	cpt = 0;
-	for(int i = 0; i < 8; i ++)
-	{
-	  i_int2 n1 = p + i_int2(circle_r3[i*2]);
-	  i_int2 n2 = v + i_int2(circle_r3[i*2]);
-	  if (A.has(n1) and B.has(n2))
-	  {
-	    auto g = Ag(n1);
-	    float dt = (A(n1) - B(n2)).x;
-	    bk += Eigen::Vector2f(g[0] * dt, g[1] * dt);
-	    cpt++;
-	  }
-	}
-	bk /= cpt;
 
-	nk = G1 * bk;
-	v += i_int2(nk[0], nk[1]);
+      i_int2 gs[8];
+      i_uchar1 as[8];
+      for(int i = 0; i < 8; i ++)
+      {
+				i_int2 n = p + i_int2(circle_r3[i*2]);
+				if (Ag.has(n))
+				{
+					gs[i] = Ag(n);
+					as[i] = A(n);
+				}
+      }
+
+      for (int k = 0; k < 3 && nk.norm() >= 1; k++)
+      {
+				Eigen::Vector2f bk = Eigen::Vector2f::Zero();
+				// Temporal difference.
+				cpt = 0;
+				for(int i = 0; i < 8; i ++)
+				{
+					i_int2 n1 = p + i_int2(circle_r3[i*2]);
+					i_int2 n2 = v + i_int2(circle_r3[i*2]);
+					if (A.has(n1) and B.has(n2))
+					{
+						auto g = gs[i];
+						float dt = (as[i] - B(n2)).x;
+						bk += Eigen::Vector2f(g[0] * dt, g[1] * dt);
+						cpt++;
+					}
+				}
+				bk /= cpt;
+
+				nk = G1 * bk;
+				v += i_int2(nk[0], nk[1]);
       }
 
       //std::cout << v << std::endl;
       return std::pair<i_short2, float>(v, 0.f);
     }
+
 
 
     template <typename F, typename GD>
@@ -224,7 +350,7 @@ namespace cuimg
       i_int2 v = prediction_;
       Eigen::Vector2f nk = Eigen::Vector2f::Ones();
 
-      for (int k = 0; k < 10 && nk.norm() >= 1; k++)
+      for (int k = 0; k < 3 && nk.norm() >= 1; k++)
       {
 	Eigen::Vector2f bk = Eigen::Vector2f::Zero();
 	// Temporal difference.
@@ -289,7 +415,7 @@ namespace cuimg
 	assert(i >= 0 && i < pset.size());
 	particle& part = pset.dense_particles()[i];
 	assert(pset.domain().has(part.pos));
-	box2d domain = pset.domain() - border(0);
+	box2d domain = pset.domain() - border(6);
 	assert(domain.has(part.pos));
 	if (part.age > 0)
 	{
@@ -301,7 +427,7 @@ namespace cuimg
 	  if (domain.has(pred))
 	  {
 	    float distance;
-	    std::pair<i_short2, float> match_res = iterative_lk_match(part.pos, pred,
+	    std::pair<i_short2, float> match_res = iterative_lk_match_5x5(part.pos, pred,
 								      prev_input,
 								      input,
 								      gradient);
@@ -334,7 +460,7 @@ namespace cuimg
     pyrlk_cpu<D>::pyrlk_cpu(const obox2d& d)
       : prev_input_(d),
 	tmp_(d),
-	flow_ratio(2),
+	flow_ratio(8),
 	detector_(d),
 	upper_(0),
 	frame_cpt_(0),
@@ -396,6 +522,7 @@ namespace cuimg
       input_ = in;
       cv::Mat opencv_s1(tmp_);
       cv::GaussianBlur(cv::Mat(in), opencv_s1, cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE);
+      //cv::GaussianBlur(cv::Mat(in), opencv_s1, cv::Size(7, 7), 2, 2, cv::BORDER_REPLICATE);
       copy(tmp_, input_);
 
       if (frame_cpt_ < 1)
@@ -458,8 +585,9 @@ namespace cuimg
       memset(gradient_, 0);
       for (i_int2 p : input_.domain() - border(1))
       {
-	gradient_(p)[0] = int(prev_input_(p + i_int2(1,0)).x) - int(prev_input_(p + i_int2(-1,0)).x);
-	gradient_(p)[1] = int(prev_input_(p + i_int2(0,1)).x) - int(prev_input_(p + i_int2(0,-1)).x);
+				gradient_(p)[0] = int(prev_input_(p + i_int2(1,0)).x) - int(prev_input_(p + i_int2(-1,0)).x);
+				gradient_(p)[1] = int(prev_input_(p + i_int2(0,1)).x) - int(prev_input_(p + i_int2(0,-1)).x);
+
       }
 
       flow_t uf = upper_ ? upper_->flow_ : flow_t();
@@ -473,12 +601,14 @@ namespace cuimg
       END_PROF(matcher);
 
       // Compute sparse flow.
-      memset(flow_stats_, 0);
-      fill(flow_, NO_FLOW);
-      memset(multiscale_count_, 0);
-      run_kernel2d_functor(compute_flow_stats_kernel<PC, flow_stats_t>(pset, flow_stats_, flow_ratio),
-			   flow_stats_.domain(), typename PC::architecture());
-
+			if (lower_)
+			{
+				memset(flow_stats_, 0);
+				fill(flow_, NO_FLOW);
+				memset(multiscale_count_, 0);
+				run_kernel2d_functor(compute_flow_stats_kernel<PC, flow_stats_t>(pset, flow_stats_, flow_ratio),
+														 flow_stats_.domain(), typename PC::architecture());
+			}
       // Fusion with upper flow.
       if (upper_)
 	run_kernel2d_functor(flow_fusion_kernel<flow_stats_t, flow_t, uint_image2d>
@@ -562,7 +692,7 @@ namespace cuimg
 	if ((input_.domain() - border(7)).has(pred))
 	{
 	  float distance;
-	  std::pair<i_short2, float> match_res = iterative_lk_match(part.pos, pred,
+	  std::pair<i_short2, float> match_res = iterative_lk_match_5x5(part.pos, pred,
 								    prev_input_,
 								    input_,
 								    gradient_);
