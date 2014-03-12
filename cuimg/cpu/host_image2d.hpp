@@ -144,6 +144,21 @@ namespace cuimg
 
 
 #ifdef WITH_OPENCV
+	namespace internal
+	{
+		template <typename V>
+		struct opencv_release_ref
+		{
+			opencv_release_ref(cv::Mat _m)
+				: m(_m)
+			{
+			}
+			void operator()(V* v)
+			{
+			}
+			cv::Mat m;
+		};
+	}
   template <typename V>
   host_image2d<V>::host_image2d(IplImage* imgIpl)
   {
@@ -154,10 +169,9 @@ namespace cuimg
   host_image2d<V>::host_image2d(cv::Mat m)
   {
     assert(m.rows > 0 && m.cols > 0);
-
-    m.addref();
+		internal::opencv_release_ref<V> rel(m);
     pitch_ = m.step;
-    data_ = PT((V*) m.data, dummy_free<V>);
+    data_ = PT((V*) m.data, rel);
     begin_ = (V*) m.data;
     domain_ = domain_type(m.rows, m.cols);
     // *this = static_cast<IplImage*>(&m);
@@ -216,12 +230,13 @@ namespace cuimg
   host_image2d<V>&
   host_image2d<V>::operator=(cv::Mat m)
   {
+		internal::opencv_release_ref<V> rel(m);
+
     assert(m.rows && m.cols);
 
-    m.addref();
     pitch_ = m.step;
     border_ = 0;
-    data_ = PT((V*) m.data, dummy_free<V>);
+    data_ = PT((V*) m.data, rel);
     begin_ = (V*) m.data;
     domain_ = domain_type(m.rows, m.cols);
     return *this;
