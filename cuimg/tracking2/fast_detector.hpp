@@ -160,6 +160,7 @@ namespace cuimg
   template <typename A>
   fast_detector<A>::fast_detector(const obox2d& d)
     : n_(9),
+      box_size_(3),
       saliency_(d, 1),
       new_points_(d),
       input_s2_(d, 3)
@@ -171,6 +172,15 @@ namespace cuimg
   fast_detector<A>::set_fast_threshold(float f)
   {
     fast_th_ = f;
+    return *this;
+  }
+
+
+  template <typename A>
+  fast_detector<A>&
+  fast_detector<A>::set_box_size(unsigned b)
+  {
+    box_size_ = b;
     return *this;
   }
 
@@ -212,19 +222,30 @@ namespace cuimg
     SCOPE_PROF(fast_new_particles_detector);
     memset(new_points_, 0);
     typename PS::kernel_type pset_ = pset;
-    mt_apply2d(sizeof(i_float1), saliency_.domain() / 3,
+    mt_apply2d(sizeof(i_float1), saliency_.domain() / box_size_,
                [this, &feature, &pset_] (i_int2 p)
                {
-		 p = (p) * 3 + i_int2(1,1);
-		 float vmin = saliency_(p);
-		 i_int2 min_p = p;
-		 for_all_in_static_neighb2d(p, n, c8_h)
-		   if (vmin < saliency_(n)) { vmin = saliency_(n); min_p = n; }
+		 p = (p) * box_size_ + i_int2(1,1);
+		 float vmax = fast::compute_saliency(p, input_, n_, fast_th_, A());
+		 i_int2 max_p = p;
 
-                 if (pset_.has(min_p)) return;
-                 if (saliency_(min_p) == 0) return;
+                 for (int r = 0; r < box_size_; r++)
+                 for (int c = 0; c < box_size_; c++)
+                 {
+                   i_int2 n = p + i_int2(r, c);
+                   if (pset_.has(n)) return;
+                 }
 
-                 new_points_(min_p) = min_p;
+                 for (int r = 0; r < box_size_; r++)
+                 for (int c = 0; c < box_size_; c++)
+                 {
+                   i_int2 n = p + i_int2(r, c);
+                   float s = fast::compute_saliency(n, input_, n_, fast_th_, A());
+		   if (vmax < s) { vmax = s; max_p = n; }
+                 }
+                 if (vmax < fast_th_) return;
+
+                 new_points_(max_p) = max_p;
                }, cpu());
 
     st_apply2d(sizeof(i_float1), saliency_.domain() - border(0),
@@ -280,9 +301,9 @@ namespace cuimg
     //copy(input, input_s2_);
     //fill_border_clamp(input_s2_);
 
-    memset(saliency_, 0);
-    run_kernel2d_functor(compute_saliency_kernel<image2d_gl8u, J>(input, mask, saliency_, n_, fast_th_),
-			 input.domain(), A());
+    // memset(saliency_, 0);
+    // run_kernel2d_functor(compute_saliency_kernel<image2d_gl8u, J>(input, mask, saliency_, n_, fast_th_),
+    //     		 input.domain(), A());
 
   }
 

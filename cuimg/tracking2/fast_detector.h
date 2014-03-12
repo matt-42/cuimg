@@ -33,13 +33,14 @@ namespace cuimg
 
     inline fast_detector& set_fast_threshold(float f);
     inline fast_detector& set_n(unsigned n);
-
+    inline fast_detector& set_box_size(unsigned b);
     inline const image2d_gl8u& saliency() { return saliency_; }
     inline int border_needed() const { return 3; }
   private:
     float contrast_th_;
     float fast_th_;
     unsigned n_;
+    unsigned box_size_;
     image2d_gl8u saliency_;
     image2d_gl8u input_;
     image2d_short2 new_points_;
