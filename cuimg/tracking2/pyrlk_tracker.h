@@ -19,13 +19,13 @@ namespace cuimg
     public:
       typedef pyrlk_cpu<DETECTOR> self;
       typedef DETECTOR detector_t;
-      typedef particle_container<dummy_feature, particle, cpu> PC;
+      typedef particle_container<dummy_feature, particle_f, cpu> PC;
       typedef PC particles_type;
       typedef typename PC::particle_type particle_type;
       typedef cpu architecture;
-      typedef typename architecture::template image2d<std::pair<int, i_int2> >::ret flow_stats_t;
+      typedef typename architecture::template image2d<std::pair<int, i_float2> >::ret flow_stats_t;
       typedef typename architecture::template image2d<i_float2>::ret flow_t;
-      typedef typename architecture::template image2d<i_int2>::ret gradient_t;
+      typedef typename architecture::template image2d<i_float2>::ret gradient_t;
       typedef typename architecture::template image2d<gl8u>::ret gl8u_image2d;
       typedef typename architecture::template image2d<unsigned int>::ret uint_image2d;
       typedef gl8u_image2d input;
@@ -49,7 +49,7 @@ namespace cuimg
       inline detector_t& detector() { return detector_; }
       inline void clear();
       inline void create_detector_mask( PC& pset);
-      inline i_int2 get_flow_at(const i_int2& p);
+      inline i_float2 get_flow_at(const i_float2& p);
       inline const flow_t& flow() const { return flow_; }
 
       int border_needed() const;

@@ -9,7 +9,7 @@ namespace cuimg
 
   template <typename PI>
   inline __host__ __device__
-  void merge_trajectories(PI& pset, particle& part)
+  void merge_trajectories(PI& pset, typename PI::particle_type& part)
   {
     typedef typename PI::architecture A;
     i_int2 p = part.pos;
@@ -20,7 +20,7 @@ namespace cuimg
       i_int2 n(p + i_int2(arch_neighb2d<A>::get(c8_h, c8, i)));
       if (pset.has(n))
       {
-    	const particle& buddy = pset(n);
+    	const typename PI::particle_type& buddy = pset(n);
     	if (buddy.age > (part.age + 2) and norml2(part.speed - buddy.speed) < 2.f)
     	{
 	  pset.remove(n);

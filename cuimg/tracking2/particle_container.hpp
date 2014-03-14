@@ -373,9 +373,9 @@ namespace cuimg
   {
     P pt;
     pt.age = 1;
-    if (flow_.data() && flow_(p/8) != NO_FLOW)
-      pt.speed = flow_(p/8);
-    else
+    // if (flow_.data() && flow_(p/8) != NO_FLOW)
+    //   pt.speed = flow_(p/8);
+    // else
     {
       pt.speed = i_int2(0,0);
     }
@@ -431,7 +431,7 @@ namespace cuimg
     assert(domain().has(p.pos));
     assert(domain().has(dst));
     p.age++;
-    i_int2 new_speed = dst - p.pos;
+    particle_coords new_speed = dst - p.pos;
     if (p.age > 1)
       p.acceleration = (new_speed - p.speed);
     else

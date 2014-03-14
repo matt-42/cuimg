@@ -84,6 +84,17 @@ namespace cuimg
   }
 
 
+  // Need S::get_flow_at
+  template <typename S, typename P>
+  inline __host__ __device__
+  i_float2 recursive_prediction(const P& p, S* upper)
+  {
+    if (upper)
+      return p.pos + 2. * upper->get_flow_at(p.pos / 2.);
+    else
+      return motion_based_prediction(p);
+  }
+
 }
 
 #endif

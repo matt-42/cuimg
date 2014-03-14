@@ -147,7 +147,7 @@ namespace cuimg
       inline __host__ __device__
       void operator()(int i)
       {
-	particle& p = pset.dense_particles()[i];
+        typename P::particle_type& p = pset.dense_particles()[i];
 	::cuimg::merge_trajectories(pset, p);
       }
     };
@@ -498,7 +498,7 @@ namespace cuimg
       inline __host__ __device__
       void operator()(int i)
       {
-	particle& part = pset.dense_particles()[i];
+        typename P::particle_type& part = pset.dense_particles()[i];
 	if (part.age > 2 && flow(part.pos / flow_ratio) != NO_FLOW)
 	{
 	  if (norml2(part.speed - flow(part.pos / flow_ratio)) > 10.f)
