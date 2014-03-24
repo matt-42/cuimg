@@ -48,6 +48,7 @@ namespace cuimg
 
       inline detector_t& detector() { return detector_; }
       inline void clear();
+      inline void set_particle_domain(const box2d& d);
       inline void create_detector_mask( PC& pset);
       inline i_float2 get_flow_at(const i_float2& p);
       inline const flow_t& flow() const { return flow_; }
@@ -76,6 +77,7 @@ namespace cuimg
       int filtering_frequency_;
       int k_;
       bool with_merge_;
+      box2d particle_domain_;
     };
 
   }

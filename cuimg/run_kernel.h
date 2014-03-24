@@ -24,7 +24,7 @@ namespace cuimg
   void run_kernel1d_functor(const F& f_, int size, const cpu&)
   {
     F& f = *const_cast<F*>(&f_);
-#pragma omp parallel for schedule(static, 300)
+#pragma omp parallel for schedule(static, 1)
     for (int i = 0; i < size; i++)
       f(i);
   }

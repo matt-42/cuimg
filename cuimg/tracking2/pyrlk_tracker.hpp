@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include <cuimg/tracking2/tracking_strategies.hpp>
+#include <cuimg/copy.h>
 
 namespace cuimg
 {
@@ -147,10 +148,10 @@ namespace cuimg
     inline __host__ __device__
     std::pair<i_float2, float> iterative_lk_match_5x5(i_float2 p, i_float2 prediction_, F A, F B, GD Ag)
     {
-      int ws = 5;
+      int ws = 11;
       int hws = ws/2;
 
-      int factor = 2;
+      int factor = 1;
       // Image difference.
       // Gradient matrix
       Eigen::Matrix2f G = Eigen::Matrix2f::Zero();
@@ -431,6 +432,7 @@ namespace cuimg
       typename C::kernel_type contrast;
       int flow_ratio;
       int k;
+      box2d particle_domain;
 
     public:
       pyrlk_match_particles_kernel(P& pset_,
@@ -439,7 +441,9 @@ namespace cuimg
 				   GI& gradient_,
 				   J* upper_,
 				   C& contrast_,
-				   int flow_ratio_, int k_)
+				   int flow_ratio_, 
+                                   int k_,
+                                   box2d particle_domain_)
 	: pset(pset_),
 	  prev_input(prev_input_),
 	  input(input_),
@@ -447,7 +451,8 @@ namespace cuimg
 	  upper(upper_),
 	  contrast(contrast_),
 	  flow_ratio(flow_ratio_),
-	  k(k_)
+	  k(k_),
+          particle_domain(particle_domain_)
         {
         }
 
@@ -457,9 +462,9 @@ namespace cuimg
           assert(i >= 0 && i < pset.size());
           particle_f& part = pset.dense_particles()[i];
           assert(pset.domain().has(part.pos));
-          box2d domain = pset.domain() - border(3);
-          assert(domain.has(part.pos));
-          if (part.age > 0)
+          box2d domain = particle_domain;
+          //assert(domain.has(part.pos));
+          if (part.age > 0 and domain.has(part.pos))
           {
             // Prediction.
             i_float2 pred;
@@ -476,7 +481,7 @@ namespace cuimg
               i_float2 match = match_res.first;
               distance = match_res.second;
               unsigned cpt = 0;
-              if (domain.has(match) and distance < k)
+              if (domain.has(match) and distance < k and norml2(match - pred) < std::pow(2, 5) * 5)
               {
                 // if (contrast(match) < 3.f)
                 // 	pset.remove(i);
@@ -493,8 +498,11 @@ namespace cuimg
             else
               pset.remove(i);
           }
-          else if (part.age > 0)
-            pset.touch(i);
+          else
+            pset.remove(i);
+
+          // if (part.age > 0)
+          //   pset.touch(i);
         }
     };
 
@@ -518,6 +526,8 @@ namespace cuimg
       flow_stats_ = flow_stats_t(domain_div_up(d, flow_ratio));
       flow_ = flow_t(domain_div_up(d, flow_ratio));
       multiscale_count_ = uint_image2d(domain_div_up(d, flow_ratio));
+
+      particle_domain_ = d - border(3);
     }
 
     template<typename D>
@@ -568,11 +578,12 @@ namespace cuimg
         copy(in, prev_input_);
       }
 
-      input_ = clone(in);
-      cv::Mat opencv_s1(tmp_);
-      cv::GaussianBlur(cv::Mat(in), opencv_s1, cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE);
-      //cv::GaussianBlur(cv::Mat(in), opencv_s1, cv::Size(7, 7), 2, 2, cv::BORDER_REPLICATE);
-      copy(tmp_, input_);
+      input_ = host_image2d<gl8u>(in.domain(), in.border());
+      copy(in, input_);
+      // cv::Mat opencv_s1(tmp_);
+      // cv::GaussianBlur(cv::Mat(in), opencv_s1, cv::Size(3, 3), 1, 1, cv::BORDER_REPLICATE);
+      // // //cv::GaussianBlur(cv::Mat(in), opencv_s1, cv::Size(7, 7), 2, 2, cv::BORDER_REPLICATE);
+      // copy(tmp_, input_);
 
       pset.set_flow(flow_);
       if (frame_cpt_ > 0)
@@ -612,6 +623,15 @@ namespace cuimg
 			   (pset, mask_),
 			   pset.size(), typename PC::architecture());
 
+    }
+
+
+
+    template<typename D>
+    void
+    pyrlk_cpu<D>::set_particle_domain(const box2d& d)
+    {
+      particle_domain_ = d;
     }
 
 
@@ -656,7 +676,7 @@ namespace cuimg
       }
 
       pyrlk_match_particles_kernel<gl8u_image2d, self, uint_image2d, gradient_t, PC> func
-	(pset, prev_input_, input_, gradient_, upper_, contrast_, flow_ratio, k_);
+	(pset, prev_input_, input_, gradient_, upper_, contrast_, flow_ratio, k_, particle_domain_);
 
       run_kernel1d_functor(func,
 			   pset.dense_particles().size(),
@@ -745,9 +765,9 @@ namespace cuimg
     pyrlk_cpu<D>::get_flow_at(const i_float2& p)
     {
       // return i_int2(0,0);
-      if (flow_stats_(p / flow_ratio).first)
-        return flow_stats_(p / flow_ratio).second;
-      else
+      // if (flow_stats_(p / flow_ratio).first)
+      //   return flow_stats_(p / flow_ratio).second;
+      // else
       {
 	particle_f part;
 	part.age = 1;
@@ -769,6 +789,9 @@ namespace cuimg
 	    return match - p;
 	  }
 	}
+        else
+          return i_float2(0,0);
+
       }
 
       return i_float2(-100000,-100000);
