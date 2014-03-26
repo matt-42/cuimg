@@ -225,30 +225,30 @@ namespace cuimg
     mt_apply2d(sizeof(i_float1), saliency_.domain() / box_size_,
                [this, &feature, &pset_] (i_int2 p)
                {
-		 p = (p) * box_size_ + i_int2(1,1);
+		 p = (p) * this->box_size_ + i_int2(1,1);
 
-                 for (int r = 0; r < box_size_; r++)
-                 for (int c = 0; c < box_size_; c++)
-                   if (input_.has(p + i_int2(r, c)))
+                 for (int r = 0; r < this->box_size_; r++)
+                 for (int c = 0; c < this->box_size_; c++)
+                   if (this->input_.has(p + i_int2(r, c)))
                    {
                      i_int2 n = p + i_int2(r, c);
                      if (pset_.has(n)) return;
                    }
 
 		 //float vmax = fast::compute_saliency(p, input_, n_, fast_th_, A());
-		 float vmax = saliency_(p);
+		 float vmax = this->saliency_(p);
 		 i_int2 max_p = p;
 
-                 for (int r = 0; r < box_size_; r++)
-                 for (int c = 0; c < box_size_; c++)
-                   if (input_.has(p + i_int2(r, c)))
+                 for (int r = 0; r < this->box_size_; r++)
+                 for (int c = 0; c < this->box_size_; c++)
+                   if (this->input_.has(p + i_int2(r, c)))
                    {
                      i_int2 n = p + i_int2(r, c);
                      //float s = fast::compute_saliency(n, input_, n_, fast_th_, A());
                      float s = saliency_(n);
                      if (vmax < s) { vmax = s; max_p = n; }
                    }
-                 if (vmax < fast_th_) return;
+                 if (vmax < this->fast_th_) return;
 
                  new_points_(max_p) = max_p;
                }, cpu());
