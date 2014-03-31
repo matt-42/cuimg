@@ -1,5 +1,6 @@
 
 #ifndef OPENCV_KLTTRACKER_H_
+#define OPENCV_KLTTRACKER_H_
 
 #include <opencv2/opencv.hpp>
 #include <cuimg/cpu/host_image2d.h>

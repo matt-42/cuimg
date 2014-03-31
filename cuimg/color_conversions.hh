@@ -10,7 +10,7 @@ namespace cuimg
   i_uchar3 hsv_to_rgb(int h, float s, float v)
   {
     float c = s * v;
-    float h2 = h / 60;
+    float h2 = h / 60.f;
     float x = c * (1 - fabs(fmod(h2, 2) - 1));
 
     unsigned char C = c * 255;
