@@ -4,6 +4,8 @@
 # include <cuimg/improved_builtin.h>
 # include <cuimg/cpu/fill.h>
 # include <opencv2/opencv.hpp>
+# include <cuimg/tracking2/particle_container.h>
+
 namespace cuimg
 {
 
@@ -55,11 +57,7 @@ namespace cuimg
       const particle& part = pset.dense_particles()[i];
       if (part.age > 10)
       {
-	cv::Mat_<float> s = to_cv_mat(part.pos - part.speed);
-	cv::Mat_<float> acc = to_cv_mat(part.acceleration);
-	// std::cout << prev_camera_motion << std::endl;
-	cv::Mat_<float> v = to_cv_mat2(acc) + (prev_camera_motion * s) - to_cv_mat2(s);
-	cv::Mat_<float> d = to_cv_mat2(part.pos) + v;
+	cv::Mat_<float> d = to_cv_mat2(part.pos + part.speed);
 	src.push_back(cv::Point2f(part.pos.r(), part.pos.c()));
 	dst.push_back(cv::Point2f(d(0,0), d(1,0)));
 	npart++;

@@ -377,12 +377,10 @@ namespace cuimg
     //   pt.speed = flow_(p/8);
     // else
     {
-      pt.speed = i_int2(0,0);
+      pt.speed = P::transform::identity();
     }
     // pt.speed = i_int2(0,0);
     pt.pos = p;
-    pt.prev_match_time = frame_cpt_;
-    pt.next_match_time = frame_cpt_ + 1;
     sparse_buffer_(p) = particles_vec_.size();
     particles_vec_.push_back(pt);
     features_vec_.push_back(feature);
@@ -423,22 +421,17 @@ namespace cuimg
 
   template <typename F, typename P, typename A>
   void
-  kernel_particle_container<F, P, A>::move(unsigned i, particle_coords dst, const feature_type& f)
+  kernel_particle_container<F, P, A>::move(unsigned i, transform transform, const feature_type& f)
   {
     assert(i < size_);
     assert(i >= 0);
     particle_type p = particles_vec_[i];
     assert(domain().has(p.pos));
-    assert(domain().has(dst));
     p.age++;
-    particle_coords new_speed = dst - p.pos;
-    if (p.age > 1)
-      p.acceleration = (new_speed - p.speed);
-    else
-      p.acceleration = i_int2(0,0);
     //p.speed = i_float2(new_speed) / (frame_cpt_ - p.prev_match_time);
-    p.speed = i_float2(new_speed);
-    p.pos = dst;
+    p.speed = transform;
+    p.pos = transform.apply_transform(p.pos);
+    assert(domain().has(p.pos));
     // p.prev_match_time = frame_cpt_;
     // float period = 10.f;
     // i_float2 mesure = p.speed;
@@ -459,7 +452,7 @@ namespace cuimg
     // for (unsigned j = 0; j < 16; j++)
     //   features_vec_[i][j] = (features_vec_[i][j] * 4.f + f[j] * S) / (S + 4.f);
 
-    if ((p.speed.y + p.speed.x) > 0)
+    if (norml2(transform_velocity(p.speed)) > 0)
     {
       feature_type f_ = f;
       // f_.update_weights(features_vec_[i]);
@@ -467,7 +460,7 @@ namespace cuimg
       //features_vec_[i].update_weights(f);
     }
 
-    sparse_buffer_(dst) = i;
+    sparse_buffer_(p.pos) = i;
 
     assert(domain().has(p.pos));
   }

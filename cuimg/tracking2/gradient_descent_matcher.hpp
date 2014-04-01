@@ -72,7 +72,7 @@ namespace cuimg
     //   match = prediction + 2 * (match - prediction);
     // match_distance = feature_img.distance(f, match, scale);
 
-    return ret(match, match_distance);
+    return ret(match - prediction_, match_distance);
   }
 
 
@@ -120,7 +120,8 @@ namespace cuimg
   std::pair<i_short2, float> two_step_gradient_descent_match(i_short2 prediction, F f, FI& feature_img)
   {
     std::pair<i_short2, float> match1 = gradient_descent_match(prediction, f, feature_img, 2);
-    return gradient_descent_match(match1.first, f, feature_img, 1);
+    std::pair<i_short2, float> match2 = gradient_descent_match(prediction + match1.first, f, feature_img, 1);
+    return std::pair<i_short2, float>(match1.first + match2.first, match2.second);
   }
 
   template <typename F, typename S>

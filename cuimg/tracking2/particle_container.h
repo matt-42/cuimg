@@ -5,12 +5,15 @@
 # include <cuimg/architectures.h>
 # include <cuimg/improved_builtin.h>
 # include <cuimg/cpu/host_image2d.h>
+# include <cuimg/tracking2/transformations.h>
 
 namespace cuimg
 {
 
   struct particle
   {
+    typedef translation_transform transform;
+
     typedef i_short2 coords_type;
     inline __host__ __device__
     particle() : age(0), speed(0.f, 0.f), fault(0) {}
@@ -31,29 +34,26 @@ namespace cuimg
     //   fault = o.fault;
     // }
 
-    i_float2 speed;
+    translation_transform speed;
     i_short2 pos;
-    i_short2 acceleration;
     unsigned short age;
     unsigned short fault;
     int prev_match_time;
     int next_match_time;
   };
 
+  template <typename T>
   struct particle_f
   {
     typedef i_float2 coords_type;
+    typedef T transform;
 
     __host__ __device__
-    particle_f() : age(0), speed(0.f, 0.f), fault(0) {}
+    particle_f() : age(0), speed(T::identity()) {}
 
-    i_float2 speed;
+    T speed;
     i_float2 pos;
-    i_short2 acceleration;
     unsigned short age;
-    unsigned short fault;
-    int prev_match_time;
-    int next_match_time;
   };
 
   template <typename F, typename P, typename A>
@@ -189,6 +189,7 @@ namespace cuimg
     typedef A architecture;
     typedef typename P::coords_type particle_coords;
     typedef P particle_type;
+    typedef typename particle_type::transform transform;
     typedef typename F::value_type feature_type;
     typedef typename A::template kernel_image2d<unsigned int>::ret uint_image2d;
 
@@ -198,7 +199,7 @@ namespace cuimg
     inline __host__ __device__ void remove(i_int2 p);
     inline __host__ __device__ particle_type* dense_particles() const;
     inline __host__ __device__ feature_type* features();
-    inline __host__ __device__ void move(unsigned i, particle_coords dst, const feature_type& f);
+    inline __host__ __device__ void move(unsigned i, transform transform, const feature_type& f);
     inline __host__ __device__ void touch(unsigned i);
     inline __host__ __device__ const particle_type& operator()(i_short2 p) const;
     inline __host__ __device__ bool has(i_int2 p) const;
