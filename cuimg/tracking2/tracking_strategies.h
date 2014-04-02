@@ -18,7 +18,6 @@
 # include <cuimg/tracking2/dense_detector.h>
 # include <cuimg/tracking2/regular_detector.h>
 # include <cuimg/tracking2/particle_container.h>
-# include <cuimg/tracking2/dominant_speed_estimator.h>
 # include <cuimg/tracking2/rigid_transform_estimator.h>
 
 namespace cuimg
@@ -87,7 +86,6 @@ namespace cuimg
       feature_t feature_;
       feature_t prev_feature_;
       detector_t detector_;
-      dominant_speed_estimator<typename feature_t::architecture> dominant_speed_estimator_;
       i_short2 camera_motion_;
       i_short2 prev_camera_motion_;
       self* upper_;

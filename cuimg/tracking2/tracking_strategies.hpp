@@ -8,15 +8,19 @@
 # include <cuimg/tracking2/filter_spacial_incoherences.h>
 # include <cuimg/tracking2/merge_trajectories.h>
 # include <cuimg/tracking2/rigid_transform_estimator.h>
+# include <cuimg/tracking2/transformations.h>
 # include <cuimg/run_kernel.h>
 # include <cuimg/iterate.h>
 //# include <cuimg/dige.h>
 
 namespace cuimg
 {
+
+  template<typename T>
+  float transform_distance(const T& a, const T& b);
+
   namespace tracking_strategies
   {
-
 
     bc2s_fast_gradient_cpu::bc2s_fast_gradient_cpu(const obox2d& d)
       : super(d)
@@ -35,7 +39,6 @@ namespace cuimg
 	prev_feature_(d),
 	flow_ratio(8),
         detector_(d),
-        dominant_speed_estimator_(d),
         camera_motion_(0,0),
         prev_camera_motion_(0,0),
         upper_(0),
@@ -324,7 +327,7 @@ namespace cuimg
 	{
 	  // Prediction.
 	  i_short2 pred;
-	  pred = multiscale_prediction(part, upper_flow, flow_ratio, u_prev_camera_motion, u_camera_motion);
+	  pred = part.pos + multiscale_prediction(part, upper_flow, flow_ratio);
 	  //pred = motion_based_prediction(part, u_prev_camera_motion, u_camera_motion);
 
 	  // Matching.
@@ -338,7 +341,7 @@ namespace cuimg
 	    std::pair<i_short2, float> match_res = two_step_gradient_descent_match(pred, pset.features()[i], feature);
 	    //match_res = two_step_gradient_descent_match(match_res.first, pset.features()[i], feature);
 	    //std::pair<i_short2, float> match_res = gradient_descent_match(pred, pset.features()[i], feature, 1);
-	    i_short2 match = match_res.first;
+	    i_short2 match = pred + match_res.first;
 	    distance = match_res.second;
 
 	    unsigned n_diff = 0;
@@ -409,7 +412,7 @@ namespace cuimg
 		// FEAT_TYPE f = pset.features()[i];
 		// for (unsigned i = 0; i < 16; i++)
 		//   f[i] = (3 * f[i] + nf[i]) / 4;
-		pset.move(i, match, f);
+		pset.move(i, pred - part.pos + match_res.first, f);
 		assert(pset.has(match));
 		assert(pset.dense_particles()[i].age > 0);
 	      }
@@ -469,7 +472,7 @@ namespace cuimg
 	    float distance;
 	    std::pair<i_short2, float> match_res = two_step_gradient_descent_match(pred, prev_feature(p), feature);
 	    //std::pair<i_short2, float> match_res = gradient_descent_match(pred, prev_feature(p), feature, 1);
-	    i_short2 match = match_res.first;
+	    i_short2 match = pred + match_res.first;
 	    distance = match_res.second;
 	    if (flow.has(match) and distance < 1000)
 	      flow(p) = match - p;
@@ -499,9 +502,9 @@ namespace cuimg
       void operator()(int i)
       {
         typename P::particle_type& part = pset.dense_particles()[i];
-	if (part.age > 2 && flow(part.pos / flow_ratio) != NO_FLOW)
+	if (part.age > 2 && multiscale_count(part.pos / flow_ratio) > 0)
 	{
-	  if (norml2(part.speed - flow(part.pos / flow_ratio)) > 10.f)
+	  if (transform_distance(part.speed, flow(part.pos / flow_ratio)) > 10.f)
 	  {
 	    pset.remove(i);
 	    return;
@@ -525,6 +528,9 @@ namespace cuimg
     template<typename P, typename I>
     struct compute_flow_stats_kernel
     {
+      typedef typename P::particle_type::transform transform;
+
+
       typename P::kernel_type pset_;
       typename I::kernel_type stats_;
       int flow_ratio_;
@@ -539,7 +545,20 @@ namespace cuimg
       void operator()(i_int2 p)
       {
 	int count = 0;
-	i_int2 sum(0,0);
+        transform sum = transform::zero();
+        // FIXME compute average tranform.
+	// for (int r = 0; r < flow_ratio_; r++)
+	//   for (int c = 0; c < flow_ratio_; c++)
+	//   {
+	//     i_int2 n = p * flow_ratio_ + i_int2(r, c);
+	//     if (pset_.domain().has(n) && pset_.has(n) &&
+	// 	pset_(n).age >= 1)
+	//     {
+	//       count++;
+	//       sum += pset_(n).speed;
+	//     }
+	//   }
+
 	for (int r = 0; r < flow_ratio_; r++)
 	  for (int c = 0; c < flow_ratio_; c++)
 	  {
@@ -548,10 +567,9 @@ namespace cuimg
 		pset_(n).age >= 1)
 	    {
 	      count++;
-	      sum += pset_(n).speed;
+	      sum = pset_(n).speed;
 	    }
 	  }
-
 
 	stats_(p).first = count;
 	stats_(p).second = sum;
@@ -584,7 +602,8 @@ namespace cuimg
 	multiscale_count_(bin) = stats_(bin).first + upper_stats_(ubin).first;
 
 	if (stats_(bin).first > 1)
-	  flow_(bin) = stats_(bin).second / stats_(bin).first;
+	  flow_(bin) = stats_(bin).second;
+        //flow_(bin) = stats_(bin).second / stats_(bin).first; // FIXME reactivate for average.
 	else
 	  //if (upper_stats_(ubin).first > 1)
 	  if (upper_flow_(ubin) != NO_FLOW)
@@ -715,7 +734,6 @@ namespace cuimg
     {
       prev_camera_motion_ = camera_motion_;
       camera_motion_ = i_short2(0,0);
-      //camera_motion_ = dominant_speed_estimator_.estimate(pset, prev_camera_motion_, typename F::architecture());
     }
 
     template<typename F, typename D, typename P, typename I>
@@ -727,7 +745,7 @@ namespace cuimg
       // else
       // 	return motion_based_prediction(p);
       //motion_based_prediction(*this, p);
-      return multiscale_prediction(*this, p);
+      return p.pos + multiscale_prediction(*this, p);
     }
 
     template<typename F, typename D, typename P, typename I>

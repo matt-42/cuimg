@@ -21,7 +21,7 @@ namespace cuimg
       if (pset.has(n))
       {
     	const typename PI::particle_type& buddy = pset(n);
-    	if (buddy.age > (part.age + 2) and norml2(part.speed - buddy.speed) < 2.f)
+    	if (buddy.age > (part.age + 2) and transform_distance(part.speed, buddy.speed) < 2.f)
     	{
 	  pset.remove(n);
     	  break;
