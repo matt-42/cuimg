@@ -16,9 +16,6 @@
 namespace cuimg
 {
 
-  template<typename T>
-  float transform_distance(const T& a, const T& b);
-
   namespace tracking_strategies
   {
 
