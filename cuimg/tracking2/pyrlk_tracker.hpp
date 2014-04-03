@@ -170,20 +170,73 @@ namespace cuimg
       static inline __host__ __device__
       std::pair<i_float2, float> match(i_float2 p, translation_transform tr_prediction_, F A, F B, GD Ag)
       {
-        int ws = 21;
+        int ws = 11;
         int hws = ws/2;
 
         int factor = 1;
         // Image difference.
+
+
+        //G /= cpt;
+
+        //if (fabs(G.determinant()) < 0.0001)
+        i_float2 prediction_ = tr_prediction_.apply_transform(p);
+        i_float2 v = prediction_;
+        Eigen::Vector2f nk = Eigen::Vector2f::Ones();
+
+
+        bool mask[ws * ws];
+        i_float2 gs[ws * ws];
+        i_uchar1 as[ws * ws];
+        {
+          for(int i = 0, r = -hws; r <= hws; r++)
+          {
+            for(int c = -hws; c <= hws; c++, i++)
+            {
+              i_float2 n = p + i_int2(r, c) * factor;
+              if (Ag.has(n))
+              {
+                gs[i] = li(Ag, n);
+                as[i] = li(A, n);
+                //mask[i] = norml2(gs[i]) > 10;
+              }
+              mask[i] = 0;
+            }
+          }
+        }
+
+        std::vector<int> indexes(ws * ws);
+        for (unsigned i = 0; i < ws * ws; i++)
+          indexes[i] = i;
+
+        int N = 25;
+        //std::sort(indexes.begin(), indexes.end(), [&gs] (int a, int b) { return norml2(gs[a]) > norml2(gs[b]); });
+        std::nth_element(indexes.begin(), indexes.begin() + N, indexes.end(), [&gs] (int a, int b) { return norml2(gs[a]) > norml2(gs[b]); });
+
+        //for (unsigned i = 0; i < (ws * ws) / 16; i++)
+        for (unsigned n = 0, i = 0; i < (ws * ws) and n < N
+               ; i++)
+        {
+          int id = indexes[i];
+          //if ((id == 0 or !mask[id - 1]) and (id == (ws * ws - 1) or !mask[id + 1]))
+          {
+            mask[id] = 1;
+            // i_int2 p2 = p + i_int2((id % ws) - hws, id - (id % ws) - hws) * factor;
+            // as[id] = li(A, p2);
+            n++;
+          }
+        }
+
+
         // Gradient matrix
         Eigen::Matrix2f G = Eigen::Matrix2f::Zero();
         int cpt = 0;
-        for(int r = -hws; r <= hws; r++)
-          for(int c = -hws; c <= hws; c++)
+        for(int i = 0, r = -hws; r <= hws; r++)
+          for(int c = -hws; c <= hws; c++, i++)
           {
-            i_float2 n = p + i_int2(r, c) * factor;
-            if (A.has(n))
+            if (mask[i])
             {
+              i_float2 n = p + i_int2(r, c) * factor;
               Eigen::Matrix2f m;
               i_float2 g = li(Ag, n);
               float gx = g[0];
@@ -196,9 +249,6 @@ namespace cuimg
             }
           }
 
-        //G /= cpt;
-
-        //if (fabs(G.determinant()) < 0.0001)
         auto ev = G.eigenvalues();
         float min_ev = 999999;
         for (int i = 0; i < ev.size(); i++)
@@ -209,28 +259,25 @@ namespace cuimg
 
         Eigen::Matrix2f G1 = G.inverse();
 
-        i_float2 prediction_ = tr_prediction_.apply_transform(p);
-        i_float2 v = prediction_;
-        Eigen::Vector2f nk = Eigen::Vector2f::Ones();
+        // memset((char*)mask, 0, sizeof(mask));
+        // for (i_int2 p : { i_int2(-hws, -hws), i_int2(-0, -hws), i_int2(-hws, -0), i_int2(-0, -0) })
+        // {
+        //   int max = 0;
+        //   int max_i = 0;
+        //   for(int r = 0; r <= hws; r++)
+        //     for(int c = 0; c <= hws; c++)
+        //     {
+        //       i_int2 n = p + i_int2(r, c);
+        //       int i = n.r() * ws + n.c();
+        //       if (norml2(gs[i]) > max)
+        //       {
+        //         max = norml2(gs[i]);
+        //         max_i = i;
+        //       }
+        //     }
+        //   mask[max_i] = 1;
+        // }
 
-
-        i_float2 gs[ws * ws];
-        i_uchar1 as[ws * ws];
-        {
-          for(int i = 0, r = -hws; r <= hws; r++)
-          {
-            for(int c = -hws; c <= hws; c++)
-            {
-              i_float2 n = p + i_int2(r, c) * factor;
-              if (Ag.has(n))
-              {
-                gs[i] = li(Ag, n);
-                as[i] = li(A, n);
-              }
-              i++;
-            }
-          }
-        }
         auto domain = B.domain() - border(3);
 
         for (int k = 0; k < 30 && nk.norm() >= 0.1; k++)
@@ -241,18 +288,18 @@ namespace cuimg
           int i = 0;
           for(int r = -hws; r <= hws; r++)
           {
-            for(int c = -hws; c <= hws; c++)
+            for(int c = -hws; c <= hws; c++, i++)
             {
               //i_int2 n1 = p + i_int2(r, c);
-              i_float2 n2 = v + i_int2(r, c) * factor;
+              if (mask[i])
               //if (B.has(n2))
               {
+                i_float2 n2 = v + i_int2(r, c) * factor;
                 auto g = gs[i];
                 float dt = (float(as[i].x) - li(B, n2));
                 bk += Eigen::Vector2f(g[0] * dt, g[1] * dt);
                 cpt++;
               }
-              i++;
             }
             //i += ws;
           }
@@ -262,12 +309,13 @@ namespace cuimg
           nk = G1 * bk;
           // std::cout << nk.transpose() << std::endl;
           v += i_float2(nk[0], nk[1]);
+          if (norml2(prediction_ - v) > ws * 4)
+            return std::pair<i_float2, float>(i_float2(-1,-1), 1000);
+
           if (!domain.has(v))
             return std::pair<i_float2, float>(i_float2(-1,-1), 1000);
         }
 
-        if (norml2(prediction_ - v) > ws * 2)
-          return std::pair<i_float2, float>(i_float2(-1,-1), 1000);
 
         float err = 0;
         for(int r = -hws; r <= hws; r++)
