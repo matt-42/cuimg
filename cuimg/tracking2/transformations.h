@@ -12,7 +12,13 @@ namespace cuimg
   {
   public:
     typedef Eigen::Matrix<float, 2, 3> super;
-    using super::super;
+    //using super::super;
+
+    affine_transform() : super() {}
+
+    template <typename T>
+    affine_transform(Eigen::MatrixBase<T> o) : super(o) {}
+
 
     static affine_transform
     identity() { return super::Identity(); }
@@ -53,7 +59,13 @@ namespace cuimg
   {
   public:
     typedef i_float2 super;
-    using super::super;
+    //using super::super;
+
+    translation_transform() : super() {}
+
+    template <typename T>
+    translation_transform(const improved_builtin<T, 2>& t) : super(t) {}
+    translation_transform(float x, float y) : super(x, y) {}
 
     static translation_transform
     identity() { return i_float2(0,0); }

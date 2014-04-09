@@ -13,6 +13,7 @@ find_package(OpenCV REQUIRED)
 
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(/usr/include/eigen3)
 
 ADD_DEFINITIONS(-std=c++0x -DNDEBUG -O3 -fopenmp -march=native -funroll-loops -DWITH_OPENCV)
 #add_definitions(-std=c++0x -g  -DWITH_OPENCV -DNO_CUDA)
@@ -63,7 +64,7 @@ SET(SOURCES cuimg/video_capture.cpp
             cuimg/save_image.cpp
 #	    cuimg/tracking2/tracker.cpp
 #	    cuimg/tracking2/opencv_tracker.cpp
-	    cuimg/tracking2/opencv_klttracker.cpp
+#	    cuimg/tracking2/opencv_klttracker.cpp
             )
 
 ADD_LIBRARY(cuimg ${SOURCES})
