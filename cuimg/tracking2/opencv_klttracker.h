@@ -25,7 +25,7 @@ namespace cuimg
   class opencv_klttracker
   {
   public:
-    typedef particle_container<internal::dummy_feature, particle_f> pset_type;
+    typedef particle_container<internal::dummy_feature, particle_f<i_float2> > pset_type;
     opencv_klttracker(const obox2d& d, int fast_threshold = 30);
     ~opencv_klttracker();
 
