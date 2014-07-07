@@ -32,7 +32,7 @@ namespace cuimg
   }
 
   opencv_klttracker&
-  opencv_klttracker::set_nscales(unsigned n)
+  opencv_klttracker::set_nscales(unsigned int n)
   {
     nscales_ = n;
     return *this;

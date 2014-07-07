@@ -64,7 +64,7 @@ SET(SOURCES cuimg/video_capture.cpp
             cuimg/save_image.cpp
 #	    cuimg/tracking2/tracker.cpp
 #	    cuimg/tracking2/opencv_tracker.cpp
-#	    cuimg/tracking2/opencv_klttracker.cpp
+	    cuimg/tracking2/opencv_klttracker.cpp
             )
 
 ADD_LIBRARY(cuimg ${SOURCES})
