@@ -287,7 +287,7 @@ namespace cuimg
     __host__ __device__ inline
     void operator()(i_int2 p)
     {
-      if (mask_(p))
+      if (mask_(p) != 0)
 	saliency_(p) = fast::compute_saliency(p, input_, n_, fast_th_, architecture());
     }
 
