@@ -2,6 +2,8 @@
 CUIMG An Image and Video Processing Library
 ================================
 
+Note: This project is not active anymore. It has been rewritten with c++14 (but without
+CUDA support). Check the [iod](https://github.com/matt-42/iod) library
 
 CUIMG is a library for image and video processing. It is released under the GPLv3 licence.
 It targets GPUs with CUDA, and CPUs with the C++0x language.
