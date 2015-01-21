@@ -8,7 +8,8 @@ ADD_DEFINITIONS(-std=c++0x)
 #ADD_DEFINITIONS(-g)
 ADD_DEFINITIONS(-std=c++0x -fopenmp -DNDEBUG -DNO_CUDA -DWITH_OPENCV -Ofast -O3 -funroll-loops -march=native)
 
-include_directories(${CMAKE_SOURCE_DIR}/../..)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/../..)
+INCLUDE_DIRECTORIES(/usr/include/eigen3)
 SET(sources main.cc)
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
